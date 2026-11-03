@@ -1,31 +1,31 @@
 # VEILWARD: THE BROKEN SKY
 
-## Hollowreach — playable prototype foundation v0.1
+## Hollowreach — live prototype v0.2.1 (illustrated graphics update)
 
-A **first playable engineering and visual-art pass** of an original open-world, top-down fantasy RPG. This repository is the user's GitHub Pages project; it is intentionally free of paid hosting, external libraries and online gameplay services.
+**Hosted through the user's GitHub Pages repository:** https://hdog960.github.io/Vielward/
 
-**Important:** The creator's user-supplied snowy 3/4-view artwork remains our golden art benchmark. The current runtime renders its **own procedural pixel-style graphics** and is **not yet the finished graphical quality** approved for the prototype. This build is the foundation, not the completed vertical slice.
+This release replaces the previous procedural-looking play areas with actual illustrated Hollowreach, Greenwood, forge and cave scenes based on the approved concept direction. It also introduces alpha-cutout character animation/action poses, a richer HUD, ambient light glows, new area and interior placement, and versioned cache refresh. It is a genuine interactive browser build; the scenes and actors are rendered in the real game Canvas and existing mechanics still operate.
 
-### Playing
+### What is playable
+- Four connected areas: winter village, green forest, illustrated blacksmith interior and ancient cave.
+- iPhone landscape touch joystick, attack, spell, dodge, interaction, potions; WASD/keyboard option.
+- Blacksmith quest and missing supplies, inn rest/merchants, gathering, enemy encounters, journal, gold, experience and local saves.
+- Direction and quest updates as player travels between scenes.
+- No paid game engine, Vercel, backend, API, or account requirement.
 
-On GitHub Pages, open the site in iPhone Safari, rotate to landscape, and tap **Enter Hollowreach**. Use the virtual joystick and the attack, spell, dodge, talk, and potion controls. Desktop controls: WASD, E interact, Space attack, Q spell, Shift dodge, I inventory, H potion.
+### Controls
+On iPhone Safari, rotate to landscape; use left thumb joystick and the right-hand action circles. Keyboard: WASD/arrow keys move, E/F interact, Space/J attack, Q/K spell, Shift dodge, I inventory, H potion.
 
-Talk to the blacksmith Joren, travel east from Hollowreach village through Greenwood, fight the bandits, explore Smuggler's Cave to recover the stolen supplies, then investigate the strange Worldscar. You can also gather blueleaf, trade with the innkeeper, rest, purchase an improved sword, and save your progress.
+### Art implementation and limits
+The current visuals are **illustrated static scene plates with movable foreground characters**, not yet a world assembled from collision-aware modular tiles. Background villagers and environmental effects painted into the source scenes are not independently simulated characters. The player and several NPC/enemy actors are separate transparent sprites and can be animated or interacted with as game logic permits. The hero atlas currently reuses distinct attack/cast/dodge poses; a true direction-based frame-by-frame sprite animation system is still outstanding.
 
-### Implemented in the first code pass
+The art quality gate remains open; future passes will need full tileability, correct roof/cliff occlusion, animated rivers/fire, improved hitboxes, independent props and actors, detailed interiors, camera and UI QA on physical iPhone. Never claim the game matches the final screenshot quality until the creator approves actual gameplay screenshots. See ART_DIRECTION.md and PROTOTYPE_ROADMAP.md for acceptance criteria.
 
-- Three traversable maps: snowy village, forest, and cave, with camera, environmental details, simple collision and transitions.
-- Canvas-rendered pixel-style scenery and character shapes, water, roads, elevated timber houses, snow pines, bridges and lanterns.
-- Keyboard and mobile touch controls, sword combat, ranged spell attacks, dodge, enemy HP/telegraphs and three enemy types.
-- NPC interaction and dialogue, introductory quest, environmental Worldscar, inventory, journal, mini-map menu, XP/leveling, healing and gold.
-- Local autosave and manual save; standalone PWA metadata with network-first offline fallback.
+### GitHub Pages
+For the repository `hdog960/Vielward`, Pages should serve `main` from `/(root)`. After publishing, open https://hdog960.github.io/Vielward/. The in-game game title is `Veilward`; repository spelling is `Vielward`.
 
-### Not finished
+### Cache notes
+The service worker uses network-first caching and v0.2.1 cache names. Online users should receive the updated build on the next load. If an installed home-screen copy shows old artwork, fully close and reopen once while online (or visit the Pages URL in Safari).
 
-Hand-authored sprite/terrain asset sheets, true frame animation, sophisticated collision and AI, enterable interiors, NPC schedules, branching quests, smithing, alchemy and cooking, full crafting, expanded roleplay choices, high-fidelity lighting, sound design, phone-device performance tests and the fully polished 30–60-minute vertical slice remain upcoming. **Do not consider the prototype finished until the user has reviewed and approved the in-game visual standard.**
-
-See [ART_BENCHMARK.md](ART_BENCHMARK.md) for the nonnegotiable visual quality gate.
-
-### GitHub Pages setup
-
-Under **Settings → Pages**, choose **Deploy from a branch**, select **main** and **/(root)**, then save. The playable URL normally takes the form `https://hdog960.github.io/Vielward/` after GitHub Pages finishes publishing. The repository's displayed name `Vielward` is retained; the game title is spelled **Veilward**.
+## Status
+Graphics update committed. Basic runtime interaction and save tests passed in code-level simulations; final device screenshots, touch testing and full level playthrough are not yet independently verified.
