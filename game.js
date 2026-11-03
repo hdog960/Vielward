@@ -31,29 +31,36 @@ function save(silent=false){try{p.lastSave=Date.now();localStorage.setItem(SAVE,
 function load(){try{let v=JSON.parse(localStorage.getItem(SAVE));if(v&&v.zone&&C[v.zone])p={...JSON.parse(JSON.stringify(DEFAULT)),...v,skills:{...DEFAULT.skills,...(v.skills||{})}}}catch(e){}}
 function reset(){localStorage.removeItem(SAVE);p=JSON.parse(JSON.stringify(DEFAULT));setup();closeAll();notify("A new journey begins")}
 function newEnemy(x,y,type,zone){return{x,y,homeX:x,homeY:y,type,zone,hp:type==="bandit"?70:type==="wraith"?95:40,max:type==="bandit"?70:type==="wraith"?95:40,atk:0,wind:0,stun:0,dead:false,dir:1,step:0,loot:false}}
-function setup(){enemies={village:[],wilds:[
-newEnemy(575,490,"wolf","wilds"),newEnemy(850,780,"wolf","wilds"),newEnemy(1260,730,"bandit","wilds"),newEnemy(1490,420,"wolf","wilds")],cave:[
-newEnemy(580,510,"bandit","cave"),newEnemy(1080,655,"bandit","cave"),newEnemy(1410,420,"wraith","cave")]};
+function setup(){
+enemies={village:[],wilds:[
+newEnemy(745,720,"wolf","wilds"),newEnemy(970,430,"wolf","wilds"),
+newEnemy(1245,667,"bandit","wilds"),newEnemy(1480,850,"wolf","wilds")],
+cave:[newEnemy(1050,670,"bandit","cave"),newEnemy(1425,650,"bandit","cave"),
+newEnemy(1510,435,"wraith","cave")],forge:[]};
 npc=[
-{id:"joren",name:"Joren · Blacksmith",zone:"village",x:1055,y:666,homeX:1055,homeY:666,color:"#9b6244",role:"forge"},
-{id:"mira",name:"Mira · Innkeeper",zone:"village",x:1460,y:664,homeX:1460,homeY:664,color:"#987db7",role:"inn"},
-{id:"eldric",name:"Eldric · Hunter",zone:"village",x:566,y:722,homeX:566,homeY:722,color:"#547f65",role:"hunter"},
-{id:"guard",name:"Warden Hal",zone:"village",x:1180,y:869,homeX:1180,homeY:869,color:"#6d87ae",role:"guard"},
-{id:"hermit",name:"The Green Hermit",zone:"wilds",x:390,y:740,homeX:390,homeY:740,color:"#5f9771",role:"hermit"}];
+{id:"joren",name:"Joren · Blacksmith",zone:"village",x:1495,y:435,homeX:1495,homeY:435,color:"#9b6244",role:"forge"},
+{id:"mira",name:"Mira · Innkeeper",zone:"village",x:343,y:376,homeX:343,homeY:376,color:"#987db7",role:"inn"},
+{id:"eldric",name:"Eldric · Hunter",zone:"village",x:590,y:650,homeX:590,homeY:650,color:"#547f65",role:"hunter"},
+{id:"guard",name:"Warden Hal",zone:"village",x:1132,y:284,homeX:1132,homeY:284,color:"#6d87ae",role:"guard"},
+{id:"hermit",name:"The Green Hermit",zone:"wilds",x:1310,y:536,homeX:1310,homeY:536,color:"#5f9771",role:"hermit"},
+{id:"jorenInside",name:"Joren · Master Smith",zone:"forge",x:1190,y:624,homeX:1190,homeY:624,color:"#9b6244",role:"forge"}];
 objects=[
-{zone:"village",type:"portal",x:1745,y:720,to:"wilds",tx:145,ty:720,label:"Eastern Trail"},
-{zone:"wilds",type:"portal",x:95,y:720,to:"village",tx:1675,ty:720,label:"Hollowreach Village"},
-{zone:"wilds",type:"portal",x:1610,y:340,to:"cave",tx:220,ty:920,label:"Smuggler's Cave"},
-{zone:"cave",type:"portal",x:155,y:980,to:"wilds",tx:1530,ty:390,label:"Greenwood Trail"},
-{zone:"village",type:"board",x:900,y:870,label:"Notice Board"},
-{zone:"wilds",type:"herb",x:690,y:375,label:"Blueleaf Sprig"},
-{zone:"wilds",type:"herb",x:1050,y:1010,label:"Blueleaf Sprig"},
-{zone:"wilds",type:"scar",x:1240,y:270,label:"Shimmering Worldscar"},
-{zone:"cave",type:"chest",x:1260,y:760,label:"Bandit Supplies"}];
+{zone:"village",type:"portal",x:1745,y:655,to:"wilds",tx:845,ty:695,label:"Eastern Trail"},
+{zone:"village",type:"portal",x:1335,y:545,to:"forge",tx:825,ty:785,label:"Enter the Forge"},
+{zone:"village",type:"board",x:385,y:572,label:"Hollowreach Notices"},
+{zone:"forge",type:"portal",x:823,y:945,to:"village",tx:1240,ty:635,label:"Leave the Forge"},
+{zone:"wilds",type:"portal",x:612,y:1048,to:"village",tx:1620,ty:655,label:"Return to Hollowreach"},
+{zone:"wilds",type:"portal",x:1707,y:723,to:"cave",tx:370,ty:778,label:"Smuggler's Cave"},
+{zone:"wilds",type:"herb",x:485,y:812,label:"Blueleaf Sprig"},
+{zone:"wilds",type:"herb",x:1110,y:1052,label:"Blueleaf Sprig"},
+{zone:"wilds",type:"scar",x:1465,y:384,label:"Shimmering Worldscar"},
+{zone:"cave",type:"portal",x:280,y:803,to:"wilds",tx:1580,ty:751,label:"Greenwood Trail"},
+{zone:"cave",type:"chest",x:365,y:575,label:"Bandit Supplies"}];
 if(p.herbs)objects.filter(o=>o.type==="herb").slice(0,p.herbs).forEach(o=>o.taken=true);
 if(p.supplies)objects.find(o=>o.type==="chest").taken=true;
 if(p.zone==="cave"&&p.quest>=3)enemies.cave.forEach(e=>{if(e.type==="bandit")e.dead=true});
-updateUI()}
+updateUI()
+}
 function generate(zone){
 const visual=window.VeilwardArt?.background(zone);
 if(visual){
