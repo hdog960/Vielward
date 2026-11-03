@@ -23,7 +23,7 @@
 #dialog h2,#inventory h2,#pause h2{font-size:21px;letter-spacing:.5px;color:#f4d69e;text-shadow:0 2px #080b14}
 .choice,.tab,.menuBtn{border:1px solid #b69561;background:linear-gradient(#334258,#151e33);box-shadow:inset 0 0 0 1px #514b4e;border-radius:4px;color:#eee1c2}
 .tab.selected{background:linear-gradient(#554a44,#29283c);border-color:#f0cd8c}
-#start{border:2px solid #e0b972;box-shadow:0 0 0 100vmax #030714dd,0 0 0 3px #080e20,0 0 0 4px #98774d,0 20px 70px #000c;background:linear-gradient(115deg,#0c1529f5,#0c182ad8),url("./assets/village.jpg?v=2") center/cover no-repeat}
+#start{border:2px solid #e0b972;box-shadow:0 0 0 100vmax #030714dd,0 0 0 3px #080e20,0 0 0 4px #98774d,0 20px 70px #000c;background:linear-gradient(115deg,#0c1529f5,#0c182ad8),url("./assets/village.jpg?art=3") center/cover no-repeat}
 #start .sigil{color:#a4c6ff;font-size:30px;text-shadow:0 0 20px #9ebffe}
 #start h1{font-size:clamp(32px,5vw,54px);letter-spacing:5px;color:#ffe1a3;text-shadow:0 2px #0a1524,0 0 17px #151e32}
 #start h3{color:#c5d3ed;letter-spacing:4px}
