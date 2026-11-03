@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#111923"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>VEILWARD — The Broken Sky</title>
+<style>
+:root{--ink:#101720;--panel:rgba(14,23,34,.93);--gold:#d7b77a;--bone:#f0e2c4;--muted:#a2a99f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;background:#090f16;color:var(--bone);font:14px/1.35 Georgia,serif;touch-action:none;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;cursor:pointer}#game{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;background:#102234}#shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.45),transparent 19%,transparent 75%,rgba(0,0,0,.38))}
+#hud{position:absolute;inset:0;pointer-events:none}#hud>*{pointer-events:auto}.panel{border:2px solid #6a563c;box-shadow:inset 0 0 0 1px #d2ad6d,0 4px 24px #000a;background:linear-gradient(145deg,rgba(26,37,48,.97),rgba(8,14,21,.96));border-radius:5px}
+#status{position:absolute;top:max(9px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));width:180px;padding:9px 12px}
+#status .name{font-size:15px;font-weight:bold;color:#f2d69b;text-shadow:0 2px #000;letter-spacing:1px;white-space:nowrap}#status .level{font:11px system-ui;color:#aaa;float:right}
+.bar{height:9px;border:1px solid #766d5c;margin-top:6px;background:#17232a;box-shadow:inset 0 1px 3px #000;position:relative;overflow:hidden}.bar>i{height:100%;display:block;transition:width .2s}.bar.hp>i{background:linear-gradient(#db6559,#8f2836)}.bar.mp>i{background:linear-gradient(#78addd,#275a98)}.bar.st>i{background:linear-gradient(#bfdc8d,#6c9a4b)}
+#location{position:absolute;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);min-width:200px;text-align:center;padding:7px 18px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#e9d09b;background:linear-gradient(90deg,transparent,#080f18dd 18%,#080f18dd 82%,transparent);text-shadow:0 2px 2px black}
+#topActions{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));display:flex;gap:6px}
+.mini{font-size:18px;width:38px;height:38px;border-radius:4px;border:1px solid #ae8e58;background:#172533e8;box-shadow:0 2px 7px #0007}.mini:active,.control:active{transform:scale(.94);filter:brightness(1.25)}
+#quest{position:absolute;left:max(10px,env(safe-area-inset-left));top:101px;max-width:205px;padding:8px 11px;font:11px/1.4 system-ui;background:rgba(10,20,25,.78);border-left:2px solid #d7b77a;text-shadow:0 1px #000;pointer-events:none}#quest b{font:13px Georgia;color:#e9ce91}#quest p{margin:3px 0;color:#cbd4d0}
+#hint{position:absolute;left:50%;transform:translateX(-50%);bottom:17%;text-align:center;padding:6px 13px;max-width:72%;font:12px system-ui;color:#f3e4be;background:#090e15bb;border:1px solid #866e49;border-radius:3px;pointer-events:none;display:none}
+#toast{position:absolute;top:20%;left:50%;transform:translateX(-50%);padding:8px 18px;color:#ffebad;background:#152029ef;border:1px solid #a18b63;border-radius:3px;display:none;font-size:13px;text-align:center;pointer-events:none}
+#move{position:absolute;left:max(13px,env(safe-area-inset-left));bottom:max(15px,env(safe-area-inset-bottom));width:124px;height:124px;border-radius:100%;border:2px solid #91a4a588;background:radial-gradient(circle,#1e344464 0 20%,#10182388 21% 65%,#46566654 66%);box-shadow:0 0 0 5px #07131a55;touch-action:none;display:flex;align-items:center;justify-content:center}
+#knob{width:49px;height:49px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#a4a9a0,#526573 60%,#263748);border:2px solid #ceb585;box-shadow:0 4px 12px #0008;pointer-events:none}
+#actions{position:absolute;right:max(10px,env(safe-area-inset-right));bottom:max(17px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(3,54px);gap:6px;align-items:center;justify-items:center}
+.control{width:54px;height:54px;background:radial-gradient(circle at 30% 20%,#405264,#19232e 70%);border:2px solid #aa8b5f;border-radius:50%;box-shadow:inset 0 0 0 2px #1d2a32,0 4px 9px #000b;color:#f5deb0;font-size:23px;touch-action:none}
+.control small{display:block;font:9px system-ui;color:#e4d3ab}.control.primary{width:67px;height:67px;grid-row:1/3;grid-column:3;border-color:#e3b66b;background:radial-gradient(#685240,#222c36 70%)}
+#dialog,#inventory,#pause,#start{position:absolute;z-index:20;left:50%;top:50%;transform:translate(-50%,-50%);width:min(550px,calc(100vw - 36px));max-height:90vh;overflow:auto;padding:20px 22px;display:none;touch-action:pan-y}#dialog h2,#inventory h2,#pause h2{margin:0 0 10px;font-size:21px;color:#eacb8d}#dialog p,#inventory p{line-height:1.5}#dialog .choices{display:flex;flex-direction:column;gap:7px;margin-top:15px}
+.choice,.tab,.menuBtn{border:1px solid #837050;background:linear-gradient(#283a47,#17222c);padding:10px;text-align:left;border-radius:3px;min-height:40px}.choice:active,.menuBtn:active{background:#42515c}
+#inventory{width:min(650px,calc(100vw - 32px));}#inventory .tabs{display:flex;gap:5px;margin-bottom:9px;flex-wrap:wrap}.tab{padding:7px 12px;font-size:12px}.tab.selected{border-color:#ddbd7d;background:#3c4550}
+.item{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #46505a;padding:7px 4px;font:12px system-ui}.item b{color:#e3ceaa}.item button{border:1px solid #ac905c;background:#273745;padding:5px 9px;border-radius:3px}
+#inventoryBody{max-height:48vh;overflow:auto;touch-action:pan-y}.close{float:right;background:transparent;border:0;font-size:24px;color:#dfc58f;margin:-8px -10px 0 0}
+#start{display:flex;flex-direction:column;text-align:center;align-items:center;justify-content:center;min-height:250px;background:linear-gradient(140deg,#15212be8,#0c1522f3),repeating-linear-gradient(90deg,#8c785a33 0 2px,transparent 2px 20px);box-shadow:0 0 0 100vmax #06101abc;border-color:#c3a36f}
+#start .sigil{font-size:33px;color:#9db8dd}#start h1{font-size:clamp(29px,6vw,48px);letter-spacing:5px;margin:0;color:#f0dab0;text-shadow:0 3px #080d15}#start h3{font-size:12px;letter-spacing:5px;margin:0 0 15px;color:#b9c9d9}#start p{font:13px/1.7 system-ui;max-width:430px;color:#d2d7ce}#start .menuBtn{margin-top:9px;text-align:center;min-width:230px;color:#f1deb3}
+#pause{max-width:400px}#pause .menuBtn{width:100%;margin:7px 0;text-align:center}#rotate{display:none;position:absolute;inset:0;z-index:50;background:#0b131d;padding:30px;text-align:center;align-items:center;justify-content:center;color:#f2dbaa}
+@media (orientation:portrait) and (max-width:750px){#rotate{display:flex}#start{max-height:80vh;overflow:auto}}
+@media (max-height:470px){#status{transform:scale(.84);transform-origin:top left}#quest{top:79px;transform:scale(.91);transform-origin:top left}#move{width:107px;height:107px}#knob{width:42px;height:42px}#actions{grid-template-columns:repeat(3,48px);gap:5px}.control{width:48px;height:48px}.control.primary{width:60px;height:60px}#hint{bottom:11%}#dialog,#inventory,#pause{padding:12px 16px}#inventoryBody{max-height:43vh}}
+@media (pointer:fine){#move{opacity:.35}#actions{opacity:.72}}
+</style></head><body>
+<canvas id="game"></canvas><div id="shade"></div>
+<div id="hud">
+<div id="status" class="panel"><span class="name">THE WANDERER</span><span id="level" class="level">LV 1</span><div class="bar hp"><i id="hp"></i></div><div class="bar mp"><i id="mp"></i></div><div class="bar st"><i id="st"></i></div></div>
+<div id="location">Hollowreach • Frostbound Village</div><div id="topActions"><button class="mini" id="mapBtn" title="Map">◈</button><button class="mini" id="bagBtn" title="Inventory">♜</button><button class="mini" id="pauseBtn" title="Menu">☰</button></div>
+<div id="quest"><b id="questTitle">A Cold Welcome</b><p id="questText">Speak to the village blacksmith.</p></div>
+<div id="hint"></div><div id="toast"></div>
+<div id="move"><div id="knob"></div></div>
+<div id="actions"><button class="control" id="spellBtn">✦<small>Spell</small></button><button class="control" id="interactBtn">✋<small>Talk</small></button><button class="control primary" id="attackBtn">⚔<small>Strike</small></button><button class="control" id="dodgeBtn">➶<small>Dodge</small></button><button class="control" id="potionBtn">♥<small>Potion</small></button></div>
+</div>
+<section id="dialog" class="panel"><button class="close" id="closeDialog">×</button><h2 id="dialogTitle"></h2><p id="dialogText"></p><div id="choices" class="choices"></div></section>
+<section id="inventory" class="panel"><button class="close" id="closeInventory">×</button><h2>Adventurer's Journal</h2><div id="tabs" class="tabs"><button class="tab selected" data-tab="pack">Satchel</button><button class="tab" data-tab="skills">Skills</button><button class="tab" data-tab="journal">Quests</button><button class="tab" data-tab="map">Map</button></div><div id="inventoryBody"></div></section>
+<section id="pause" class="panel"><button class="close" id="closePause">×</button><h2>Journey Menu</h2><p>The Broken Sky • Hollowreach prototype v0.1</p><button class="menuBtn" id="saveBtn">Save Journey</button><button class="menuBtn" id="resetBtn">Begin a New Journey</button><button class="menuBtn" id="resumeBtn">Continue Exploring</button><p style="font-size:11px;color:#afb8ae">Your journey autosaves locally on this device. No account, advertisements, or online services.</p></section>
+<section id="start" class="panel"><div class="sigil">✦ ◇ ✦</div><h1>VEILWARD</h1><h3>THE BROKEN SKY</h3><p>Beyond the frostbound pines, Hollowreach keeps its secrets. Explore a living frontier, aid its people, and follow the trail of a lost hunter.</p><button id="beginBtn" class="menuBtn">ENTER HOLLOWREACH</button><p style="font-size:11px">Touch controls or WASD · E interact · Space attack · Q spell · Shift dodge · I inventory</p></section>
+<div id="rotate">↻<br>Rotate your iPhone to landscape for the best view of Hollowreach.</div>
+<script src="./game.js"></script>
+</body></html>
