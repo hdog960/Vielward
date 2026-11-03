@@ -1,6 +1,6 @@
 /* Veilward v0.2 — update-safe offline shell. Network first; previous caches are purged. */
-const CACHE="veilward-hollowreach-v02-art";
-const FILES=["./","./index.html","./game.js?v=2","./visual.js?v=2","./visual.css?v=2","./manifest.webmanifest","./icon.svg","./assets/village.jpg?v=2","./assets/wilds.jpg?v=2","./assets/forge.jpg?v=2","./assets/cave.jpg?v=2","./assets/actors.webp?v=2"];
+const CACHE="veilward-hollowreach-v021-art";
+const FILES=["./","./index.html","./game.js?v=3","./visual.js?v=3","./visual.css?v=3","./manifest.webmanifest","./icon.svg","./assets/village.jpg?v=3","./assets/wilds.jpg?v=3","./assets/forge.jpg?v=3","./assets/cave.jpg?v=3","./assets/actors.webp?v=3"];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("veilward-")&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",event=>{if(event.request.method!=="GET"||new URL(event.request.url).origin!==location.origin)return;event.respondWith(fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(c=>c.put(event.request,copy)).catch(()=>{})}return response}).catch(()=>caches.match(event.request)))})
