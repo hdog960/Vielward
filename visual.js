@@ -15,7 +15,7 @@
     else {scenes[name]=img;window.dispatchEvent(new CustomEvent("veilward-art-loaded",{detail:name}))}
   };
   img.onerror=()=>console.warn("Veilward art load failed",src);
-  img.src=BASE+src+"?art=2";
+  img.src=BASE+src+"?art=3";
  }
  for(const [name,src] of Object.entries(maps))load(name,src,false);
  load("actors","actors.webp",true);
@@ -34,8 +34,8 @@
   else if(att>0)n=2;
   else if(state&&state.moving)n=1;
   else n=0;
-  let width=kind==="wolf"?132:kind==="wraith"?145:kind==="bandit"?119:kind.startsWith("npc_")?117:112;
-  let height=kind==="wolf"?110:kind==="wraith"?116:kind==="bandit"?110:kind.startsWith("npc_")?110:102;
+  let width=kind==="wolf"?175:kind==="wraith"?166:kind==="bandit"?171:kind==="npc_forge"?186:kind.startsWith("npc_")?164:230;
+  let height=kind==="wolf"?135:kind==="wraith"?145:kind==="bandit"?155:kind==="npc_forge"?170:kind.startsWith("npc_")?155:210;
   let fx=(n%4)*FRAME_W,fy=Math.floor(n/4)*FRAME_H;
   c.save();
   const moving=state&&state.moving&&!kind.startsWith("npc_");
@@ -88,5 +88,5 @@
   }
   return false;
  }
- window.VeilwardArt={background,actor,glows,blocked,version:"0.2.0"};
+ window.VeilwardArt={background,actor,glows,blocked,ready:()=>!!(scenes.village&&actors&&actors.complete&&actors.naturalWidth),version:"0.2.1"};
 })();
