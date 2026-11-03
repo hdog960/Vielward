@@ -1,0 +1,299 @@
+/* VEILWARD: The Broken Sky — Hollowreach playable foundation v0.1.
+   Original canvas-drawn procedural pixel scenery; no external asset, API, or framework.
+   This is the FIRST playable engineering/art pass, not approved final-quality sprite art. */
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
+let vw=innerWidth,vh=innerHeight,last=0,terrainCache={},decorCache={},active=false,modal=false,toastTime=0,hint="",shake=0,night=0;
+const WORLD={w:1850,h:1200};let cam={x:0,y:0},keys={},joy={x:0,y:0,pid:null},effects=[],projectiles=[],particles=[],weather=[];
+const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",label:"Hollowreach · Frostbound Village"},
+ wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
+ cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"}};
+const SAVE="veilward-hollowreach-v01";
+const DEFAULT={zone:"village",x:795,y:730,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
+let p=JSON.parse(JSON.stringify(DEFAULT)),enemies={village:[],wilds:[],cave:[]},npc=[],objects=[],worldTime=0,invTab="pack",attacks=[],autosaveClock=0;
+function rand(seed){let x=Math.sin(seed*127.1+78.233)*43758.5453;return x-Math.floor(x)}
+function rng(n){return rand(n*1.931+0.321)}
+function rr(x){return Math.floor(x)}
+function rect(c,x,y,w,h,color){c.fillStyle=color;c.fillRect(rr(x),rr(y),Math.ceil(w),Math.ceil(h))}
+function poly(c,points,fill,stroke){c.beginPath();c.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)c.lineTo(points[i][0],points[i][1]);c.closePath();if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=1;c.stroke()}}
+function stroke(c,points,w,color){c.beginPath();c.moveTo(...points[0]);points.slice(1).forEach(t=>c.lineTo(...t));c.strokeStyle=color;c.lineWidth=w;c.lineJoin="round";c.lineCap="round";c.stroke()}
+function circle(c,x,y,r,color){c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fillStyle=color;c.fill()}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function imgText(c,t,x,y,size=12,color="#f0e4c7",align="center"){c.font="bold "+size+"px Georgia";c.textAlign=align;c.strokeStyle="#15202a";c.lineWidth=3;c.strokeText(t,x,y);c.fillStyle=color;c.fillText(t,x,y)}
+function resize(){vw=innerWidth;vh=innerHeight;cv.width=vw;cv.height=vh;g.imageSmoothingEnabled=false}
+addEventListener("resize",resize);resize();
+function notify(s){$("toast").textContent=s;$("toast").style.display="block";toastTime=2.7}
+function setHint(s){hint=s;$("hint").textContent=s;$("hint").style.display=s?"block":"none"}
+function save(silent=false){try{p.lastSave=Date.now();localStorage.setItem(SAVE,JSON.stringify(p));if(!silent)notify("Journey saved at Hollowreach")}catch(e){if(!silent)notify("Saving is unavailable in this browser")}}
+function load(){try{let v=JSON.parse(localStorage.getItem(SAVE));if(v&&v.zone&&C[v.zone])p={...JSON.parse(JSON.stringify(DEFAULT)),...v,skills:{...DEFAULT.skills,...(v.skills||{})}}}catch(e){}}
+function reset(){localStorage.removeItem(SAVE);p=JSON.parse(JSON.stringify(DEFAULT));setup();closeAll();notify("A new journey begins")}
+function newEnemy(x,y,type,zone){return{x,y,homeX:x,homeY:y,type,zone,hp:type==="bandit"?70:type==="wraith"?95:40,max:type==="bandit"?70:type==="wraith"?95:40,atk:0,wind:0,stun:0,dead:false,dir:1,step:0,loot:false}}
+function setup(){enemies={village:[],wilds:[
+newEnemy(575,490,"wolf","wilds"),newEnemy(850,780,"wolf","wilds"),newEnemy(1260,730,"bandit","wilds"),newEnemy(1490,420,"wolf","wilds")],cave:[
+newEnemy(580,510,"bandit","cave"),newEnemy(1080,655,"bandit","cave"),newEnemy(1410,420,"wraith","cave")]};
+npc=[
+{id:"joren",name:"Joren · Blacksmith",zone:"village",x:1055,y:666,homeX:1055,homeY:666,color:"#9b6244",role:"forge"},
+{id:"mira",name:"Mira · Innkeeper",zone:"village",x:1460,y:664,homeX:1460,homeY:664,color:"#987db7",role:"inn"},
+{id:"eldric",name:"Eldric · Hunter",zone:"village",x:566,y:722,homeX:566,homeY:722,color:"#547f65",role:"hunter"},
+{id:"guard",name:"Warden Hal",zone:"village",x:1180,y:869,homeX:1180,homeY:869,color:"#6d87ae",role:"guard"},
+{id:"hermit",name:"The Green Hermit",zone:"wilds",x:390,y:740,homeX:390,homeY:740,color:"#5f9771",role:"hermit"}];
+objects=[
+{zone:"village",type:"portal",x:1745,y:720,to:"wilds",tx:145,ty:720,label:"Eastern Trail"},
+{zone:"wilds",type:"portal",x:95,y:720,to:"village",tx:1675,ty:720,label:"Hollowreach Village"},
+{zone:"wilds",type:"portal",x:1610,y:340,to:"cave",tx:220,ty:920,label:"Smuggler's Cave"},
+{zone:"cave",type:"portal",x:155,y:980,to:"wilds",tx:1530,ty:390,label:"Greenwood Trail"},
+{zone:"village",type:"board",x:900,y:870,label:"Notice Board"},
+{zone:"wilds",type:"herb",x:690,y:375,label:"Blueleaf Sprig"},
+{zone:"wilds",type:"herb",x:1050,y:1010,label:"Blueleaf Sprig"},
+{zone:"wilds",type:"scar",x:1240,y:270,label:"Shimmering Worldscar"},
+{zone:"cave",type:"chest",x:1260,y:760,label:"Bandit Supplies"}];
+if(p.herbs)objects.filter(o=>o.type==="herb").slice(0,p.herbs).forEach(o=>o.taken=true);
+if(p.supplies)objects.find(o=>o.type==="chest").taken=true;
+if(p.zone==="cave"&&p.quest>=3)enemies.cave.forEach(e=>{if(e.type==="bandit")e.dead=true});
+updateUI()}
+function generate(zone){
+const t=document.createElement("canvas");t.width=WORLD.w;t.height=WORLD.h;const c=t.getContext("2d");c.imageSmoothingEnabled=false;
+const z=C[zone];rect(c,0,0,WORLD.w,WORLD.h,z.ground);
+for(let i=0;i<56000;i++){let x=rng(i+5+zone.length*1000)*WORLD.w,y=rng(i+100004+zone.length*3000)*WORLD.h,d=rng(i+84000),col=zone==="village"?(d>.72?"#a4b6c9":d>.3?"#758b9e":"#647b93"):zone==="wilds"?(d>.76?"#7c9971":d>.31?"#527c58":"#315b48"):(d>.68?"#70787c":d>.4?"#383f48":"#62676a");rect(c,x,y,1+rng(i+4)*3,1+rng(i+7)*2,col)}
+if(zone==="village"){
+// Icy stream carving the southwest edge, complete with a bridge crossing.
+const river=[[15,475],[100,572],[175,670],[225,790],[310,908],[410,1042],[470,1200]];
+stroke(c,river,208,"#485c73");stroke(c,river,178,"#264765");stroke(c,river,130,"#285679");stroke(c,river,95,"#36708c");
+for(let i=0;i<340;i++){let x=30+rng(i+144)*520,y=480+rng(i+94)*720;if(Math.abs(y-(x*1.15+430))<105){rect(c,x,y,3+rng(i+20)*18,1+rng(i+28)*4,"#a1c6d3")}}
+const roads=[[[380,715],[750,725],[1080,745],[1440,727],[1830,720]],[[800,740],[840,570],[970,460],[1140,340]],[[1325,760],[1330,980]],[[700,720],[440,850]]];
+roads.forEach(a=>{stroke(c,a,142,"#8793a2");stroke(c,a,128,"#aab4c0");stroke(c,a,110,"#b7bfca");stroke(c,a,93,"#afb8c2")});
+for(let i=0;i<2800;i++){let x=300+rng(i+209)*1470,y=330+rng(i+707)*750;if((Math.abs(y-720)<78)||(Math.abs(x-820)<76&&y<780)){rect(c,x,y,2+rng(i+34)*5,1+rng(i+89)*4,rng(i+551)>.5?"#798999":"#dbe4eb")}}
+drawBridge(c,370,840); // river crossing
+for(let i=0;i<290;i++){let x=rng(i+133)*WORLD.w,y=rng(i+532)*WORLD.h;if(y>300&&y<1000&&x>330&&x<1540)continue;drawSnowPatch(c,x,y,8+rng(i+234)*22)}
+}else if(zone==="wilds"){
+const river=[[245,-30],[300,125],[260,280],[390,510],[410,780],[535,940],[600,1230]];
+stroke(c,river,165,"#294e50");stroke(c,river,132,"#296780");stroke(c,river,104,"#4285a0");stroke(c,river,92,"#36768c");
+for(let i=0;i<300;i++){let x=190+rng(i+43)*440,y=rng(i+120)*1200;if(Math.abs(x-(270+y*.24))<85)rect(c,x,y,4+rng(i+22)*16,1+rng(i+44)*5,"#a0c9c4")}
+const roads=[[[30,710],[410,700],[710,620],[980,670],[1270,540],[1660,315]],[[920,660],[1110,940],[1660,990]]];
+roads.forEach(a=>{stroke(c,a,118,"#5c7654");stroke(c,a,91,"#998a69");stroke(c,a,73,"#b7a17b");stroke(c,a,62,"#a79574")});
+drawBridge(c,388,713); 
+for(let i=0;i<700;i++){let x=rng(i+1028)*WORLD.w,y=rng(i+4525)*WORLD.h;if(rng(i+21)>.6){circle(c,x,y,2+rng(i+65)*7,rng(i+19)>.5?"#486a43":"#72895d");if(rng(i+55)>.6)rect(c,x,y,2,3,"#d0a77a")}}
+}else{
+// Stone floor with large organic cracks, broken floor plates and cavern voids.
+for(let i=0;i<1150;i++){let x=rng(i+42)*WORLD.w,y=rng(i+66)*WORLD.h,w=10+rng(i+331)*70,h=6+rng(i+716)*32;rect(c,x,y,w,h,rng(i+9)>.55?"#575d63":"#505760");rect(c,x,y,w,2,"#7d8080")}
+for(let i=0;i<80;i++){let x=rng(i+461)*WORLD.w,y=rng(i+662)*WORLD.h;stroke(c,[[x,y],[x+15,y+4],[x+24,y+15]],1+rng(i+3)*2,"#292e39")}
+}
+terrainCache[zone]=t;
+decorCache[zone]=createDecor(zone);
+}
+function drawSnowPatch(c,x,y,r){circle(c,x,y,r,"#b5c5d5");circle(c,x+3,y-3,r*.7,"#d1daea");for(let i=0;i<8;i++)rect(c,x-r+rng(i+x)*r*2,y-r+rng(i+y)*r*2,2,2,"#e7eaf0")}
+function drawBridge(c,x,y){
+rect(c,x-86,y-26,172,57,"#3b3b42");
+for(let i=0;i<11;i++){let xx=x-82+i*15;rect(c,xx,y-23,12,51,i%3?"#8b6950":"#a17c57");rect(c,xx+2,y-18,2,40,"#c19569")}
+for(let i=0;i<5;i++){let xx=x-85+i*43;rect(c,xx,y-36,9,83,"#594b42");rect(c,xx-2,y-43,13,9,"#d2d9df");rect(c,xx,y+36,13,6,"#e0e7ee")}
+rect(c,x-86,y-34,172,5,"#6c645e");rect(c,x-86,y+37,172,5,"#6c645e")
+}
+function createDecor(zone){let arr=[];let seed=zone==="village"?33:zone==="wilds"?87:105;
+for(let i=0;i<(zone==="cave"?125:240);i++){
+let x=60+rng(i*7+seed)*1720,y=45+rng(i*11+seed)*1090;
+if(zone==="village"&&x>300&&x<1650&&y>320&&y<980)continue;
+if(zone==="wilds"&&((Math.abs(y-700)<100)||(x>950&&x<1400&&y>380&&y<800)))continue;
+arr.push({kind:zone==="cave"?"rock":rng(i+90)>.18?"pine":"rock",x,y,s:zone==="cave"?0.5+rng(i+22):0.5+rng(i+22)*1.3,seed:i+seed})}
+if(zone==="village"){
+arr.push(...[{kind:"house",type:"forge",x:1050,y:590,w:290,h:190},{kind:"house",type:"lodge",x:530,y:590,w:275,h:188},{kind:"house",type:"inn",x:1462,y:590,w:292,h:196},{kind:"house",type:"watch",x:1175,y:300,w:158,h:158},
+{kind:"tree",x:350,y:465,s:1.1},{kind:"tree",x:615,y:350,s:1.5},{kind:"tree",x:1540,y:376,s:1.4},{kind:"tree",x:1620,y:920,s:1.2},
+{kind:"lamppost",x:720,y:672},{kind:"lamppost",x:1180,y:716},{kind:"lamppost",x:1520,y:799},{kind:"fence",x:698,y:600},{kind:"fence",x:1262,y:601},
+{kind:"sign",x:900,y:870},{kind:"well",x:720,y:897},{kind:"cart",x:1000,y:850},{kind:"woodpile",x:1230,y:930},
+{kind:"stone",x:430,y:970},{kind:"stone",x:1360,y:1000},{kind:"bush",x:610,y:886},{kind:"bush",x:1380,y:842},
+{kind:"tree",x:1660,y:510,s:1},{kind:"bush",x:833,y:950},{kind:"tree",x:200,y:350,s:1.5}]);
+for(let i=0;i<85;i++){let x=280+rng(i+860)*1400,y=340+rng(i+945)*660;if(Math.abs(y-724)<100||Math.abs(x-900)<95)continue;arr.push({kind:rng(i+14)>.72?"bush":"pine",x,y,s:.3+rng(i+126)*.35,seed:1900+i})}
+}else if(zone==="wilds"){
+arr.push(...[{kind:"stone",x:1320,y:309,s:2},{kind:"stone",x:1250,y:268,s:1.6},{kind:"stone",x:1540,y:255,s:2.1},
+{kind:"ruin",x:1210,y:305},{kind:"ruin",x:1610,y:320},{kind:"camp",x:1325,y:690},{kind:"lamppost",x:1550,y:755},{kind:"bush",x:880,y:890},{kind:"stone",x:1000,y:250,s:1.4},
+{kind:"pine",x:690,y:300,s:1.65},{kind:"tree",x:1020,y:420,s:1.3},{kind:"tree",x:1590,y:820,s:1.5},{kind:"tree",x:760,y:1000,s:1.6},
+{kind:"rock",x:800,y:450,s:2.1},{kind:"log",x:860,y:850},{kind:"rock",x:1500,y:540,s:1.4}]);
+for(let i=0;i<85;i++){let x=550+rng(i+463)*1110,y=30+rng(i+632)*1030;if(Math.abs(y-700)<100)continue;arr.push({kind:rng(i+17)>.47?"pine":"tree",x,y,s:.5+rng(i+222)*1.1,seed:1200+i})}
+}else{arr.push(...[{kind:"ruin",x:850,y:310},{kind:"ruin",x:1490,y:440},{kind:"camp",x:900,y:600},{kind:"stone",x:1420,y:790,s:2},{kind:"stone",x:1030,y:960,s:1.4}])}
+return arr.sort((a,b)=>a.y-b.y)
+}
+function drawPine(c,x,y,s=1,seed=0,green=false){
+c.save();c.translate(rr(x),rr(y));c.scale(s,s);
+circle(c,1,4,36,"#14243144");rect(c,-5,-17,10,24,"#594738");rect(c,-2,-9,2,22,"#967d65");
+for(let k=0;k<5;k++){let yy=-20-k*18,wide=44-k*7;
+poly(c,[[-wide,yy+19],[0,yy-31],[wide,yy+19],[wide-8,yy+15],[0,yy-20],[-wide+8,yy+15]],green?"#233f36":"#283e4c");
+poly(c,[[-wide+5,yy+11],[0,yy-28],[wide-5,yy+11],[0,yy-17]],green?"#38634b":"#42617b");
+for(let j=0;j<9;j++){let xx=(rng(seed+k*11+j)*2-1)*wide*.75,py=yy-5+rng(seed*3+j*4+k)*19;rect(c,xx,py,3+rng(j+seed)*7,2,green?"#668e66":"#a9bfd4")}
+}
+if(!green)for(let i=0;i<10;i++){rect(c,-28+rng(i+seed)*56,-94+rng(i*8+seed)*70,5+rng(i+4)*8,3+rng(i+12)*3,"#dce6ee")}
+c.restore()
+}
+function drawTree(c,x,y,s=1,seed=2,autumn=false){
+c.save();c.translate(rr(x),rr(y));c.scale(s,s);
+circle(c,2,2,43,"#1c303355");rect(c,-8,-55,15,66,"#654e3d");rect(c,-5,-50,3,63,"#a28869");
+for(let i=0;i<28;i++){let dx=(rng(i*7+seed)-.5)*103,dy=(rng(i*13+seed)-.5)*50-76,r=14+rng(i*19+seed)*23;
+circle(c,dx,dy,r,autumn?(rng(i+seed)>.5?"#b37137":"#dda657"):(rng(i+seed)>.4?"#376b55":"#487b5c"))}
+for(let i=0;i<100;i++){let dx=(rng(i*7+seed)-.5)*117,dy=(rng(i*13+seed)-.5)*67-80;rect(c,dx,dy,3+rng(i*8+seed)*5,2+rng(i+88)*3,autumn?"#e5bd77":"#a6bc83")}
+c.restore()
+}
+function drawRock(c,x,y,s=1,seed=0){c.save();c.translate(rr(x),rr(y));c.scale(s,s);poly(c,[[-32,0],[-40,-15],[-22,-38],[3,-48],[33,-31],[43,-4],[28,6]],"#424d57");poly(c,[[-34,-12],[-21,-34],[4,-42],[27,-28],[10,-12]],"#84929d");poly(c,[[10,-12],[27,-28],[40,-4],[24,2]],"#52606c");stroke(c,[[-17,-28],[-7,-25],[-5,-15]],2,"#b8c1ce");for(let i=0;i<16;i++)rect(c,-30+rng(i+seed)*65,-36+rng(i*7+seed)*35,2+rng(i+11)*3,2,rng(i+3)>.5?"#9ca8ae":"#455662");if(p.zone==="village"){poly(c,[[-35,-9],[-24,-33],[5,-44],[22,-30],[10,-23],[-12,-25]],"#d1dce6")}c.restore()}
+function drawBuilding(c,o,tm){let {x,y,w=250,h=170,type="lodge"}=o,left=x-w/2,top=y-h;
+c.save();c.translate(rr(left),rr(top));
+circle(c,w*.52,h+4,w*.53,"#1b293357");
+rect(c,9,45,w-18,h-48,"#5b514a");rect(c,9,61,w-18,h-71,"#777066");
+for(let i=0;i<480;i++){let xx=rng(i*13+w)*w,yy=55+rng(i*9+h)*(h-59);rect(c,xx,yy,3+rng(i)*9,2,rng(i+3)>.5?"#92857a":"#5c5451")}
+for(let j=0;j<Math.floor(w/23);j++){rect(c,12+j*23,60,7,h-61,"#4e3e32");rect(c,15+j*23,61,2,h-63,"#9b7b58")}
+rect(c,8,h-13,w-16,14,"#3b4147");rect(c,10,h-15,w-20,4,"#a8a9a4");
+const roof=type==="watch"?"#494f63":"#4d5366";
+poly(c,[[-18,66],[w*.45,-19],[w+17,66],[w*.55,105]],"#303a47");
+poly(c,[[-14,54],[w*.45,-24],[w+15,54],[w*.55,89]],roof);
+for(let row=0;row<10;row++){let sy=8+row*8,span=w*(.30+row*.055),sx=(w-span)/2;for(let col=0;col<Math.ceil(span/19);col++){let px=sx+col*19+(row%2)*9;rect(c,px,sy,17,5,rng(col*14+row+o.x)>.5?"#5c6479":"#657386");rect(c,px+2,sy,11,2,"#93a4b8");if(p.zone==="village")rect(c,px+3,sy-2,11,3,"#d6dce7")}}
+poly(c,[[0,54],[w*.45,-25],[w+16,54]],null,"#d2dbe6");
+for(let k=0;k<3;k++){let wx=w*(.22+k*.28);rect(c,wx,h-76,27,39,"#332c2b");rect(c,wx+4,h-72,19,31,"#dfb05d");rect(c,wx+7,h-68,13,21,tm>.7?"#ad7654":"#f9d17c");rect(c,wx+12,h-73,3,32,"#4b3d37");rect(c,wx,h-57,27,3,"#473f3b")}
+rect(c,w*.46,h-64,35,63,"#3c302d");rect(c,w*.48,h-61,30,57,"#704d3b");rect(c,w*.61,h-62,3,58,"#382f32");circle(c,w*.59,h-32,2,"#dcc17b");
+rect(c,w*.12,14,24,48,"#62616c");rect(c,w*.14,8,19,10,"#8e92a1");rect(c,w*.14,1,18,7,p.zone==="village"?"#d9e5ec":"#71747f");
+for(let i=0;i<5;i++){circle(c,w*.20+i*5,-10-i*11,6+i*2,"#c8cdd5"+(tm>.7?"55":"7a"))}
+if(type==="forge"){rect(c,0,h-34,55,31,"#4d453a");rect(c,4,h-29,45,23,"#a95531");for(let j=0;j<8;j++)circle(c,8+j*5,h-19+rng(j)*8,5,"#e1a348");rect(c,w-61,h-25,56,13,"#494e55");rect(c,w-39,h-37,24,15,"#787d82");for(let k=0;k<6;k++)rect(c,w-25-k*4,h-37-k*2,2,6,"#f1c976")}
+if(type==="inn"){rect(c,78,h-155,47,52,"#5c4d34");rect(c,82,h-151,40,39,"#b3915f");imgText(c,"✦",101,h-127,20,"#4d3533")}
+if(type==="watch"){rect(c,15,h-152,w-30,20,"#53647d");rect(c,25,h-170,10,32,"#767d91")}
+c.restore()}
+function drawProp(c,o,t){let x=o.x,y=o.y;
+switch(o.kind){
+case"pine":drawPine(c,x,y,o.s,o.seed,p.zone==="wilds");break;
+case"tree":drawTree(c,x,y,o.s,o.seed,p.zone==="wilds");break;
+case"rock":case"stone":drawRock(c,x,y,o.s||.8,o.seed||0);break;
+case"house":drawBuilding(c,o,t);break;
+case"bush":for(let i=0;i<6;i++)circle(c,x-21+rng(i+x)*44,y-5-rng(i+y)*16,7+rng(i)*8,p.zone==="village"?"#9cbbc6":"#42735d");for(let i=0;i<10;i++)rect(c,x-18+rng(i+7)*33,y-20+rng(i*3)*23,2,3,p.zone==="village"?"#e1e5eb":"#d7b2bb");break;
+case"lamppost":rect(c,x-3,y-83,6,84,"#5d4d43");rect(c,x-10,y-80,19,6,"#9e8b73");rect(c,x-7,y-73,14,23,"#4a413b");rect(c,x-4,y-70,8,17,"#f7d18c");circle(c,x,y-61,24,"#ffbd5b16");rect(c,x-10,y-77,19,5,"#b7a38b");break;
+case"fence":for(let j=0;j<7;j++){let xx=x-72+j*24;rect(c,xx,y-37,9,45,"#6b5746");rect(c,xx,y-39,9,7,p.zone==="village"?"#d5dde8":"#9b886d");}rect(c,x-72,y-20,150,6,"#876f55");rect(c,x-72,y-4,150,5,"#685744");break;
+case"sign":rect(c,x-33,y-67,68,51,"#594b3f");rect(c,x-29,y-63,60,44,"#ad9b75");for(let k=0;k<4;k++){rect(c,x-23,y-56+k*9,43,1,"#6d5848");rect(c,x-23,y-59+k*9,6,4,"#ddceaa")}rect(c,x-36,y-69,74,6,p.zone==="village"?"#d5dce2":"#81725f");break;
+case"well":circle(c,x,y-7,38,"#424c55");circle(c,x,y-12,26,"#273f4c");for(let k=0;k<12;k++){let a=k*Math.PI/6;circle(c,x+32*Math.cos(a),y-12+22*Math.sin(a),7,"#87919d")}rect(c,x-28,y-65,7,62,"#6a5344");rect(c,x+21,y-65,7,62,"#6a5344");poly(c,[[x-44,y-65],[x,y-99],[x+45,y-65]],"#5b6470");break;
+case"cart":rect(c,x-54,y-31,100,34,"#755943");for(let k=0;k<7;k++)rect(c,x-47+k*13,y-27,9,22,"#a27f58");circle(c,x-39,y+4,18,"#493d35");circle(c,x+36,y+4,18,"#493d35");circle(c,x-39,y+4,8,"#ac9063");circle(c,x+36,y+4,8,"#ac9063");break;
+case"woodpile":for(let k=0;k<16;k++) {let xx=x-45+(k%8)*12,yy=y-Math.floor(k/8)*14;rect(c,xx,yy-10,12,10,"#77583c");circle(c,xx+5,yy-5,5,"#b89c73")}break;
+case"ruin":for(let k=0;k<3;k++){let xx=x-65+k*64;rect(c,xx,y-100-k*12,24,105+k*12,"#515f65");for(let j=0;j<9;j++)rect(c,xx+2+rng(j+k)*16,y-85+j*11,9,3,"#939ea5");rect(c,xx-5,y-102-k*12,34,14,"#82898f")}stroke(c,[[x-76,y-100],[x,y-143],[x+87,y-111]],12,"#7a8488");break;
+case"camp":circle(c,x,y,23,"#372d30");for(let k=0;k<9;k++)circle(c,x+20*Math.cos(k),y+12*Math.sin(k),7,"#77716a");poly(c,[[x-8,y],[x+1,y-40],[x+13,y]],"#e37d37");poly(c,[[x-2,y],[x+6,y-27],[x+9,y]],"#f6d47e");break;
+case"log":rect(c,x-50,y-19,95,18,"#65503b");rect(c,x-45,y-15,82,7,"#927453");circle(c,x+40,y-10,10,"#c1a47c");break;
+}}
+function drawHero(c,x,y,d=0,step=0,color="#6a8da2",enemy=false,kind="human",att=0){
+c.save();c.translate(rr(x),rr(y));
+circle(c,0,3,16,"#14242c66");
+let sway=Math.sin(step*12)*3,arms=Math.sin(step*12)*5;
+if(kind==="wolf"){poly(c,[[-23,-9],[-13,-25],[14,-23],[23,-6],[13,2],[-12,2]],"#4a5b61");poly(c,[[-17,-26],[-26,-39],[-5,-28]],"#6d8187");poly(c,[[8,-26],[16,-42],[21,-22]],"#7d8789");rect(c,-13,-7,8,14,"#313f49");rect(c,10,-7,8,14,"#313f49");rect(c,-23,-19,14,12,"#8a8e84");rect(c,-19,-18,3,3,"#eab477");rect(c,-22,-5,8,3,"#acaaa0");c.restore();return}
+if(kind==="wraith"){circle(c,0,-37,14,"#7ea0be");poly(c,[[-12,-35],[12,-35],[26,2],[-25,2]],"#354e68");poly(c,[[-13,-36],[-4,-55],[11,-35]],"#597995");rect(c,-6,-42,4,2,"#dcf6ff");rect(c,3,-42,4,2,"#dcf6ff");c.restore();return}
+let walk=Math.sin(step*11)*4;
+rect(c,-11,-9+walk,8,13,"#40342e");rect(c,3,-9-walk,8,13,"#40342e");rect(c,-12,0+walk,10,6,"#26242a");rect(c,2,0-walk,10,6,"#26242a");
+poly(c,[[-17,-24],[-13,-39],[12,-39],[18,-19],[13,-4],[-14,-4]],enemy?"#6c4641":color);
+rect(c,-12,-30,24,14,enemy?"#894c47":"#536473");rect(c,-11,-20,22,3,"#bf9870");rect(c,-3,-25,6,8,"#a88c5f");
+rect(c,-16,-30,5,18,"#91795b");rect(c,12,-31,5,18,"#91795b");
+rect(c,-19,-22+arms,7,13,enemy?"#6d4941":"#c6a082");rect(c,13,-22-arms,7,13,enemy?"#6d4941":"#c6a082");
+rect(c,-9,-49,18,17,"#bd9675");rect(c,-9,-52,18,9,enemy?"#55443d":"#433b37");rect(c,-10,-45,3,12,"#5e4136");rect(c,7,-45,3,12,"#5e4136");
+rect(c,-5,-41,2,2,"#292c32");rect(c,4,-41,2,2,"#292c32");rect(c,-3,-36,7,2,"#805e50");
+if(!enemy){poly(c,[[-14,-27],[-22,-30],[-27,-10],[-9,-6]],"#874647");rect(c,8,-32,4,24,"#c7b7a2");rect(c,6,-39,8,10,"#767b8b");rect(c,4,-44,12,5,"#b2b8bf")}
+else{rect(c,13,-28,4,20,"#aab2b3");rect(c,10,-31,10,4,"#75624c")}
+if(att>0){c.strokeStyle=enemy?"#e79980":"#f7e0b4";c.lineWidth=4;c.beginPath();c.arc(0,-22,39,-.8,1.05);c.stroke()}
+c.restore()
+}
+function drawHealth(c,e){if(e.hp>=e.max)return;rect(c,e.x-22,e.y-64,44,6,"#18232a");rect(c,e.x-21,e.y-63,42*e.hp/e.max,4,e.type==="wraith"?"#9e80ce":"#cb6657")}
+function occupied(x,y){if(p.zone==="village"){
+for(const [cx,cy,w,h] of [[530,542,285,137],[1050,550,295,143],[1462,535,298,155],[1175,260,180,160]])if(x>cx-w/2-12&&x<cx+w/2+12&&y>cy-h/2-10&&y<cy+65)return true;
+if(x<190&&y>480&&y<1020)return true;
+}if(p.zone==="wilds"){if(x<275&&y>50&&y<580)return true}
+return false}
+function changeZone(z,tx,ty){p.zone=z;p.x=tx;p.y=ty;particles=[];projectiles=[];effects=[];cam.x=clamp(p.x-vw/2,0,WORLD.w-vw);cam.y=clamp(p.y-vh/2,0,WORLD.h-vh);if(!terrainCache[z])generate(z);$("location").textContent=C[z].label;notify("Discovered: "+C[z].label);save(true)}
+function updateUI(){
+$("hp").style.width=clamp(p.hp/p.hpMax*100,0,100)+"%";$("mp").style.width=clamp(p.mp/p.mpMax*100,0,100)+"%";$("st").style.width=clamp(p.st/100*100,0,100)+"%";$("level").textContent="LV "+p.lv;
+const q=[["A Cold Welcome","Speak with Joren the village blacksmith."],["The Missing Supplies","Follow the eastern trail into Greenwood."],["The Missing Supplies","Defeat the bandit raider and find Joren's stolen supplies."],["The Missing Supplies","Return the supplies to Joren in Hollowreach."],["A Whisper in the Stone","Investigate the glowing Worldscar in Greenwood."],["The Frontier Awaits","Explore Hollowreach, recover herbs, and uncover the cave's secret."]];
+const qq=q[clamp(p.quest,0,q.length-1)];$("questTitle").textContent=qq[0];$("questText").textContent=qq[1]}
+function giveXP(n,skill){p.xp+=n;if(skill)p.skills[skill]=(p.skills[skill]||1)+.06;while(p.xp>=p.lv*70){p.xp-=p.lv*70;p.lv++;p.hpMax+=10;p.mpMax+=5;p.hp=p.hpMax;p.mp=p.mpMax;notify("LEVEL "+p.lv+" — your legend grows")}updateUI()}
+function attack(){if(modal||!active||p.attackCd>0||p.st<12)return;p.attackCd=.42;p.attackV=.18;p.st-=12;p.skills.blade+=.015;let face=p.facing||{x:1,y:0};effects.push({x:p.x+face.x*30,y:p.y-22+face.y*30,t:.22,type:"slash",angle:Math.atan2(face.y,face.x)});for(let e of enemies[p.zone]){if(e.dead)continue;let dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy);if(d<82&&(dx*face.x+dy*face.y)>-8){e.hp-=22+p.lv*3;e.stun=.27;particles.push({x:e.x,y:e.y-35,t:.65,text:"−"+(22+p.lv*3),color:"#ffe8b1"});if(e.hp<=0)killEnemy(e)}}updateUI()}
+function spell(){if(modal||!active||p.mp<16||p.spellCd>0)return;p.mp-=16;p.spellCd=.64;p.skills.sorcery+=.03;let d=p.facing||{x:1,y:0};let nearby=enemies[p.zone].filter(e=>!e.dead&&dist(e,p)<330).sort((a,b)=>dist(a,p)-dist(b,p))[0];if(nearby){let dx=nearby.x-p.x,dy=nearby.y-p.y,l=Math.hypot(dx,dy)||1;d={x:dx/l,y:dy/l}}projectiles.push({x:p.x,y:p.y-26,vx:d.x*360,vy:d.y*360,age:0});updateUI()}
+function dodge(){if(modal||!active||p.st<24||p.dodgeCd>0)return;p.st-=24;p.dodgeCd=.7;p.invuln=.33;let d=Math.hypot(joy.x,joy.y)>0.1?joy:p.facing||{x:1,y:0};p.dvx=d.x*350;p.dvy=d.y*350;p.dodgeTime=.18;updateUI()}
+function potion(){if(modal||p.potions<=0||p.hp>=p.hpMax)return;p.potions--;p.hp=Math.min(p.hpMax,p.hp+60);notify("Restored 60 health");updateUI();save(true)}
+function killEnemy(e){e.dead=true;p.gold+=e.type==="bandit"?14:5;p.kills++;giveXP(e.type==="bandit"?28:14,"blade");effects.push({x:e.x,y:e.y,t:.6,type:"burst"});notify("Enemy defeated · Gold found");if(p.quest===2&&e.type==="bandit"){notify("The bandits have been scattered. Search their cave!")}save(true)}
+function nearest(){let list=[...npc.filter(n=>n.zone===p.zone).map(n=>({...n,interaction:n.role})),...objects.filter(o=>o.zone===p.zone&&!o.taken).map(o=>({...o,interaction:o.type}))];list.sort((a,b)=>dist(a,p)-dist(b,p));return list[0]&&dist(list[0],p)<94?list[0]:null}
+function interact(){if(modal||!active)return;let target=nearest();if(!target){notify("No one nearby to interact with");return}if(target.interaction==="portal"){changeZone(target.to,target.tx,target.ty);return}
+if(target.interaction==="herb"){objects.find(o=>o.zone===target.zone&&o.x===target.x&&o.y===target.y).taken=true;p.herbs++;giveXP(13,"survival");notify("Gathered Blueleaf Sprig");save(true);return}
+if(target.interaction==="chest"){objects.find(o=>o.type==="chest").taken=true;p.supplies=true;p.gold+=30;if(p.quest===2)p.quest=3;notify("Recovered stolen supplies · +30 gold");updateUI();save(true);return}
+if(target.interaction==="scar"){showDialog("The Worldscar","A crystalline fracture hums with impossible light. For a moment you see another sky, behind this one.",[{text:"Touch the fracture",action:()=>{p.mp=p.mpMax;giveXP(35,"sorcery");if(p.quest===4)p.quest=5;save(true);closeAll();notify("Veilcraft awakened · Magicka restored")}},{text:"Leave the anomaly undisturbed",action:closeAll}]);return}
+if(target.interaction==="board"){showDialog("Hollowreach Notice Board","WANTED: Raiders along the eastern road. Also needed: medicinal blueleaf for the inn.",[{text:"Read the notice",action:()=>{notify("Roadward bounty recorded in your journal");closeAll()}},{text:"Step away",action:closeAll}]);return}
+if(target.interaction==="forge"){if(p.quest===0){p.quest=1;updateUI();save(true)}showDialog("Joren the Blacksmith",p.quest>=3?"By the Skybreak — you found the missing caravan supplies!":p.quest===1?"My stock has been taken east, toward the forest. Follow the road past the old bridge.":"Raiders took my tools and ore. Would you help an old smith?",p.quest===3?[{text:"Return the supplies (+80 gold)",action:()=>{p.quest=4;p.supplies=false;p.gold+=80;giveXP(75,"survival");save(true);closeAll();notify("Quest complete: The Missing Supplies")}} ,{text:"Keep the supplies for now",action:closeAll}]:[{text:"Show me your wares",action:()=>shop("Joren's Forge")},{text:"I'll investigate",action:closeAll}]);return}
+if(target.interaction==="inn"){showDialog("Mira the Innkeeper",p.herbs>=2?"Those blueleaf sprigs would make excellent medicine. The village is grateful.":"If you're headed beyond the bridge, take care. The forest hasn't been right since the last storm.",[{text:p.herbs>=2?"Trade 2 Blueleaf for a healing potion":"Buy a healing potion (20 gold)",action:()=>{if(p.herbs>=2){p.herbs-=2;p.potions++;notify("Traded blueleaf for a potion")}else if(p.gold>=20){p.gold-=20;p.potions++;notify("Purchased a healing potion")}else notify("Not enough gold");save(true);closeAll()}},{text:"Rest by the hearth (restore health)",action:()=>{p.hp=p.hpMax;p.mp=p.mpMax;save(true);closeAll();notify("Rested at the Hollowreach Inn")}},{text:"Goodbye",action:closeAll}]);return}
+if(target.interaction==="hunter"){showDialog("Eldric the Hunter","I lost a friend near the old stones in Greenwood. If you find tracks or clues, bring back word.",[{text:"Tell me about the forest",action:()=>showDialog("Eldric the Hunter","Wolves haunt the eastern groves. There's a strange light near the ruined altar, and a cave the guards won't enter.",[{text:"Thank you",action:closeAll}])},{text:"Farewell",action:closeAll}]);return}
+if(target.interaction==="guard"){showDialog("Warden Hal","Hollowreach is peaceful enough — unless you travel beyond the eastern trail. Keep that blade ready.",[{text:"Where should I explore?",action:()=>showDialog("Warden Hal","The bridge leads east to Greenwood, and a broken tower guards the northern heights. Old stories speak of a fissure in the sky.",[{text:"Understood",action:closeAll}])},{text:"Take care",action:closeAll}]);return}
+if(target.interaction==="hermit"){showDialog("The Green Hermit","The land remembers what the sky has forgotten. Seek the glowing stones at the old altar. They know your name.",[{text:"I will investigate",action:closeAll}]);return}
+}
+function shop(title){showDialog(title,"Joren offers a keenly balanced blade, forged here in Hollowreach.",[{text:"Buy Tempered Sword (65 gold)",action:()=>{if(p.gold<65){notify("Not enough gold");closeAll();return}p.gold-=65;p.weapon="Tempered Steel Sword";notify("Equipped: Tempered Steel Sword");save(true);closeAll()}},{text:"Leave the forge",action:closeAll}])}
+function showDialog(title,body,choices){modal=true;$("dialogTitle").textContent=title;$("dialogText").textContent=body;const root=$("choices");root.innerHTML="";for(let ch of choices){let b=document.createElement("button");b.className="choice";b.textContent=ch.text;b.onclick=ch.action;root.appendChild(b)}$("dialog").style.display="block"}
+function closeAll(){modal=false;for(let id of ["dialog","pause","inventory"])$(id).style.display="none"}
+function openInv(tab="pack"){if(!active)return;closeAll();modal=true;invTab=tab;$("inventory").style.display="block";renderInventory()}
+function renderInventory(){document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("selected",t.dataset.tab===invTab));let s="",b=$("inventoryBody");
+if(invTab==="pack"){s='<p style="font-size:12px;color:#c1ba9d">Gold: '+p.gold+' ✦ &nbsp; • &nbsp; Equipped: '+p.weapon+'</p>';
+for(let [n,info] of [[p.weapon,"Equipped · Weapon"],[p.armor,"Equipped · Armor"],["Healing Potion × "+p.potions,"Restores 60 Health"],["Blueleaf Sprig × "+p.herbs,"Alchemical Herb"],...(p.supplies?[["Stolen Caravan Supplies","Quest item"]]:[])])s+='<div class="item"><b>'+n+'</b><span>'+info+'</span></div>';
+s+='<p style="font-size:12px">Equipment and gathered resources persist automatically.</p>'}
+if(invTab==="skills"){s='<p>Skills improve through use. '+p.xp+' / '+(p.lv*70)+' experience to your next level.</p>';
+for(let [n,val]of Object.entries(p.skills))s+='<div class="item"><b>'+n[0].toUpperCase()+n.slice(1)+'</b><span>Rank '+Math.floor(val)+'</span></div>';
+s+='<div class="item"><b>Level '+p.lv+'</b><span>Health '+p.hpMax+' · Magicka '+p.mpMax+'</span></div>'}
+if(invTab==="journal"){s='<h3 style="color:#dfc086">'+$("questTitle").textContent+'</h3><p>'+$("questText").textContent+'</p><p>Rumors: bandits in the forest, a missing hunter, a violet glow near ancient ruins.</p><p>Enemies defeated: '+p.kills+'</p>'}
+if(invTab==="map"){s='<p>Hollowreach Province — your explored locations</p><div style="width:100%;height:145px;position:relative;border:2px solid #79654b;background:radial-gradient(circle at 45% 45%,#869c8a 0,#425e57 65%,#213a42 100%);overflow:hidden"><div style="position:absolute;left:9%;top:24%;font-size:13px">🏠 Hollowreach</div><div style="position:absolute;left:47%;top:55%;font-size:13px">🌲 Greenwood</div><div style="position:absolute;left:75%;top:13%;font-size:13px">◈ Cave</div><div style="position:absolute;left:58%;top:77%;font-size:11px;color:#ecd7a4">✦ You are in '+p.zone+'</div></div><p style="font-size:11px">Travel east from the village to reach Greenwood. Find the cave in the northeast forest.</p>'}b.innerHTML=s}
+function bind(){const move=$("move"),knob=$("knob");const upd=e=>{let b=move.getBoundingClientRect(),dx=e.clientX-(b.left+b.width/2),dy=e.clientY-(b.top+b.height/2),m=Math.hypot(dx,dy),rad=b.width*.33;joy.x=clamp(dx/rad,-1,1);joy.y=clamp(dy/rad,-1,1);if(m>rad){joy.x=dx/m;joy.y=dy/m}knob.style.transform="translate("+joy.x*rad+"px,"+joy.y*rad+"px)"};
+move.addEventListener("pointerdown",e=>{e.preventDefault();joy.pid=e.pointerId;move.setPointerCapture(e.pointerId);upd(e)});
+move.addEventListener("pointermove",e=>{if(joy.pid===e.pointerId)upd(e)});
+function off(e){if(joy.pid===e.pointerId){joy={x:0,y:0,pid:null};knob.style.transform=""}}
+move.addEventListener("pointerup",off);move.addEventListener("pointercancel",off);
+[["attackBtn",attack],["spellBtn",spell],["dodgeBtn",dodge],["interactBtn",interact],["potionBtn",potion],["bagBtn",()=>openInv()],["mapBtn",()=>openInv("map")],["pauseBtn",()=>{modal=true;$("pause").style.display="block"}],["closeDialog",closeAll],["closeInventory",closeAll],["closePause",closeAll],["resumeBtn",closeAll],["saveBtn",()=>save()],["resetBtn",()=>{if(confirm("Erase the journey on this device and begin again?"))reset()}],["beginBtn",()=>{active=true;$("start").style.display="none";notify("Welcome to Hollowreach") }]].forEach(([id,fn])=>{$(id).addEventListener("click",e=>{e.preventDefault();fn()})});
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{invTab=t.dataset.tab;renderInventory()}));
+addEventListener("keydown",e=>{if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.repeat)return;if(e.code==="Escape"){closeAll();return}if(!active||modal)return;if(e.code==="Space"||e.code==="KeyJ")attack();if(e.code==="KeyQ"||e.code==="KeyK")spell();if(e.code==="KeyE"||e.code==="KeyF")interact();if(e.code==="ShiftLeft"||e.code==="ShiftRight")dodge();if(e.code==="KeyI"||e.code==="Tab")openInv();if(e.code==="KeyH")potion()});
+addEventListener("keyup",e=>{keys[e.code]=false});addEventListener("blur",()=>{keys={};joy={x:0,y:0,pid:null};knob.style.transform=""});addEventListener("pagehide",()=>save(true));
+document.addEventListener("touchmove",e=>{if(!e.target.closest("#inventory,#dialog,#pause"))e.preventDefault()},{passive:false});
+}
+function tick(dt){
+if(!active||modal)return;
+worldTime+=dt;night=(Math.sin(worldTime*.018-.6)+1)/2;
+p.attackCd=Math.max(0,(p.attackCd||0)-dt);p.spellCd=Math.max(0,(p.spellCd||0)-dt);p.dodgeCd=Math.max(0,(p.dodgeCd||0)-dt);p.invuln=Math.max(0,(p.invuln||0)-dt);p.attackV=Math.max(0,(p.attackV||0)-dt);
+p.st=Math.min(100,p.st+dt*18);p.mp=Math.min(p.mpMax,p.mp+dt*1.1);
+let ax=Number(!!(keys.KeyD||keys.ArrowRight))-Number(!!(keys.KeyA||keys.ArrowLeft))+joy.x,ay=Number(!!(keys.KeyS||keys.ArrowDown))-Number(!!(keys.KeyW||keys.ArrowUp))+joy.y,m=Math.hypot(ax,ay);if(m>1){ax/=m;ay/=m}
+let speed=165;if(p.dodgeTime>0){ax=p.dvx/350;ay=p.dvy/350;speed=390;p.dodgeTime-=dt}else if(m>.05){p.facing={x:ax,y:ay};p.step=(p.step||0)+dt}
+let nx=clamp(p.x+ax*speed*dt,35,WORLD.w-35),ny=clamp(p.y+ay*speed*dt,72,WORLD.h-25);if(!occupied(nx,p.y))p.x=nx;if(!occupied(p.x,ny))p.y=ny;
+for(let e of enemies[p.zone]){if(e.dead)continue;
+e.stun=Math.max(0,e.stun-dt);e.atk=Math.max(0,e.atk-dt);const d=dist(e,p);
+if(d<340&&e.stun<=0){let dx=(p.x-e.x)/(d||1),dy=(p.y-e.y)/(d||1);if(d>e.type==="wraith"?42:39){let speed=e.type==="wolf"?92:e.type==="wraith"?63:73;let nx=e.x+dx*speed*dt,ny=e.y+dy*speed*dt;if(!occupied(nx,ny)){e.x=nx;e.y=ny;e.step+=dt}}}
+if(d<56&&e.atk<=0&&e.wind<=0){e.wind=.55;e.atk=1.65}
+if(e.wind>0){e.wind-=dt;if(e.wind<=0&&d<67&&p.invuln<=0){p.hp=Math.max(0,p.hp-(e.type==="wraith"?22:12));p.invuln=.5;shake=7;particles.push({x:p.x,y:p.y-55,t:.7,text:"−"+(e.type==="wraith"?22:12),color:"#f0a19f"});if(p.hp<=0){p.hp=p.hpMax;p.mp=p.mpMax;p.gold=Math.max(0,p.gold-12);p.x=795;p.y=730;p.zone="village";notify("You awaken in Hollowreach · −12 gold");save(true)}}}} 
+for(let b of projectiles){b.x+=b.vx*dt;b.y+=b.vy*dt;b.age+=dt;for(let e of enemies[p.zone])if(!e.dead&&Math.hypot(e.x-b.x,e.y-25-b.y)<35){e.hp-=35+p.lv*3;e.stun=.45;b.age=10;particles.push({x:e.x,y:e.y-35,t:.7,text:"−"+(35+p.lv*3),color:"#83dcff"});if(e.hp<=0)killEnemy(e);break}}projectiles=projectiles.filter(b=>b.age<1.4);
+effects.forEach(f=>f.t-=dt);effects=effects.filter(f=>f.t>0);particles.forEach(f=>{f.t-=dt;f.y-=dt*24});particles=particles.filter(f=>f.t>0);
+const t=nearest();setHint(t?(t.interaction==="portal"?"✋ Travel to "+t.label:"✋ "+(t.label||t.name||"Interact")):"");
+for(const o of objects)if(o.type==="portal"&&o.zone===p.zone&&dist(o,p)<43&&!modal)changeZone(o.to,o.tx,o.ty);
+if(p.quest===1&&p.zone==="wilds"){p.quest=2;updateUI();notify("New objective: Recover the missing supplies")}
+if(p.quest===4&&p.zone==="wilds"){p.quest=4;updateUI()}
+autosaveClock+=dt;if(autosaveClock>20){autosaveClock=0;save(true)}
+updateUI()
+}
+function render(){
+g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,vw,vh);
+if(!terrainCache[p.zone])generate(p.zone);
+const targetX=clamp(p.x-vw*.5,0,Math.max(0,WORLD.w-vw)),targetY=clamp(p.y-vh*.51,0,Math.max(0,WORLD.h-vh));cam.x+=(targetX-cam.x)*.13;cam.y+=(targetY-cam.y)*.13;
+g.save();g.translate(-Math.floor(cam.x)+(Math.random()-.5)*shake,-Math.floor(cam.y)+(Math.random()-.5)*shake);
+g.drawImage(terrainCache[p.zone],0,0);
+let visible=decorCache[p.zone].filter(o=>o.x>cam.x-250&&o.x<cam.x+vw+250&&o.y>cam.y-250&&o.y<cam.y+vh+250);
+const ents=[...visible.map(o=>({...o,renderType:"prop"})),...npc.filter(n=>n.zone===p.zone).map(n=>({...n,renderType:"npc"})),...enemies[p.zone].filter(e=>!e.dead).map(e=>({...e,renderType:"enemy"})),{...p,renderType:"player"}];
+for(const o of objects)if(o.zone===p.zone&&!o.taken){if(o.type==="scar"||o.type==="herb"||o.type==="chest"||o.type==="portal")ents.push({...o,renderType:"object"})}
+ents.sort((a,b)=>a.y-b.y);
+for(let e of ents){if(e.renderType==="prop")drawProp(g,e,night);else if(e.renderType==="npc"){drawHero(g,e.x,e.y,0,worldTime*.3,e.color,false);if(dist(e,p)<140)imgText(g,e.name.split(" · ")[0],e.x,e.y-67,10,"#f2e1b8")}
+else if(e.renderType==="enemy"){drawHero(g,e.x,e.y,0,e.step,"",true,e.type,e.wind>0?.25:0);drawHealth(g,e);if(e.wind>0){g.strokeStyle="#e8996f";g.lineWidth=2;g.beginPath();g.arc(e.x,e.y-14,27,0,Math.PI*2);g.stroke()}}
+else if(e.renderType==="player"){drawHero(g,e.x,e.y,0,e.step||0,"#637f96",false,"human",e.attackV||0)}
+else if(e.renderType==="object"){if(e.type==="scar"){for(let k=0;k<5;k++){let xx=e.x+(k-2)*17,yy=e.y-14-Math.abs(2-k)*13;poly(g,[[xx-9,yy],[xx,yy-40-5*Math.sin(worldTime*2+k)],[xx+9,yy],[xx,yy+4]],k%2?"#7b7aca":"#62bdca");rect(g,xx-2,yy-26,3,13,"#d6e7ff")}}
+if(e.type==="herb"){for(let k=0;k<5;k++){stroke(g,[[e.x,e.y],[e.x+(k-2)*6,e.y-15-rng(k)*12]],2,"#549c91");circle(g,e.x+(k-2)*5,e.y-21-rng(k)*8,3,"#8ad9d0")}}
+if(e.type==="chest"){rect(g,e.x-21,e.y-18,42,24,"#634a34");rect(g,e.x-22,e.y-22,44,12,"#947052");rect(g,e.x-4,e.y-21,8,25,"#ddbd74")}
+if(e.type==="portal"){circle(g,e.x,e.y,19,"#abc7cc22");stroke(g,[[e.x-12,e.y-15],[e.x,e.y-26],[e.x+12,e.y-15]],4,"#dbcfad");if(dist(e,p)<200)imgText(g,e.label,e.x,e.y-39,11)}}
+}
+for(const b of projectiles){circle(g,b.x,b.y,11,"#75c9f3");circle(g,b.x,b.y,6,"#e2f7ff");for(let k=1;k<4;k++)circle(g,b.x-b.vx*.014*k,b.y-b.vy*.014*k,4,"#5aa5d6")}
+for(let fx of effects){if(fx.type==="slash"){g.strokeStyle="#f3e5ba";g.lineWidth=7;g.beginPath();g.arc(fx.x,fx.y,29,fx.angle-.9,fx.angle+.9);g.stroke();g.strokeStyle="#9ed2f1";g.lineWidth=2;g.stroke()}else for(let k=0;k<8;k++){let a=k*Math.PI/4;rect(g,fx.x+Math.cos(a)*25,fx.y+Math.sin(a)*25,5,5,"#e6c184")}}
+for(const v of particles)imgText(g,v.text,v.x,v.y,14,v.color);
+if(p.zone==="village"){ // delicate drifting snow, deterministic and cheap
+for(let i=0;i<62;i++){let x=(rng(i*24+11)*WORLD.w+worldTime*(10+i%5))%WORLD.w,y=(rng(i*17+13)*WORLD.h+worldTime*(21+i%3))%WORLD.h;if(x>cam.x&&x<cam.x+vw&&y>cam.y&&y<cam.y+vh)rect(g,x,y,2,2,"#f6f8ff88")}}
+if(p.zone==="cave"){for(let i=0;i<8;i++){let x=220+i*205,y=120+(i%3)*350;circle(g,x,y,8+Math.sin(worldTime+i)*3,"#6ac2e044")}}
+g.restore();
+if(p.zone==="cave"){g.fillStyle="#10172955";g.fillRect(0,0,vw,vh)}
+else if(night>.65){g.fillStyle="rgba(13,22,48,"+((night-.65)*.54)+")";g.fillRect(0,0,vw,vh)}
+shake*=.78;if(shake<.2)shake=0;if(toastTime>0){toastTime-=.016;if(toastTime<=0)$("toast").style.display="none"}
+}
+function frame(now){let dt=Math.min(.055,(now-last)/1000||.016);last=now;tick(dt);render();requestAnimationFrame(frame)}
+load();setup();bind();if(!terrainCache[p.zone])generate(p.zone);$("location").textContent=C[p.zone].label;requestAnimationFrame(frame);
+if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+})();
