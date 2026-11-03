@@ -63,10 +63,11 @@ updateUI()
 }
 function generate(zone){
 const visual=window.VeilwardArt?.background(zone);
-if(visual){
+if(window.VeilwardArt){
 const t=document.createElement("canvas");t.width=WORLD.w;t.height=WORLD.h;
-const c=t.getContext("2d");c.imageSmoothingEnabled=true;
-c.drawImage(visual,0,0,WORLD.w,WORLD.h);
+const c=t.getContext("2d");
+if(visual){c.imageSmoothingEnabled=true;c.drawImage(visual,0,0,WORLD.w,WORLD.h)}
+else{c.fillStyle=C[zone]?.dark||"#1a2537";c.fillRect(0,0,WORLD.w,WORLD.h)}
 terrainCache[zone]=t;decorCache[zone]=[];return;
 }
 const t=document.createElement("canvas");t.width=WORLD.w;t.height=WORLD.h;const c=t.getContext("2d");c.imageSmoothingEnabled=false;
@@ -250,7 +251,7 @@ move.addEventListener("pointerdown",e=>{e.preventDefault();joy.pid=e.pointerId;m
 move.addEventListener("pointermove",e=>{if(joy.pid===e.pointerId)upd(e)});
 function off(e){if(joy.pid===e.pointerId){joy={x:0,y:0,pid:null};knob.style.transform=""}}
 move.addEventListener("pointerup",off);move.addEventListener("pointercancel",off);
-[["attackBtn",attack],["spellBtn",spell],["dodgeBtn",dodge],["interactBtn",interact],["potionBtn",potion],["bagBtn",()=>openInv()],["mapBtn",()=>openInv("map")],["pauseBtn",()=>{modal=true;$("pause").style.display="block"}],["closeDialog",closeAll],["closeInventory",closeAll],["closePause",closeAll],["resumeBtn",closeAll],["saveBtn",()=>save()],["resetBtn",()=>{if(confirm("Erase the journey on this device and begin again?"))reset()}],["beginBtn",()=>{active=true;$("start").style.display="none";notify("Welcome to Hollowreach") }]].forEach(([id,fn])=>{$(id).addEventListener("click",e=>{e.preventDefault();fn()})});
+[["attackBtn",attack],["spellBtn",spell],["dodgeBtn",dodge],["interactBtn",interact],["potionBtn",potion],["bagBtn",()=>openInv()],["mapBtn",()=>openInv("map")],["pauseBtn",()=>{modal=true;$("pause").style.display="block"}],["closeDialog",closeAll],["closeInventory",closeAll],["closePause",closeAll],["resumeBtn",closeAll],["saveBtn",()=>save()],["resetBtn",()=>{if(confirm("Erase the journey on this device and begin again?"))reset()}],["beginBtn",()=>{if(window.VeilwardArt&&!window.VeilwardArt.ready()){notify("Loading Hollowreach artwork…");$("beginBtn").textContent="PREPARING THE WORLD…";return}active=true;$("start").style.display="none";notify("Welcome to Hollowreach") }]].forEach(([id,fn])=>{$(id).addEventListener("click",e=>{e.preventDefault();fn()})});
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{invTab=t.dataset.tab;renderInventory()}));
 addEventListener("keydown",e=>{if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.repeat)return;if(e.code==="Escape"){closeAll();return}if(!active||modal)return;if(e.code==="Space"||e.code==="KeyJ")attack();if(e.code==="KeyQ"||e.code==="KeyK")spell();if(e.code==="KeyE"||e.code==="KeyF")interact();if(e.code==="ShiftLeft"||e.code==="ShiftRight")dodge();if(e.code==="KeyI"||e.code==="Tab")openInv();if(e.code==="KeyH")potion()});
 addEventListener("keyup",e=>{keys[e.code]=false});addEventListener("blur",()=>{keys={};joy={x:0,y:0,pid:null};knob.style.transform=""});addEventListener("pagehide",()=>save(true));
@@ -315,7 +316,9 @@ if(!p.artVersion){p.zone="village";p.x=901;p.y=625;p.artVersion=2;}
 setup();bind();
 window.addEventListener("veilward-art-loaded",e=>{
 delete terrainCache[e.detail];generate(e.detail);
+if(window.VeilwardArt?.ready())$("beginBtn").textContent="ENTER HOLLOWREACH";
 });
+window.addEventListener("veilward-actors-ready",()=>{if(window.VeilwardArt?.ready())$("beginBtn").textContent="ENTER HOLLOWREACH"});
 if(!terrainCache[p.zone])generate(p.zone);$("location").textContent=C[p.zone].label;requestAnimationFrame(frame);
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 })();
