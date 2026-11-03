@@ -8,10 +8,11 @@ let vw=innerWidth,vh=innerHeight,last=0,terrainCache={},decorCache={},active=fal
 const WORLD={w:1850,h:1200};let cam={x:0,y:0},keys={},joy={x:0,y:0,pid:null},effects=[],projectiles=[],particles=[],weather=[];
 const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",label:"Hollowreach · Frostbound Village"},
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
- cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"}};
+ cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
+forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
 const SAVE="veilward-hollowreach-v01";
-const DEFAULT={zone:"village",x:795,y:730,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
-let p=JSON.parse(JSON.stringify(DEFAULT)),enemies={village:[],wilds:[],cave:[]},npc=[],objects=[],worldTime=0,invTab="pack",attacks=[],autosaveClock=0;
+const DEFAULT={zone:"village",x:901,y:625,artVersion:2,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
+let p=JSON.parse(JSON.stringify(DEFAULT)),enemies={village:[],wilds:[],cave:[],forge:[]},npc=[],objects=[],worldTime=0,invTab="pack",attacks=[],autosaveClock=0;
 function rand(seed){let x=Math.sin(seed*127.1+78.233)*43758.5453;return x-Math.floor(x)}
 function rng(n){return rand(n*1.931+0.321)}
 function rr(x){return Math.floor(x)}
@@ -54,6 +55,13 @@ if(p.supplies)objects.find(o=>o.type==="chest").taken=true;
 if(p.zone==="cave"&&p.quest>=3)enemies.cave.forEach(e=>{if(e.type==="bandit")e.dead=true});
 updateUI()}
 function generate(zone){
+const visual=window.VeilwardArt?.background(zone);
+if(visual){
+const t=document.createElement("canvas");t.width=WORLD.w;t.height=WORLD.h;
+const c=t.getContext("2d");c.imageSmoothingEnabled=true;
+c.drawImage(visual,0,0,WORLD.w,WORLD.h);
+terrainCache[zone]=t;decorCache[zone]=[];return;
+}
 const t=document.createElement("canvas");t.width=WORLD.w;t.height=WORLD.h;const c=t.getContext("2d");c.imageSmoothingEnabled=false;
 const z=C[zone];rect(c,0,0,WORLD.w,WORLD.h,z.ground);
 for(let i=0;i<56000;i++){let x=rng(i+5+zone.length*1000)*WORLD.w,y=rng(i+100004+zone.length*3000)*WORLD.h,d=rng(i+84000),col=zone==="village"?(d>.72?"#a4b6c9":d>.3?"#758b9e":"#647b93"):zone==="wilds"?(d>.76?"#7c9971":d>.31?"#527c58":"#315b48"):(d>.68?"#70787c":d>.4?"#383f48":"#62676a");rect(c,x,y,1+rng(i+4)*3,1+rng(i+7)*2,col)}
@@ -171,6 +179,7 @@ case"camp":circle(c,x,y,23,"#372d30");for(let k=0;k<9;k++)circle(c,x+20*Math.cos
 case"log":rect(c,x-50,y-19,95,18,"#65503b");rect(c,x-45,y-15,82,7,"#927453");circle(c,x+40,y-10,10,"#c1a47c");break;
 }}
 function drawHero(c,x,y,d=0,step=0,color="#6a8da2",enemy=false,kind="human",att=0){
+if(window.VeilwardArt?.actor(c,x,y,kind,step,att,kind==="human"?p:null))return;
 c.save();c.translate(rr(x),rr(y));
 circle(c,0,3,16,"#14242c66");
 let sway=Math.sin(step*12)*3,arms=Math.sin(step*12)*5;
@@ -190,11 +199,9 @@ if(att>0){c.strokeStyle=enemy?"#e79980":"#f7e0b4";c.lineWidth=4;c.beginPath();c.
 c.restore()
 }
 function drawHealth(c,e){if(e.hp>=e.max)return;rect(c,e.x-22,e.y-64,44,6,"#18232a");rect(c,e.x-21,e.y-63,42*e.hp/e.max,4,e.type==="wraith"?"#9e80ce":"#cb6657")}
-function occupied(x,y){if(p.zone==="village"){
-for(const [cx,cy,w,h] of [[530,542,285,137],[1050,550,295,143],[1462,535,298,155],[1175,260,180,160]])if(x>cx-w/2-12&&x<cx+w/2+12&&y>cy-h/2-10&&y<cy+65)return true;
-if(x<190&&y>480&&y<1020)return true;
-}if(p.zone==="wilds"){if(x<275&&y>50&&y<580)return true}
-return false}
+function occupied(x,y){
+return window.VeilwardArt?.blocked(p.zone,x,y)??false;
+}
 function changeZone(z,tx,ty){p.zone=z;p.x=tx;p.y=ty;particles=[];projectiles=[];effects=[];cam.x=clamp(p.x-vw/2,0,WORLD.w-vw);cam.y=clamp(p.y-vh/2,0,WORLD.h-vh);if(!terrainCache[z])generate(z);$("location").textContent=C[z].label;notify("Discovered: "+C[z].label);save(true)}
 function updateUI(){
 $("hp").style.width=clamp(p.hp/p.hpMax*100,0,100)+"%";$("mp").style.width=clamp(p.mp/p.mpMax*100,0,100)+"%";$("st").style.width=clamp(p.st/100*100,0,100)+"%";$("level").textContent="LV "+p.lv;
@@ -202,8 +209,8 @@ const q=[["A Cold Welcome","Speak with Joren the village blacksmith."],["The Mis
 const qq=q[clamp(p.quest,0,q.length-1)];$("questTitle").textContent=qq[0];$("questText").textContent=qq[1]}
 function giveXP(n,skill){p.xp+=n;if(skill)p.skills[skill]=(p.skills[skill]||1)+.06;while(p.xp>=p.lv*70){p.xp-=p.lv*70;p.lv++;p.hpMax+=10;p.mpMax+=5;p.hp=p.hpMax;p.mp=p.mpMax;notify("LEVEL "+p.lv+" — your legend grows")}updateUI()}
 function attack(){if(modal||!active||p.attackCd>0||p.st<12)return;p.attackCd=.42;p.attackV=.18;p.st-=12;p.skills.blade+=.015;let face=p.facing||{x:1,y:0};effects.push({x:p.x+face.x*30,y:p.y-22+face.y*30,t:.22,type:"slash",angle:Math.atan2(face.y,face.x)});for(let e of enemies[p.zone]){if(e.dead)continue;let dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy);if(d<82&&(dx*face.x+dy*face.y)>-8){e.hp-=22+p.lv*3+(p.weapon==="Tempered Steel Sword"?13:0);e.stun=.27;particles.push({x:e.x,y:e.y-35,t:.65,text:"−"+(22+p.lv*3),color:"#ffe8b1"});if(e.hp<=0)killEnemy(e)}}updateUI()}
-function spell(){if(modal||!active||p.mp<16||p.spellCd>0)return;p.mp-=16;p.spellCd=.64;p.skills.sorcery+=.03;let d=p.facing||{x:1,y:0};let nearby=enemies[p.zone].filter(e=>!e.dead&&dist(e,p)<330).sort((a,b)=>dist(a,p)-dist(b,p))[0];if(nearby){let dx=nearby.x-p.x,dy=nearby.y-p.y,l=Math.hypot(dx,dy)||1;d={x:dx/l,y:dy/l}}projectiles.push({x:p.x,y:p.y-26,vx:d.x*360,vy:d.y*360,age:0});updateUI()}
-function dodge(){if(modal||!active||p.st<24||p.dodgeCd>0)return;p.st-=24;p.dodgeCd=.7;p.invuln=.33;let d=Math.hypot(joy.x,joy.y)>0.1?joy:p.facing||{x:1,y:0};p.dvx=d.x*350;p.dvy=d.y*350;p.dodgeTime=.18;updateUI()}
+function spell(){if(modal||!active||p.mp<16||p.spellCd>0)return;p.castV=.32;p.mp-=16;p.spellCd=.64;p.skills.sorcery+=.03;let d=p.facing||{x:1,y:0};let nearby=enemies[p.zone].filter(e=>!e.dead&&dist(e,p)<330).sort((a,b)=>dist(a,p)-dist(b,p))[0];if(nearby){let dx=nearby.x-p.x,dy=nearby.y-p.y,l=Math.hypot(dx,dy)||1;d={x:dx/l,y:dy/l}}projectiles.push({x:p.x,y:p.y-26,vx:d.x*360,vy:d.y*360,age:0});updateUI()}
+function dodge(){if(modal||!active||p.st<24||p.dodgeCd>0)return;p.dodgeV=.29;p.st-=24;p.dodgeCd=.7;p.invuln=.33;let d=Math.hypot(joy.x,joy.y)>0.1?joy:p.facing||{x:1,y:0};p.dvx=d.x*350;p.dvy=d.y*350;p.dodgeTime=.18;updateUI()}
 function potion(){if(modal||p.potions<=0||p.hp>=p.hpMax)return;p.potions--;p.hp=Math.min(p.hpMax,p.hp+60);notify("Restored 60 health");updateUI();save(true)}
 function killEnemy(e){e.dead=true;p.gold+=e.type==="bandit"?14:5;p.kills++;giveXP(e.type==="bandit"?28:14,"blade");effects.push({x:e.x,y:e.y,t:.6,type:"burst"});notify("Enemy defeated · Gold found");if(p.quest===2&&e.type==="bandit"){notify("The bandits have been scattered. Search their cave!")}save(true)}
 function nearest(){let list=[...npc.filter(n=>n.zone===p.zone).map(n=>({...n,interaction:n.role})),...objects.filter(o=>o.zone===p.zone&&!o.taken).map(o=>({...o,interaction:o.type}))];list.sort((a,b)=>dist(a,p)-dist(b,p));return list[0]&&dist(list[0],p)<94?list[0]:null}
@@ -247,8 +254,9 @@ if(!active||modal)return;
 worldTime+=dt;night=(Math.sin(worldTime*.018-.6)+1)/2;
 p.attackCd=Math.max(0,(p.attackCd||0)-dt);p.spellCd=Math.max(0,(p.spellCd||0)-dt);p.dodgeCd=Math.max(0,(p.dodgeCd||0)-dt);p.invuln=Math.max(0,(p.invuln||0)-dt);p.attackV=Math.max(0,(p.attackV||0)-dt);
 p.st=Math.min(100,p.st+dt*18);p.mp=Math.min(p.mpMax,p.mp+dt*1.1);
+p.castV=Math.max(0,(p.castV||0)-dt);p.dodgeV=Math.max(0,(p.dodgeV||0)-dt);
 let ax=Number(!!(keys.KeyD||keys.ArrowRight))-Number(!!(keys.KeyA||keys.ArrowLeft))+joy.x,ay=Number(!!(keys.KeyS||keys.ArrowDown))-Number(!!(keys.KeyW||keys.ArrowUp))+joy.y,m=Math.hypot(ax,ay);if(m>1){ax/=m;ay/=m}
-let speed=165;if(p.dodgeTime>0){ax=p.dvx/350;ay=p.dvy/350;speed=390;p.dodgeTime-=dt}else if(m>.05){p.facing={x:ax,y:ay};p.step=(p.step||0)+dt}
+p.moving=m>.04;let speed=165;if(p.dodgeTime>0){ax=p.dvx/350;ay=p.dvy/350;speed=390;p.dodgeTime-=dt}else if(m>.05){p.facing={x:ax,y:ay};p.step=(p.step||0)+dt}
 let nx=clamp(p.x+ax*speed*dt,35,WORLD.w-35),ny=clamp(p.y+ay*speed*dt,72,WORLD.h-25);if(!occupied(nx,p.y))p.x=nx;if(!occupied(p.x,ny))p.y=ny;
 for(let e of enemies[p.zone]){if(e.dead)continue;
 e.stun=Math.max(0,e.stun-dt);e.atk=Math.max(0,e.atk-dt);const d=dist(e,p);
@@ -270,11 +278,12 @@ if(!terrainCache[p.zone])generate(p.zone);
 const targetX=clamp(p.x-vw*.5,0,Math.max(0,WORLD.w-vw)),targetY=clamp(p.y-vh*.51,0,Math.max(0,WORLD.h-vh));cam.x+=(targetX-cam.x)*.13;cam.y+=(targetY-cam.y)*.13;
 g.save();g.translate(-Math.floor(cam.x)+(Math.random()-.5)*shake,-Math.floor(cam.y)+(Math.random()-.5)*shake);
 g.drawImage(terrainCache[p.zone],0,0);
+window.VeilwardArt?.glows(g,p.zone,worldTime);
 let visible=decorCache[p.zone].filter(o=>o.x>cam.x-250&&o.x<cam.x+vw+250&&o.y>cam.y-250&&o.y<cam.y+vh+250);
 const ents=[...visible.map(o=>({...o,renderType:"prop"})),...npc.filter(n=>n.zone===p.zone).map(n=>({...n,renderType:"npc"})),...enemies[p.zone].filter(e=>!e.dead).map(e=>({...e,renderType:"enemy"})),{...p,renderType:"player"}];
 for(const o of objects)if(o.zone===p.zone&&!o.taken){if(o.type==="scar"||o.type==="herb"||o.type==="chest"||o.type==="portal")ents.push({...o,renderType:"object"})}
 ents.sort((a,b)=>a.y-b.y);
-for(let e of ents){if(e.renderType==="prop")drawProp(g,e,night);else if(e.renderType==="npc"){drawHero(g,e.x,e.y,0,worldTime*.3,e.color,false);if(dist(e,p)<140)imgText(g,e.name.split(" · ")[0],e.x,e.y-67,10,"#f2e1b8")}
+for(let e of ents){if(e.renderType==="prop")drawProp(g,e,night);else if(e.renderType==="npc"){drawHero(g,e.x,e.y,0,worldTime*.3,e.color,false,"npc_"+e.role);if(dist(e,p)<140)imgText(g,e.name.split(" · ")[0],e.x,e.y-67,10,"#f2e1b8")}
 else if(e.renderType==="enemy"){drawHero(g,e.x,e.y,0,e.step,"",true,e.type,e.wind>0?.25:0);drawHealth(g,e);if(e.wind>0){g.strokeStyle="#e8996f";g.lineWidth=2;g.beginPath();g.arc(e.x,e.y-14,27,0,Math.PI*2);g.stroke()}}
 else if(e.renderType==="player"){drawHero(g,e.x,e.y,0,e.step||0,"#637f96",false,"human",e.attackV||0)}
 else if(e.renderType==="object"){if(e.type==="scar"){for(let k=0;k<5;k++){let xx=e.x+(k-2)*17,yy=e.y-14-Math.abs(2-k)*13;poly(g,[[xx-9,yy],[xx,yy-40-5*Math.sin(worldTime*2+k)],[xx+9,yy],[xx,yy+4]],k%2?"#7b7aca":"#62bdca");rect(g,xx-2,yy-26,3,13,"#d6e7ff")}}
@@ -289,11 +298,17 @@ if(p.zone==="village"){ // delicate drifting snow, deterministic and cheap
 for(let i=0;i<62;i++){let x=(rng(i*24+11)*WORLD.w+worldTime*(10+i%5))%WORLD.w,y=(rng(i*17+13)*WORLD.h+worldTime*(21+i%3))%WORLD.h;if(x>cam.x&&x<cam.x+vw&&y>cam.y&&y<cam.y+vh)rect(g,x,y,2,2,"#f6f8ff88")}}
 if(p.zone==="cave"){for(let i=0;i<8;i++){let x=220+i*205,y=120+(i%3)*350;circle(g,x,y,8+Math.sin(worldTime+i)*3,"#6ac2e044")}}
 g.restore();
-if(p.zone==="cave"){g.fillStyle="#10172955";g.fillRect(0,0,vw,vh)}
+if(p.zone==="cave"){g.fillStyle="#10172928";g.fillRect(0,0,vw,vh)}
 else if(night>.65){g.fillStyle="rgba(13,22,48,"+((night-.65)*.54)+")";g.fillRect(0,0,vw,vh)}
 shake*=.78;if(shake<.2)shake=0;if(toastTime>0){toastTime-=.016;if(toastTime<=0)$("toast").style.display="none"}
 }
 function frame(now){let dt=Math.min(.055,(now-last)/1000||.016);last=now;tick(dt);render();requestAnimationFrame(frame)}
-load();setup();bind();if(!terrainCache[p.zone])generate(p.zone);$("location").textContent=C[p.zone].label;requestAnimationFrame(frame);
+load();
+if(!p.artVersion){p.zone="village";p.x=901;p.y=625;p.artVersion=2;}
+setup();bind();
+window.addEventListener("veilward-art-loaded",e=>{
+delete terrainCache[e.detail];generate(e.detail);
+});
+if(!terrainCache[p.zone])generate(p.zone);$("location").textContent=C[p.zone].label;requestAnimationFrame(frame);
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 })();
