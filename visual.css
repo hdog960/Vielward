@@ -1,0 +1,33 @@
+/* Veilward v0.2 — HUD designed to harmonize with the new painted pixel environments. */
+:root{--gold:#edc98b;--bone:#f2e6cc;--panel:rgba(12,19,35,.94)}
+#game{background:#131c2b}
+#shade{background:linear-gradient(to bottom,rgba(8,11,28,.19),transparent 18%,transparent 78%,rgba(3,8,18,.32));}
+.panel{background:linear-gradient(150deg,rgba(20,30,53,.97),rgba(9,14,28,.97));border:1px solid #ab8759;border-radius:6px;box-shadow:0 0 0 2px #070c1a,0 0 0 3px #4e3d36,inset 0 0 0 1px #d6ab69,0 10px 40px #000b}
+#status{width:185px;padding:7px 13px 9px 16px;background:linear-gradient(90deg,#121b32e8,#111a32c9);clip-path:polygon(0 0,97% 0,100% 21%,100% 83%,94% 100%,0 100%);border:1px solid #a88c5b}
+#status .name{font-size:14px;letter-spacing:2px;color:#f8ddb0}
+#status .level{color:#e8c993;font-size:10px}
+.bar{height:8px;margin-top:5px;border:1px solid #0b1421;border-radius:3px;box-shadow:0 0 0 1px #807052,inset 0 1px 2px #070c15}
+.bar.hp>i{background:linear-gradient(#eb7174,#a31f38)}.bar.mp>i{background:linear-gradient(#76d9ff,#2764ad)}.bar.st>i{background:linear-gradient(#ccf3a3,#669b51)}
+#location{top:max(8px,env(safe-area-inset-top));letter-spacing:2.3px;min-width:210px;padding:7px 24px 9px;color:#ffe3ad;text-shadow:0 2px #050912;font-size:11px;border-bottom:1px solid #b9a16b;background:linear-gradient(90deg,transparent,#081227ed 18%,#081227ed 82%,transparent)}
+.mini{background:linear-gradient(160deg,#32415cdd,#10192ddd);border:1px solid #bc9a62;box-shadow:inset 0 0 0 1px #5a5165,0 0 0 2px #111627,0 3px 12px #0008;color:#f6d7a4;font-size:17px;border-radius:5px}
+#quest{top:102px;border:1px solid #72644b;border-left:3px solid #f3c886;border-radius:2px;padding:7px 10px;max-width:215px;box-shadow:0 3px 12px #050c1b65;background:linear-gradient(90deg,#141c35de,#0d1827b9)}
+#quest b{color:#f7d9a0;font-size:13px}#quest p{color:#e1dace;font-size:11px}
+#move{border:2px solid #a38762a6;background:radial-gradient(circle,transparent 25%,#13213a90 27% 62%,#09152280 68%);box-shadow:0 0 0 3px #0c172a91,inset 0 0 18px #263b5670}
+#knob{background:radial-gradient(circle at 30% 20%,#c9b18a,#6f7d85 43%,#26374b);border:2px solid #c2a97b;box-shadow:0 0 0 3px #0d1a2bcc,0 3px 12px #000a}
+.control{background:radial-gradient(circle at 30% 25%,#324562eb,#0e192de0 77%);border:2px solid #b9955f;box-shadow:inset 0 0 0 2px #252f46,0 0 0 2px #081222b8,0 4px 12px #000b;color:#f9da9e;text-shadow:0 2px #090c18}
+.control.primary{background:radial-gradient(circle at 32% 25%,#786149,#1b293c 72%);border-color:#e0b36a}
+.control small{font:9px system-ui;letter-spacing:.1px;color:#f0d7aa;text-shadow:0 1px 2px #000}
+#hint{background:linear-gradient(145deg,#15213bec,#0b1420df);border:1px solid #d1ab6b;box-shadow:0 2px 18px #0008;color:#ffe5b2;border-radius:5px}
+#toast{background:linear-gradient(90deg,#101a2be8,#253452f2,#101a2be8);border:1px solid #e3c087;color:#ffecb8;box-shadow:0 3px 20px #0009}
+#dialog,#inventory,#pause{border:1px solid #d1a969;border-radius:5px;background:linear-gradient(125deg,#243150f8,#0c1428fc);box-shadow:0 0 0 2px #060d1b,0 0 0 3px #61513c,0 12px 60px #000e}
+#dialog h2,#inventory h2,#pause h2{font-size:21px;letter-spacing:.5px;color:#f4d69e;text-shadow:0 2px #080b14}
+.choice,.tab,.menuBtn{border:1px solid #b69561;background:linear-gradient(#334258,#151e33);box-shadow:inset 0 0 0 1px #514b4e;border-radius:4px;color:#eee1c2}
+.tab.selected{background:linear-gradient(#554a44,#29283c);border-color:#f0cd8c}
+#start{border:2px solid #e0b972;box-shadow:0 0 0 100vmax #030714dd,0 0 0 3px #080e20,0 0 0 4px #98774d,0 20px 70px #000c;background:linear-gradient(115deg,#0c1529f5,#0c182ad8),url("./assets/village.jpg?v=2") center/cover no-repeat}
+#start .sigil{color:#a4c6ff;font-size:30px;text-shadow:0 0 20px #9ebffe}
+#start h1{font-size:clamp(32px,5vw,54px);letter-spacing:5px;color:#ffe1a3;text-shadow:0 2px #0a1524,0 0 17px #151e32}
+#start h3{color:#c5d3ed;letter-spacing:4px}
+#start p{color:#e8daca;text-shadow:0 1px 2px #000}
+#start .menuBtn{background:linear-gradient(#78644d,#342a33);border-color:#edc787;text-align:center;color:#fff0c9;font-weight:bold;letter-spacing:1px}
+#rotate{background:#0a1222;color:#e5c990;font-size:18px}
+@media(max-height:470px){#status{width:185px}#quest{top:82px;max-width:180px}#move{width:100px;height:100px}#knob{width:42px;height:42px}#actions{grid-template-columns:repeat(3,47px);gap:5px}.control{width:47px;height:47px}.control.primary{width:57px;height:57px}#location{font-size:10px}}
