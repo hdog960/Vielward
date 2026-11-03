@@ -35,7 +35,7 @@ button{font:inherit;color:inherit;cursor:pointer}#game{position:absolute;inset:0
 @media (orientation:portrait) and (max-width:750px){#rotate{display:flex}#start{max-height:80vh;overflow:auto}}
 @media (max-height:470px){#status{transform:scale(.84);transform-origin:top left}#quest{top:79px;transform:scale(.91);transform-origin:top left}#move{width:107px;height:107px}#knob{width:42px;height:42px}#actions{grid-template-columns:repeat(3,48px);gap:5px}.control{width:48px;height:48px}.control.primary{width:60px;height:60px}#hint{bottom:11%}#dialog,#inventory,#pause{padding:12px 16px}#inventoryBody{max-height:43vh}}
 @media (pointer:fine){#move{opacity:.35}#actions{opacity:.72}}
-</style></head><body>
+</style><link rel="stylesheet" href="./visual.css?v=2"></head><body>
 <canvas id="game"></canvas><div id="shade"></div>
 <div id="hud">
 <div id="status" class="panel"><span class="name">THE WANDERER</span><span id="level" class="level">LV 1</span><div class="bar hp"><i id="hp"></i></div><div class="bar mp"><i id="mp"></i></div><div class="bar st"><i id="st"></i></div></div>
@@ -50,5 +50,5 @@ button{font:inherit;color:inherit;cursor:pointer}#game{position:absolute;inset:0
 <section id="pause" class="panel"><button class="close" id="closePause">×</button><h2>Journey Menu</h2><p>The Broken Sky • Hollowreach prototype v0.1</p><button class="menuBtn" id="saveBtn">Save Journey</button><button class="menuBtn" id="resetBtn">Begin a New Journey</button><button class="menuBtn" id="resumeBtn">Continue Exploring</button><p style="font-size:11px;color:#afb8ae">Your journey autosaves locally on this device. No account, advertisements, or online services.</p></section>
 <section id="start" class="panel"><div class="sigil">✦ ◇ ✦</div><h1>VEILWARD</h1><h3>THE BROKEN SKY</h3><p>Beyond the frostbound pines, Hollowreach keeps its secrets. Explore a living frontier, aid its people, and follow the trail of a lost hunter.</p><button id="beginBtn" class="menuBtn">ENTER HOLLOWREACH</button><p style="font-size:11px">Touch controls or WASD · E interact · Space attack · Q spell · Shift dodge · I inventory</p></section>
 <div id="rotate">↻<br>Rotate your iPhone to landscape for the best view of Hollowreach.</div>
-<script src="./game.js"></script>
+<script src="./visual.js?v=2"></script><script src="./game.js?v=2"></script>
 </body></html>
