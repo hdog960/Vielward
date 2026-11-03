@@ -1,0 +1,92 @@
+/* VEILWARD Art Runtime v0.2 — original environment plates derived from approved in-house concept art.
+   Every map below is an actual Canvas world background; interactive objects and actors are drawn by game.js. */
+(function(){
+ "use strict";
+ const BASE="./assets/";
+ const maps={village:"village.jpg",wilds:"wilds.jpg",cave:"cave.jpg",forge:"forge.jpg"};
+ const scenes={};
+ let actors=null;
+ const FRAME_W=192,FRAME_H=150;
+ function load(name,src,isActor){
+  const img=new Image();
+  img.decoding="async";
+  img.onload=()=>{
+    if(isActor){actors=img;window.dispatchEvent(new Event("veilward-actors-ready"))}
+    else {scenes[name]=img;window.dispatchEvent(new CustomEvent("veilward-art-loaded",{detail:name}))}
+  };
+  img.onerror=()=>console.warn("Veilward art load failed",src);
+  img.src=BASE+src+"?art=2";
+ }
+ for(const [name,src] of Object.entries(maps))load(name,src,false);
+ load("actors","actors.webp",true);
+ function background(zone){return scenes[zone]||null}
+ function actor(c,x,y,kind,step,att,state){
+  if(!actors||!actors.complete||!actors.naturalWidth)return false;
+  let n=0;
+  if(kind==="wolf")n=9;
+  else if(kind==="bandit")n=10;
+  else if(kind==="wraith")n=11;
+  else if(kind.startsWith("npc_")){
+    const role=kind.slice(4);n={forge:7,inn:6,hunter:8,guard:10,hermit:8}[role]??5;
+  }
+  else if(state&&state.dodgeV>0)n=4;
+  else if(state&&state.castV>0)n=3;
+  else if(att>0)n=2;
+  else if(state&&state.moving)n=1;
+  else n=0;
+  let width=kind==="wolf"?132:kind==="wraith"?145:kind==="bandit"?119:kind.startsWith("npc_")?117:112;
+  let height=kind==="wolf"?110:kind==="wraith"?116:kind==="bandit"?110:kind.startsWith("npc_")?110:102;
+  let fx=(n%4)*FRAME_W,fy=Math.floor(n/4)*FRAME_H;
+  c.save();
+  const moving=state&&state.moving&&!kind.startsWith("npc_");
+  const bounce=moving?Math.abs(Math.sin(step*10))*2.8:Math.sin(performance.now()/460)*.7;
+  c.globalAlpha=.4;c.fillStyle="#08121c";c.beginPath();c.ellipse(x,y+2,width*.22,7,0,0,Math.PI*2);c.fill();c.globalAlpha=1;
+  let face=state&&state.facing;
+  if(face&&face.x<-.22){c.translate(x,y);c.scale(-1,1);x=0;y=0}
+  c.imageSmoothingEnabled=true;
+  c.drawImage(actors,fx,fy,FRAME_W,FRAME_H,x-width/2,y-height+bounce,width,height);
+  c.restore();
+  return true;
+ }
+ function glows(c,zone,time){
+  if(!scenes[zone])return;
+  c.save();
+  if(zone==="village"){
+    const a=[[1460,355,34],[162,210,30],[370,210,26],[1195,370,21]];
+    for(let i=0;i<a.length;i++){let [x,y,r]=a[i];let n=1+.07*Math.sin(time*4+i*3);let grad=c.createRadialGradient(x,y-25,2,x,y-25,r*n*2);grad.addColorStop(0,"rgba(255,186,86,.17)");grad.addColorStop(1,"rgba(255,168,65,0)");c.fillStyle=grad;c.beginPath();c.arc(x,y-25,r*n*2,0,7);c.fill()}
+  }
+  if(zone==="forge"){
+    let grad=c.createRadialGradient(1260,420,5,1260,420,240);grad.addColorStop(0,"rgba(255,154,42,.22)");grad.addColorStop(1,"rgba(255,130,24,0)");c.fillStyle=grad;c.fillRect(980,160,540,560);
+  }
+  if(zone==="cave"){
+    const grad=c.createRadialGradient(1580,370,15,1580,370,320);grad.addColorStop(0,"rgba(133,93,255,.16)");grad.addColorStop(1,"rgba(110,68,214,0)");c.fillStyle=grad;c.fillRect(1260,50,570,700);
+  }
+  c.restore()
+ }
+ function blocked(zone,x,y){
+  // Conservative handcrafted gameplay masks: buildings/cliff voids remain blocked,
+  // central walkways and bridge paths remain navigable.
+  if(zone==="village"){
+    if(x<65||y<90)return true;
+    if(y<360&&x<700)return true;
+    if(y<330&&x>1220)return true;
+    if(y>970&&x<800)return true;
+    if(y>1030&&x>1300)return true;
+    if(x>1680&&y>860)return true;
+  }else if(zone==="wilds"){
+    if(x<90||y<85)return true;
+    if(x>1800&&y<350)return true;
+    if(x<500&&y<710)return true; // stream and cliff; bridge lies farther south
+    if(y>1090&&x>1350)return true;
+  }else if(zone==="cave"){
+    if(x<120||y<140)return true;
+    if(y>990)return true;
+    if(x<570&&y<490)return true;
+    if(x>1640&&y>850)return true;
+  }else if(zone==="forge"){
+    if(x<150||x>1740||y<350||y>1100)return true;
+  }
+  return false;
+ }
+ window.VeilwardArt={background,actor,glows,blocked,version:"0.2.0"};
+})();
