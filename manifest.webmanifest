@@ -1,0 +1,19 @@
+{
+  "name": "Veilward: The Broken Sky — Hollowreach",
+  "short_name": "Veilward",
+  "description": "The Hollowreach playable prototype of Veilward, an original top-down fantasy action RPG.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0b131c",
+  "theme_color": "#111923",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
