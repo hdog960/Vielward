@@ -12,6 +12,7 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
 const SAVE="veilward-hollowreach-v01";
 const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:3,sceneVersion:5,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
+let pendingTravel=null;
 let p=JSON.parse(JSON.stringify(DEFAULT)),enemies={village:[],wilds:[],cave:[],forge:[]},npc=[],objects=[],worldTime=0,invTab="pack",attacks=[],autosaveClock=0;
 function rand(seed){let x=Math.sin(seed*127.1+78.233)*43758.5453;return x-Math.floor(x)}
 function rng(n){return rand(n*1.931+0.321)}
@@ -70,6 +71,9 @@ const t=document.createElement("canvas");t.width=WORLD.w;t.height=WORLD.h;
 const c=t.getContext("2d");
 if(visual){c.imageSmoothingEnabled=true;c.drawImage(visual,0,0,WORLD.w,WORLD.h)}
 else{c.fillStyle=C[zone]?.dark||"#1a2537";c.fillRect(0,0,WORLD.w,WORLD.h)}
+// Track which actual image was used. The map can load after the game starts,
+// so a solid-color temporary canvas must NEVER become permanently cached.
+t._sceneImage=visual||null;
 terrainCache[zone]=t;decorCache[zone]=[];return;
 }
 const t=document.createElement("canvas");t.width=WORLD.w;t.height=WORLD.h;const c=t.getContext("2d");c.imageSmoothingEnabled=false;
@@ -216,6 +220,13 @@ function safePosition(zone,x,y){
  return window.VeilwardNav?.safePoint(zone,x,y)||{x,y};
 }
 function changeZone(z,tx,ty){
+ if(window.VeilwardArt&&!window.VeilwardArt.sceneReady(z)){
+   pendingTravel={z,tx,ty};
+   notify("Loading "+(C[z]?.label||z)+"...");
+   if(window.VeilwardArt.sceneError(z))window.VeilwardArt.retryScene(z);
+   return;
+ }
+ pendingTravel=null;
  const safe=safePosition(z,tx,ty);
  p.zone=z;p.x=safe.x;p.y=safe.y;p.dodgeTime=0;p.dodgeV=0;p.invuln=1;
  joy.x=0;joy.y=0;p.navVersion=3;
@@ -278,7 +289,15 @@ move.addEventListener("pointerdown",e=>{e.preventDefault();joy.pid=e.pointerId;m
 move.addEventListener("pointermove",e=>{if(joy.pid===e.pointerId)upd(e)});
 function off(e){if(joy.pid===e.pointerId){joy={x:0,y:0,pid:null};knob.style.transform=""}}
 move.addEventListener("pointerup",off);move.addEventListener("pointercancel",off);
-[["attackBtn",attack],["spellBtn",spell],["dodgeBtn",dodge],["interactBtn",interact],["potionBtn",potion],["bagBtn",()=>openInv()],["mapBtn",()=>openInv("map")],["pauseBtn",()=>{modal=true;$("pause").style.display="block"}],["closeDialog",closeAll],["closeInventory",closeAll],["closePause",closeAll],["resumeBtn",closeAll],["saveBtn",()=>save()],["resetBtn",()=>{if(confirm("Erase the journey on this device and begin again?"))reset()}],["beginBtn",()=>{active=true;$("start").style.display="none";notify(window.VeilwardArt?.ready()?"Welcome to Hollowreach":"Hollowreach is loading — the scenery will appear shortly") }]].forEach(([id,fn])=>{$(id).addEventListener("click",e=>{e.preventDefault();fn()})});
+[["attackBtn",attack],["spellBtn",spell],["dodgeBtn",dodge],["interactBtn",interact],["potionBtn",potion],["bagBtn",()=>openInv()],["mapBtn",()=>openInv("map")],["pauseBtn",()=>{modal=true;$("pause").style.display="block"}],["closeDialog",closeAll],["closeInventory",closeAll],["closePause",closeAll],["resumeBtn",closeAll],["saveBtn",()=>save()],["resetBtn",()=>{if(confirm("Erase the journey on this device and begin again?"))reset()}],["beginBtn",()=>{
+  if(window.VeilwardArt&&!window.VeilwardArt.sceneReady(p.zone)){
+   const failed=window.VeilwardArt.sceneError(p.zone);
+   $("beginBtn").textContent=failed?"RETRY LOADING THE WORLD":"LOADING HOLLOWREACH…";
+   if(failed){window.VeilwardArt.retryScene(p.zone);notify("Retrying the snowy village artwork...")}
+   return;
+  }
+  active=true;$("start").style.display="none";notify("Welcome to Hollowreach")
+ }]].forEach(([id,fn])=>{$(id).addEventListener("click",e=>{e.preventDefault();fn()})});
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{invTab=t.dataset.tab;renderInventory()}));
 addEventListener("keydown",e=>{if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.repeat)return;if(e.code==="Escape"){closeAll();return}if(!active||modal)return;if(e.code==="Space"||e.code==="KeyJ")attack();if(e.code==="KeyQ"||e.code==="KeyK")spell();if(e.code==="KeyE"||e.code==="KeyF")interact();if(e.code==="ShiftLeft"||e.code==="ShiftRight")dodge();if(e.code==="KeyI"||e.code==="Tab")openInv();if(e.code==="KeyH")potion()});
 addEventListener("keyup",e=>{keys[e.code]=false});addEventListener("blur",()=>{keys={};joy={x:0,y:0,pid:null};knob.style.transform=""});addEventListener("pagehide",()=>save(true));
@@ -320,7 +339,8 @@ updateUI()
 }
 function render(){
 g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,vw,vh);
-if(!terrainCache[p.zone])generate(p.zone);
+const sceneImage=window.VeilwardArt?.background(p.zone);
+if(!terrainCache[p.zone]||(sceneImage&&terrainCache[p.zone]._sceneImage!==sceneImage))generate(p.zone);
 const viewW=viewWidth(),viewH=viewHeight();
 const targetX=clamp(p.x-viewW*.5,0,Math.max(0,WORLD.w-viewW)),targetY=clamp(p.y-viewH*.51,0,Math.max(0,WORLD.h-viewH));cam.x+=(targetX-cam.x)*.13;cam.y+=(targetY-cam.y)*.13;
 g.save();g.scale(WORLD_ZOOM,WORLD_ZOOM);g.translate(-Math.floor(cam.x)+(Math.random()-.5)*shake,-Math.floor(cam.y)+(Math.random()-.5)*shake);
@@ -377,11 +397,34 @@ if(window.VeilwardNav&&!window.VeilwardNav.canWalk(p.zone,p.x,p.y,8)){
 }
 save(true);
 setup();bind();
+function refreshStartStatus(){
+ const button=$("beginBtn");
+ if(!window.VeilwardArt){button.textContent="ENTER HOLLOWREACH";return}
+ if(window.VeilwardArt.sceneReady(p.zone)){button.textContent="ENTER HOLLOWREACH";return}
+ button.textContent=window.VeilwardArt.sceneError(p.zone)?"RETRY LOADING THE WORLD":"LOADING HOLLOWREACH…";
+}
 window.addEventListener("veilward-art-loaded",e=>{
-delete terrainCache[e.detail];generate(e.detail);
-if(window.VeilwardArt?.ready())$("beginBtn").textContent="ENTER HOLLOWREACH";
+ const zone=e.detail?.zone||e.detail;
+ if(zone&&C[zone]){
+  delete terrainCache[zone];
+  generate(zone);
+  if(pendingTravel&&pendingTravel.z===zone){
+   const task=pendingTravel;pendingTravel=null;
+   changeZone(task.z,task.tx,task.ty);
+  }
+ }
+ refreshStartStatus();
 });
-window.addEventListener("veilward-actors-ready",()=>{if(window.VeilwardArt?.ready())$("beginBtn").textContent="ENTER HOLLOWREACH"});
-if(!terrainCache[p.zone])generate(p.zone);$("location").textContent=C[p.zone].label;requestAnimationFrame(frame);
+window.addEventListener("veilward-art-error",e=>{
+ const zone=e.detail?.zone||"village";
+ console.error("Veilward could not load scene artwork:",zone,window.VeilwardArt?.sceneError(zone));
+ if(zone===p.zone)refreshStartStatus();
+ if(pendingTravel?.z===zone){pendingTravel=null;notify("Artwork unavailable. Reconnect and try the trail again.")}
+});
+window.addEventListener("veilward-actors-ready",refreshStartStatus);
+if(!terrainCache[p.zone])generate(p.zone);
+$("location").textContent=C[p.zone].label;
+refreshStartStatus();
+requestAnimationFrame(frame);
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 })();
