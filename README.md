@@ -1,3 +1,16 @@
+## v0.8 — Directional walking (November 3, 2026)
+
+- Fixed the stationary/sliding player: a cached **four-direction, six-frame animation** is generated from the complete v0.7 hero artwork.
+- Walking **up shows the back** of the character; down shows the front, and left/right face in the correct directions. Direction follows keyboard or touch joystick movement.
+- Legs alternate during walking while keeping full-body pixels and consistent foot anchoring; no earlier cropped animation cells are reused.
+- Animation advances based on real distance traveled, rather than elapsed time or merely holding a direction while blocked.
+- Character immediately returns to the correct directional idle pose after stopping, and existing quest/progression saves remain compatible.
+- All four directions, idle, menus, combat controls, animation construction, and 24 cached frame renders passed simulated game-runtime smoke checks.
+
+**Scope:** Only movement presentation was addressed in this pass. Other NPCs currently remain mostly static; deeper directional combat animations and modular environment art are future refinement work. Physical iPhone screenshots have not yet been verified.
+
+---
+
 # Veilward — Hollowreach v0.6.2
 
 ## Artifact repair update
