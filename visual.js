@@ -1,11 +1,11 @@
-/* VEILWARD — GROUNDED HERO & DISTINCT WARDEN v1.1.1
+/* VEILWARD — WARDEN SPRITE ART REPAIR v1.1.2
  * A unified four-pose, eight-facing, 32-frame authored hero atlas.
  * Shared physical proportions, full-body foot anchor, consistent armor/scarf/sword.
  * Combat effects remain enabled; new direction-specific attack/cast sprites are future work.
  */
 (function(){
 "use strict";
-const ROOT="./assets/",ART="14";
+const ROOT="./assets/",ART="15";
 const files={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
 const scene=Object.create(null);
 let npcAtlas=null,heroAtlas=null,adultFrontAtlas=null,wardenSprite=null;
@@ -116,64 +116,64 @@ function dimensions(kind){
  return dims[kind]||dims.human;
 }
 
-// Build one distinctive Warden Hal sprite from shaded source pixel art.
-// His helm, shield and midnight-blue mantle replace the hero-like appearance.
+// Distinct illustrated Warden Hal treatment; preserve source-pixel art fidelity.
+// No geometric, generated or hand-overpainted helmet/shield.
 function createWardenVariant(img){
+ // Use ONLY the project's shaded, organically drawn NPC pixel art.
+ // Previous update placed large flat rectangles over the face and produced
+ // a comically oversized 'helmet'; that entire overlay has been removed.
  try{
   const canvas=document.createElement("canvas");
-  canvas.width=192;canvas.height=176;
+  canvas.width=NPCCELL.w;
+  canvas.height=NPCCELL.h;
   const c=canvas.getContext("2d",{willReadFrequently:true});
   if(!c)return null;
   c.imageSmoothingEnabled=false;
-  c.drawImage(img,576,0,192,176,0,0,192,176);
-  const pixels=c.getImageData(0,0,192,176),data=pixels.data;
-  for(let y=0;y<176;y++)for(let x=0;x<192;x++){
-   const i=4*(y*192+x);if(!data[i+3])continue;
-   const r=data[i],g=data[i+1],b=data[i+2];
-   // Shift the distinctive red scarf to desaturated dark blue, retaining
-   // every original highlight and shadow.
-   if(!(x>74&&x<119&&y<76)&&y<122&&r>g*1.25&&r>b*1.2&&g<146){
-    const lum=r*.32+g*.52+b*.16;
-    data[i]=Math.min(255,lum*.49+14);
-    data[i+1]=Math.min(255,lum*.66+28);
-    data[i+2]=Math.min(255,lum*.92+49);
+  const slot=NPC.guard;
+  c.drawImage(img,(slot%NPCCELL.columns)*NPCCELL.w,
+    Math.floor(slot/NPCCELL.columns)*NPCCELL.h,
+    NPCCELL.w,NPCCELL.h,0,0,NPCCELL.w,NPCCELL.h);
+  const frame=c.getImageData(0,0,NPCCELL.w,NPCCELL.h);
+  const px=frame.data;
+  let scarfChanged=0,hairChanged=0,armorChanged=0;
+  for(let y=0;y<NPCCELL.h;y++)for(let x=0;x<NPCCELL.w;x++){
+   const i=(y*NPCCELL.w+x)*4;
+   if(px[i+3]<10)continue;
+   const r=px[i],g=px[i+1],b=px[i+2];
+   const luminance=.30*r+.59*g+.11*b;
+   const warm=r>g*1.20&&r>b*1.28&&g<160;
+   // Preserve the *actual textured contours* of every strand of hair.
+   // Silver hair and a navy winter scarf give Hal a different identity
+   // without replacing his face with geometric placeholder artwork.
+   if(y>=7&&y<40&&x>=73&&x<137&&warm){
+    px[i]=Math.min(255,luminance*.96+45);
+    px[i+1]=Math.min(255,luminance*1.04+57);
+    px[i+2]=Math.min(255,luminance*1.18+72);
+    hairChanged++;
+   }else if(y>=63&&y<116&&warm&&r>g*1.36&&g<125&&
+    !(x>83&&x<126&&y<71)){
+    px[i]=Math.min(255,luminance*.42+16);
+    px[i+1]=Math.min(255,luminance*.73+33);
+    px[i+2]=Math.min(255,luminance*1.12+50);
+    scarfChanged++;
+   }else if(y>=74&&y<146&&
+    b>=r*.87&&g>=r*.80&&r>=20&&r<190&&
+    !(x>81&&x<126&&y<83)){
+    // Cold steel armor treatment, keeping every shaded highlight.
+    px[i]=Math.min(255,r*.77+8);
+    px[i+1]=Math.min(255,g*.88+11);
+    px[i+2]=Math.min(255,b*.99+17);
+    armorChanged++;
    }
   }
-  c.putImageData(pixels,0,0);
-  // Hair is fully concealed by a steel greathelm and slotted visor.
-  c.clearRect(67,4,63,29);
-  const t=(x,y,w,h,color)=>{c.fillStyle=color;c.fillRect(x,y,w,h)};
-  t(86,5,25,5,"#162637");t(79,10,38,7,"#293d53");
-  t(74,17,47,9,"#41596b");t(70,26,56,11,"#34495b");
-  t(67,37,61,9,"#192d41");t(70,46,55,9,"#2b4052");
-  t(76,55,43,9,"#233749");t(83,64,30,4,"#132637");
-  t(81,9,30,3,"#8597a2");t(77,17,36,3,"#9db0b4");
-  t(74,23,46,2,"#71889b");t(70,33,56,3,"#c8aa73");
-  t(69,38,58,3,"#152432");
-  t(76,43,17,3,"#aec6d3");t(102,43,17,3,"#aec6d3");
-  t(92,39,9,20,"#b4a88c");t(94,46,5,12,"#536878");
-  t(80,52,33,3,"#81909a");t(78,57,38,4,"#172635");
-  t(74,44,5,18,"#7a8d96");t(117,43,5,18,"#516b7b");
-  t(86,5,11,3,"#d5b67b");t(95,3,4,20,"#bf9f65");
-  t(97,6,3,9,"#f0d49c");
-  // A Warden's kite shield gives him a different silhouette and equipment.
-  c.beginPath();c.moveTo(40,80);c.lineTo(70,75);c.lineTo(83,83);
-  c.lineTo(81,119);c.lineTo(66,142);c.lineTo(46,129);
-  c.lineTo(40,113);c.closePath();c.fillStyle="#122332";c.fill();
-  c.beginPath();c.moveTo(44,84);c.lineTo(69,79);c.lineTo(79,85);
-  c.lineTo(77,118);c.lineTo(65,136);c.lineTo(49,125);
-  c.lineTo(44,111);c.closePath();c.fillStyle="#c1a978";c.fill();
-  c.beginPath();c.moveTo(48,87);c.lineTo(69,83);c.lineTo(75,89);
-  c.lineTo(73,116);c.lineTo(64,130);c.lineTo(52,121);
-  c.lineTo(48,110);c.closePath();c.fillStyle="#3d5b74";c.fill();
-  t(52,89,3,27,"#7492a1");t(57,85,2,31,"#54798a");
-  t(69,89,3,31,"#29445a");t(54,117,16,3,"#2e5066");
-  t(58,98,13,5,"#d8ba80");t(62,94,5,15,"#d8ba80");
-  t(63,97,3,10,"#f6ddaa");t(51,90,4,3,"#b8c8cb");
+  c.putImageData(frame,0,0);
+  // This is source-sprite recoloring, never an improvised helmet or icon.
   return canvas;
- }catch(error){console.warn("Warden variant could not be built",error);return null;}
+ }catch(error){
+  console.warn("Failed to process Warden Hal artwork",error);
+  return null;
+ }
 }
-
 function drawShadow(ctx,x,y,w,kind){
  ctx.save();
  const beast=kind==="wolf"||kind==="npc_hound"||kind==="wraith";
@@ -225,7 +225,7 @@ function actor(ctx,x,y,kind,step,attack,state){
    const sy=Math.floor(index/NPCCELL.columns)*NPCCELL.h;
    if(kind==="npc_guard"&&wardenSprite){
      ctx.drawImage(wardenSprite,0,0,NPCCELL.w,NPCCELL.h,
-       Math.round(x-w/2),Math.round(y-h+Math.round(h*8/NPCCELL.h)),w,h);
+       Math.round(x-w/2),Math.round(y-h),w,h);
    }else{
      ctx.drawImage(img,sx,sy,NPCCELL.w,NPCCELL.h,
        Math.round(x-w/2),Math.round(y-h),w,h);
@@ -259,6 +259,6 @@ window.VeilwardArt={
  adultFrontLoaded:()=>!!(adultFrontAtlas?.complete&&adultFrontAtlas.naturalWidth===336),
  ready:()=>!!(scene.village&&heroAtlas&&npcAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
  spritesReady:()=>!!(heroAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
- version:"1.1.1"
+ version:"1.1.2"
 };
 })();

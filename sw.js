@@ -1,16 +1,16 @@
-/* VEILWARD offline cache v1.1.1 — grounded hero and distinct village guard.
+/* VEILWARD offline cache v1.1.2 — repaired Warden Hal artwork.
    Network-first HTML/JS, versioned atlas, stable image cache.
    Older installed-app caches removed when this worker activates. */
-const CACHE="veilward-hollowreach-v111-grounded-warden";
+const CACHE="veilward-hollowreach-v112-warden-art-repair";
 const FILES=[
  "./","./index.html","./game.js?v=10","./navigation.js?v=7",
- "./visual.js?v=24","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
- "./assets/village_v06_clear.jpg?art=14","./assets/wilds_clean.jpg?art=14",
- "./assets/cave_clean.jpg?art=14","./assets/forge.jpg?art=14",
- "./assets/actors_v07.png?art=14",
- "./assets/hero_full_8way_v10.png?art=14",
- "./assets/hero_approved_8way_v12.webp?art=14",
- "./assets/hero_front_adult_v11.png?art=14"
+ "./visual.js?v=25","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
+ "./assets/village_v06_clear.jpg?art=15","./assets/wilds_clean.jpg?art=15",
+ "./assets/cave_clean.jpg?art=15","./assets/forge.jpg?art=15",
+ "./assets/actors_v07.png?art=15",
+ "./assets/hero_full_8way_v10.png?art=15",
+ "./assets/hero_approved_8way_v12.webp?art=15",
+ "./assets/hero_front_adult_v11.png?art=15"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{

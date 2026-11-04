@@ -1,3 +1,18 @@
+# Veilward 1.1.2 — Warden Hal art repair (Nov 4, 2026)
+
+The user found that the prior guard 'helmet' looked like a giant pixel crate/chest rather than a human head. Root cause: code was using broad hard-edged Canvas rectangles, clipping the artist-authored hair and covering the face with a box-shaped overlay, then adding an oversimplified icon shield. This violates Veilward's authored-pixel-art requirements.
+
+**Implemented, not a mockup:**
+- Deleted the entire fake block helmet, geometric visor and icon shield renderer.
+- Preserved the original fully illustrated 192×176 NPC atlas guard, including expressive face, natural hair, detailed armor and sword, with transparent silhouette.
+- Applied source-pixel color remapping only: silver/ash hair; midnight-blue and cold-steel clothing/armor, preserving each pixel's inherent shading and contours. Hal remains distinguishable from the red-scarfed player without flat icon elements.
+- Removed the ungrounded Warden vertical sprite offset; all NPCs keep consistent foot anchoring.
+- Bumped visual.js and PWA cache/asset versions while preserving existing saves and game logic.
+
+**Still required:** visual approval on the iPhone. This corrective patch does not claim that the warden art has reached the final art-quality gate.
+
+---
+
 # Veilward v1.1.1 — iPhone playtest corrections (November 4, 2026)
 
 - **Boot contact:** The approved 32-frame hero sheet has 12px transparent bottom padding per 180px cell. The renderer now offsets all eight facings by 10 world units so the visible boots actually touch the navigation/ground anchor instead of floating above it.
