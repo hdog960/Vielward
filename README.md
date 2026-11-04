@@ -1,5 +1,31 @@
 # VEILWARD: THE BROKEN SKY
 
+## Hollowreach v0.4 — Live NPCs, cleaner environments, consistent forge, zoomed-out camera
+
+The creator's approved pixel-art scenes are now represented by **character-free playable scene plates** in the winter village, Greenwood forest, and cave. Visible quest NPCs are rendered as separate interactive sprite actors in front of the scenery instead of being painted-in nonfunctional humans.
+
+### Changes in v0.4
+- Painted-in people and enemy figures removed from the three active scene backgrounds, and replaced with live sprites. Some artwork cleanup remains imperfect around formerly occupied scenery.
+- Player rendering uses complete idle and walk sprite cells rather than the broken/cropped attack and cast cells. Combat and spell effects are still generated dynamically.
+- World camera zoom = **0.78** (22% farther out); HUD stays full size for iPhone readability.
+- Joren's **visible outdoor blacksmith stand is the real forge**: talk to him there to begin/complete the quest and access his shop. The inconsistent portal beside a villager has been removed.
+- Legacy saves trapped in the separate unused forge interior are safely relocated to the village without deleting character progress.
+- Added a live friendly village hound, with petting interaction.
+- Kept authored walkable boundaries, transitions, combat, inventory, and saving from v0.3.1. Bumped asset and service-worker versions to prevent stale iPhone Home Screen builds.
+
+### QA
+JavaScript runtime simulations: eight passes covering fresh start, older forge save, speaking to Joren, turning in stolen supplies, petting the hound, eastern travel, cave entry, and quest-item retrieval. All tests rendered the zoomed camera and live actors without script exceptions. A physical iPhone graphics and touch playtest has not been independently completed.
+
+### Outstanding work
+- The cleaned images contain occasional reconstructed texture patches; long-term art needs true layered tiles/occlusion and consistent terrain geometry.
+- Only complete idle/walk poses are enabled for the player; full directional attack, spell, and dodge animation atlases need to be authored without cropped frames.
+- The standalone illustrated forge interior is temporarily inaccessible because the available exterior has no architecturally matching entrance. It can return when we build one that makes sense.
+- Not yet the approved finished vertical slice.
+
+---
+
+
+
 ## Hollowreach — live prototype v0.3.1 (navigation and interaction repair)
 
 This release is the **gameplay repair pass** following the illustrated visual overhaul. It uses authored walkable-ground polygons for the four illustrated scenes rather than allowing free movement anywhere in the painted backgrounds. The same collision geometry is used for the player, dodges, and enemy movement.
