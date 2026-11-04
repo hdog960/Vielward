@@ -358,6 +358,7 @@ shake*=.78;if(shake<.2)shake=0;if(toastTime>0){toastTime-=.016;if(toastTime<=0)$
 function frame(now){let dt=Math.min(.055,(now-last)/1000||.016);last=now;tick(dt);render();requestAnimationFrame(frame)}
 load();
 if(!p.artVersion){p.zone="village";p.x=925;p.y=620;p.artVersion=2;}
+if(p.zone==="forge"){p.zone="village";p.x=925;p.y=620;p.navVersion=3;}
 if(p.sceneVersion!==5){
  // Rebuild the original location: migrate old coordinates onto the newly
  // hand-marked snow paths while keeping equipment, XP, quests and gold intact.
