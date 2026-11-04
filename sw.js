@@ -1,7 +1,30 @@
-/* Veilward v0.5 — golden reference rebuilt outpost and real character sprites.
-   Network-first fetch ensures Home Screen installs receive corrections. */
-const CACHE="veilward-hollowreach-v062-actor-mask";
-const FILES=["./","./index.html","./game.js?v=8","./navigation.js?v=7","./visual.js?v=11","./visual.css?v=7","./manifest.webmanifest","./icon.svg","./assets/village_v06_clear.jpg?art=6","./assets/actors_silhouette_v062.png?art=6","./assets/husky_clean_v06.png?art=6","./assets/wilds_clean.jpg?art=6","./assets/cave_clean.jpg?art=6","./assets/forge.jpg?art=6"]
-self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
-self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("veilward-")&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
-self.addEventListener("fetch",event=>{if(event.request.method!=="GET"||new URL(event.request.url).origin!==location.origin)return;event.respondWith(fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(c=>c.put(event.request,copy)).catch(()=>{})}return response}).catch(()=>caches.match(event.request)))})
+/* VEILWARD offline cache v0.7 — no stale damaged character sprites.
+   Network-first HTML/JS, versioned atlas, stable image cache.
+   Older installed-app caches removed when this worker activates. */
+const CACHE="veilward-hollowreach-v070-full-actors";
+const FILES=[
+ "./","./index.html","./game.js?v=8","./navigation.js?v=7",
+ "./visual.js?v=12","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
+ "./assets/village_v06_clear.jpg?art=7","./assets/wilds_clean.jpg?art=7",
+ "./assets/cave_clean.jpg?art=7","./assets/forge.jpg?art=7",
+ "./assets/actors_v07.png?art=7"
+];
+self.addEventListener("install",event=>{
+ event.waitUntil(caches.open(CACHE).then(async cache=>{
+  // Individual fetches prevent an optional image from blocking the entire install.
+  await Promise.allSettled(FILES.map(async url=>{try{await cache.add(url)}catch(e){}}));
+ }).then(()=>self.skipWaiting()))
+});
+self.addEventListener("activate",event=>{
+ event.waitUntil(caches.keys().then(keys=>Promise.all(
+  keys.filter(key=>key.startsWith("veilward-")&&key!==CACHE).map(key=>caches.delete(key))
+ )).then(()=>self.clients.claim()))
+});
+self.addEventListener("fetch",event=>{
+ const request=event.request;
+ if(request.method!=="GET"||new URL(request.url).origin!==location.origin)return;
+ event.respondWith(fetch(request).then(response=>{
+  if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy)).catch(()=>{})}
+  return response;
+ }).catch(()=>caches.match(request).then(response=>response||Response.error())))
+});
