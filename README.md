@@ -1,3 +1,14 @@
+# Veilward v1.1.1 — iPhone playtest corrections (November 4, 2026)
+
+- **Boot contact:** The approved 32-frame hero sheet has 12px transparent bottom padding per 180px cell. The renderer now offsets all eight facings by 10 world units so the visible boots actually touch the navigation/ground anchor instead of floating above it.
+- **Shadow:** The wide detached shadow was reduced to a tight, lower-profile contact shadow centered on that same world anchor. The world-space collider and movement code remain untouched.
+- **Warden Hal:** NPC atlas index 3 was essentially a clone of the hero (same red scarf, brown hair, armor and sword). Its displayed sprite is now turned into a distinct dark-blue armored village warden with a closed segmented steel helmet, slit visor, gold trim and kite shield. The transformation runs only once after the existing NPC atlas loads; other NPC art is unchanged. This is part of the real Canvas actor renderer, not an art-only illustration.
+- **PWA:** New query strings, script version and offline cache key. Same save key and quest state.
+
+Simulated renderer checks are expected; actual iPhone review remains the visual acceptance test.
+
+---
+
 # Veilward — v1.1.0 approved unified eight-direction character (November 4, 2026)
 
 The creator approved the newly rendered 8-row × 4-column hero spritesheet and required that it be integrated into the playable game, not supplied as a detached illustration.
