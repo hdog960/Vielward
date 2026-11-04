@@ -1,3 +1,20 @@
+# Veilward — v1.1.0 approved unified eight-direction character (November 4, 2026)
+
+The creator approved the newly rendered 8-row × 4-column hero spritesheet and required that it be integrated into the playable game, not supplied as a detached illustration.
+
+**Actual game implementation**
+- Added `assets/hero_approved_8way_v12.webp`: the approved hero artwork converted into 32 aligned sprite cells. Rows S, SE, E, NE, N, NW, W, SW; columns idle, three distinct walk poses.
+- Removed the mixed-art south-facing override when the new atlas loads. **All eight directions use the same source artwork, armor, face proportions, scarf and sword.**
+- Player keeps the same `150×154` game-world rendering bounds and common foot anchor while turning. Walk animation uses distance actually traveled to choose real authored frames.
+- Preserved original mobile controls, game logic, combat effects, interaction, collision, saves, quests, and NPCs. The old 136-frame sprite atlas and supplemental front strip remain strictly as an offline fallback when the new asset fails.
+- Advanced `visual.js`, sprite asset query, and service worker cache versions to force iPhone PWA updates.
+
+**Limits:** This sheet includes 8 directions × (1 idle + 3 walk frames); dedicated directional combat, cast, damage, and dodge poses have **not** been authored in the new sheet. Existing gameplay effects work, but a fully independent combat atlas is still a future art gate. No physical iPhone frame-by-frame verification yet.
+
+**Verification:** Sprite normalization produces 32 nonempty cells; browser canvas drawing coordinates, directions and animation indices are checked in a simulated runtime. The user must approve actual updated iPhone gameplay screenshots before we claim final 10/10 art signoff.
+
+---
+
 # Veilward — v1.0.2 hero age/proportion correction (November 4, 2026)
 
 The November 4 mobile screenshots showed a juvenile-looking, swordless hero facing south/down, while left/right showed an adult armored wanderer. **The original 136-cell atlas is real, but the south row is not visually consistent with the side rows.**

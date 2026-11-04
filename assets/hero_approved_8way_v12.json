@@ -1,0 +1,37 @@
+{
+  "version": "1.1.0",
+  "image": "hero_approved_8way_v12.webp",
+  "format": "webp",
+  "columns": 4,
+  "rows": 8,
+  "cellWidth": 160,
+  "cellHeight": 180,
+  "imageWidth": 640,
+  "imageHeight": 1440,
+  "directions": [
+    "S",
+    "SE",
+    "E",
+    "NE",
+    "N",
+    "NW",
+    "W",
+    "SW"
+  ],
+  "frames": {
+    "idle": [
+      0
+    ],
+    "walk": [
+      1,
+      2,
+      3
+    ]
+  },
+  "normalizedVisibleHeight": 151,
+  "footYinCell": 168,
+  "renderWorldWidth": 150,
+  "renderWorldHeight": 154,
+  "source": "Approved eight-direction hero turnaround from the creator's November 4, 2026 session",
+  "limitations": "Idle and walk only. Combat uses existing live effects and stable poses."
+}

@@ -1,15 +1,16 @@
-/* VEILWARD offline cache v1.0.2 — consistent front hero and revised sprite assets.
+/* VEILWARD offline cache v1.1.0 — approved 32-frame eight-direction hero atlas.
    Network-first HTML/JS, versioned atlas, stable image cache.
    Older installed-app caches removed when this worker activates. */
-const CACHE="veilward-hollowreach-v102-adult-front";
+const CACHE="veilward-hollowreach-v110-unified-hero";
 const FILES=[
  "./","./index.html","./game.js?v=10","./navigation.js?v=7",
- "./visual.js?v=22","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
- "./assets/village_v06_clear.jpg?art=12","./assets/wilds_clean.jpg?art=12",
- "./assets/cave_clean.jpg?art=12","./assets/forge.jpg?art=12",
- "./assets/actors_v07.png?art=12",
- "./assets/hero_full_8way_v10.png?art=12",
- "./assets/hero_front_adult_v11.png?art=12"
+ "./visual.js?v=23","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
+ "./assets/village_v06_clear.jpg?art=13","./assets/wilds_clean.jpg?art=13",
+ "./assets/cave_clean.jpg?art=13","./assets/forge.jpg?art=13",
+ "./assets/actors_v07.png?art=13",
+ "./assets/hero_full_8way_v10.png?art=13",
+ "./assets/hero_approved_8way_v12.webp?art=13",
+ "./assets/hero_front_adult_v11.png?art=13"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{
