@@ -1,3 +1,42 @@
+# Veilward — v0.5 clean scene reset
+
+This commit is a **real game update**, not a concept-art deliverable.
+
+### Improvements
+- Replaced the damaged old Frostbound Village backdrop with a clean, small
+  Frostbridge Outpost scene drawn directly from the project's golden visual
+  reference; two baked-in human figures were removed. No oval-snow patches,
+  floating cut-out trees or disconnected forge scene composites are part of
+  this new village background.
+- Rebuilt the active character atlas with normalized full-body sprites,
+  consistent pivots/feet, removed loose visual artifacts, and replaced broken
+  cast/dodge frames with intact poses (dedicated directional animations remain
+  a later production requirement).
+- Created a new scene-specific navigation mesh for cottage steps, courtyard,
+  shrine stairway, wooden bridge and snowy exit trail.
+- Repositioned real Joren, Warden Hal, Mira, Eldric, Ash and interaction points
+  onto visible paths. The old standalone forge remains retired.
+- Migrates existing character saves and preserves quest, XP, equipment and gold.
+  Former forge interior saves return to the outdoor outpost.
+- Increased the service-worker cache version for iPhone Home Screen installs.
+
+### Verified in programmatic gameplay checks
+New-game start, v0.4 save migration, retired forge migration, dialogue with
+Joren, supply quest hand-in, travel from Frostbridge to Greenwood, and return
+from Greenwood. All destination foot positions are on legal walkable terrain.
+
+### Remaining limitations (do not misrepresent as finished)
+The new Frostbridge scene is **an edited image derived from the creator-supplied
+golden reference**, temporarily used to validate look, proportions, navigation
+and UI. It is still a single scene image, not a licensed or original modular
+tile system with independent props, occlusion and fully animated creatures.
+Before the prototype is approved for wider public release, replace this
+reference-derived plate with fully original authorized game art. Outdoor
+crafting still needs a proper interactive set of modular forge props.
+There has been no physical iPhone performance test of this build.
+
+---
+
 # VEILWARD: THE BROKEN SKY
 
 ## Hollowreach v0.4 — Live NPCs, cleaner environments, consistent forge, zoomed-out camera
