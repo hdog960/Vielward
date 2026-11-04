@@ -1,6 +1,27 @@
 # VEILWARD: THE BROKEN SKY
 
-## Hollowreach — live prototype v0.2.1 (illustrated graphics update)
+## Hollowreach — live prototype v0.3.1 (navigation and interaction repair)
+
+This release is the **gameplay repair pass** following the illustrated visual overhaul. It uses authored walkable-ground polygons for the four illustrated scenes rather than allowing free movement anywhere in the painted backgrounds. The same collision geometry is used for the player, dodges, and enemy movement.
+
+### Fixed in v0.3.1
+- Prevent walking on the forge workbench, snow-covered roofs, stone cliff edges, streams, and other painted non-floor areas.
+- Make village blacksmith entry, forge exit, forest bridge travel, cave entry/exit and caravan supply pickup accessible with **Talk/E**, without surprise automatic teleports.
+- Stop drawing duplicate NPC character sprites over NPCs already present in illustrated scenes; retain their live dialogues.
+- Reposition unreachable quest/NPC/interaction anchors and wolves/wraiths onto valid ground.
+- Migrate old saves that loaded inside walls or on tables to the nearest walkable ground without wiping progress.
+- Add reliable art loading fallback, explicit versioned assets and refreshed offline cache.
+- Debug navigation in-game with `?debugNav=1` appended to the site URL.
+
+### Testing notes
+Simulated mobile-canvas runtime checks passed for new/old saves, forge access, speaking with Joren, world transitions, and cave supply recovery. Programmatic route searches verify traversability of the first quests and all location exits at player collision radius. Actual physical iPhone playtesting and end-to-end user approval are still outstanding.
+
+### Important visual limitation
+The beautiful environment images are currently **illustrated scene plates**—not fully modular layered tilemaps. Actors and interactive markers are live over those plates, while some background figures are not animated. This repair prevents major walk-through and duplicated-actor problems but is not the fully finished Skyrim-scale RPG.
+
+---
+
+
 
 **Hosted through the user's GitHub Pages repository:** https://hdog960.github.io/Vielward/
 
