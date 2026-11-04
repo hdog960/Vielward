@@ -75,8 +75,12 @@ const zones={
   ground:[
    // Southern rope bridge from outside.
    [[0,343],[156,337],[345,399],[385,438],[346,467],[151,425],[0,413]],
+   // Join the southern rope bridge to the central stone floor.
+   [[232,343],[298,320],[372,331],[402,373],[394,423],[321,414],[239,387]],
    // Stable central cavern platform.
    [[289,287],[363,254],[457,247],[537,260],[626,263],[706,292],[737,340],[734,376],[685,420],[621,424],[556,389],[491,381],[426,406],[357,393],[302,357]],
+   // Narrow treaded rise connecting center platform and stone steps.
+   [[541,244],[604,211],[695,220],[750,265],[737,310],[645,325],[569,304]],
    // Stone stairway to the Veil rupture.
    [[553,269],[577,215],[636,174],[700,197],[750,244],[736,297],[668,322],[596,309]],
    // Raised shrine landing.
