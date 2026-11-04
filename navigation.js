@@ -9,27 +9,37 @@
 (function(){
 "use strict";
 const W=1850/900,H=1200/584;
+const v=pts=>pts.map(([x,y])=>[x*900/707,y*584/530]);
 const zones={
  village:{
+  // Native Golden-reference artwork: 707×530 pixels, scaled into 900×584
+  // navigation coordinates; one coherent walkable network around hut,
+  // bridge, shoreline and hillside steps.
   ground:[
-   // Village courtyard — keep to snow paths below the terraces.
-   [[224,320],[265,286],[305,253],[331,235],[368,226],[409,208],[482,211],[539,199],[604,206],[652,222],[688,243],[712,268],[717,312],[671,338],[633,363],[586,387],[532,399],[488,393],[451,381],[417,387],[376,398],[331,397],[301,376],[258,360]],
-   // Lower snow lane, along the notice board and fishing path.
-   [[0,346],[83,341],[151,344],[203,326],[251,329],[281,362],[323,386],[316,414],[274,437],[221,451],[165,465],[94,456],[0,451]],
-   // Short link from plaza to the bridge approach.
-   [[445,378],[496,378],[558,395],[592,433],[543,449],[483,427]],
-   // Wooden bridge crossing water and a sheer cliff. Cross only on the deck.
-   [[491,387],[540,370],[728,466],[748,499],[712,528],[531,432]],
-   // Eastern approach & arrival for woodland travel.
-   [[705,469],[756,465],[819,474],[899,461],[899,548],[826,550],[755,542],[710,525]]
+   ...[
+    // Cabin steps and front approach
+    [[286,175],[317,171],[348,196],[357,239],[323,268],[282,252]],
+    // Center snow clearing, main quest/NPC courtyard
+    [[288,218],[385,188],[478,193],[550,218],[572,262],[572,317],[505,347],[443,341],[382,358],[316,322],[274,280]],
+    // Narrow access up the real staircase to the shrine
+    [[457,202],[468,173],[489,144],[515,127],[541,130],[557,157],[541,188],[513,212],[483,233]],
+    // Descending road toward wooden bridge
+    [[265,290],[322,301],[379,339],[390,381],[370,408],[289,401],[219,369],[211,337]],
+    // Lower shore footpath, physical bridge landing and exit
+    [[245,375],[339,377],[415,407],[484,449],[494,530],[243,530],[192,485],[195,430]],
+    // Riverside camp trail, keeping away from open water
+    [[425,397],[502,408],[558,422],[618,448],[638,509],[604,529],[490,529],[455,480]]
+   ].map(v),
   ],
   solids:[
-   [[134,222],[241,214],[266,308],[242,341],[139,337]],
-   // steps and front fence are visual barriers except the center landing
-   [[280,161],[313,156],[333,208],[297,224]]
+   // Icy riverbank left of the courtyard, cliff-top cabin and shrub walls
+   v([[0,204],[239,206],[291,248],[283,317],[226,335],[0,361]]),
+   v([[0,0],[316,0],[337,161],[303,181],[235,198],[0,191]]),
+   // Upper rock walls and shrine plinth, excluding the actual staircase
+   v([[375,0],[707,0],[707,214],[590,225],[550,186],[534,124],[468,147],[415,182]])
   ],
-  starts:[[900,625],[1315,602],[1555,1044]],
-  worldExit:[1555,1044]
+  starts:[[925,620],[870,524],[1070,1090]],
+  worldExit:[1070,1090]
  },
  forge:{
   ground:[
@@ -158,5 +168,5 @@ function drawDebug(ctx,zone){const z=zones[zone];if(!z)return;ctx.save();ctx.sca
  for(const [list,col] of [[z.ground,'#37ed5a44'],[z.solids,'#fb244a99']]){
   for(const a of list){ctx.beginPath();ctx.moveTo(...a[0]);for(const pt of a.slice(1))ctx.lineTo(...pt);ctx.closePath();ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#ffeeaa';ctx.lineWidth=.9;ctx.stroke()}
  }ctx.restore()}
-window.VeilwardNav={canWalk,safePoint,projectMotion,drawDebug,zones,version:'0.3.0'};
+window.VeilwardNav={canWalk,safePoint,projectMotion,drawDebug,zones,version:'0.5.0'};
 })();
