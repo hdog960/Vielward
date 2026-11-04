@@ -1,14 +1,14 @@
-/* VEILWARD offline cache v1.0 — load the new eight-direction full sprite atlas.
+/* VEILWARD offline cache v1.0.1 — repaired world background loading.
    Network-first HTML/JS, versioned atlas, stable image cache.
    Older installed-app caches removed when this worker activates. */
-const CACHE="veilward-hollowreach-v100-full-hero-atlas";
+const CACHE="veilward-hollowreach-v101-terrain-load-repair";
 const FILES=[
- "./","./index.html","./game.js?v=9","./navigation.js?v=7",
- "./visual.js?v=20","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
- "./assets/village_v06_clear.jpg?art=10","./assets/wilds_clean.jpg?art=10",
- "./assets/cave_clean.jpg?art=10","./assets/forge.jpg?art=10",
- "./assets/actors_v07.png?art=10",
- "./assets/hero_full_8way_v10.png?art=10"
+ "./","./index.html","./game.js?v=10","./navigation.js?v=7",
+ "./visual.js?v=21","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
+ "./assets/village_v06_clear.jpg?art=11","./assets/wilds_clean.jpg?art=11",
+ "./assets/cave_clean.jpg?art=11","./assets/forge.jpg?art=11",
+ "./assets/actors_v07.png?art=11",
+ "./assets/hero_full_8way_v10.png?art=11"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{
