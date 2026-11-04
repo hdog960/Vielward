@@ -1,97 +1,122 @@
-/* VEILWARD Art Runtime v0.2 — original environment plates derived from approved in-house concept art.
-   Every map below is an actual Canvas world background; interactive objects and actors are drawn by game.js. */
+/* VEILWARD VISUALS v0.6 — live actors with transparent silhouettes and authored snow.
+   The creature previously baked into the golden reference was removed in the source asset.
+   Each actor draws from its tightly cropped original silhouette, not a 192x150
+   rectangle carrying plants, pavement, hard-edged shadow or backdrop pixels. */
 (function(){
  "use strict";
- const BASE="./assets/";
- const maps={village:"village_golden_v05.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
- const scenes={};
- let actors=null;
- const FRAME_W=192,FRAME_H=150;
- function load(name,src,isActor){
+ const ASSET_ROOT="./assets/";
+ const scenePaths={
+  village:"village_v06_clear.jpg",
+  wilds:"wilds_clean.jpg",
+  cave:"cave_clean.jpg",
+  forge:"forge.jpg"
+ };
+ const scenes=Object.create(null);
+ let sheet=null;
+ const CELL_W=192,CELL_H=150;
+ // Cell-relative cropped, alpha-clean sprite silhouettes (x,y,w,h).
+ const crops=[
+  [53,31,85,112],[50,31,92,112],[53,31,85,112],[53,31,85,112],
+  [53,31,85,112],[78,20,63,123],[62,19,83,119],[55,19,94,121],
+  [48,19,108,118],[39,70,122,64],[49,19,115,119],[25,38,142,98]
+ ];
+ function loadAsset(name,file,isActor=false){
   const img=new Image();
   img.decoding="async";
   img.onload=()=>{
-    if(isActor){actors=img;window.dispatchEvent(new Event("veilward-actors-ready"))}
-    else {scenes[name]=img;window.dispatchEvent(new CustomEvent("veilward-art-loaded",{detail:name}))}
+   if(isActor){sheet=img;window.dispatchEvent(new Event("veilward-actors-ready"))}
+   else{scenes[name]=img;window.dispatchEvent(new CustomEvent("veilward-art-loaded",{detail:name}))}
   };
-  img.onerror=()=>console.warn("Veilward art load failed",src);
-  img.src=BASE+src+"?art=5";
+  img.onerror=()=>console.warn("Veilward missing art:",file);
+  img.src=ASSET_ROOT+file+"?art=6";
  }
- for(const [name,src] of Object.entries(maps))load(name,src,false);
- load("actors","actors_clean_v05.png",true);
+ for(const [zone,file] of Object.entries(scenePaths))loadAsset(zone,file);
+ loadAsset("actors","actors_silhouette_v06.png",true);
  function background(zone){return scenes[zone]||null}
- function actor(c,x,y,kind,step,att,state){
-  if(!actors||!actors.complete||!actors.naturalWidth)return false;
-  let n=0;
-  if(kind==="wolf")n=9;
-  else if(kind==="bandit")n=10;
-  else if(kind==="wraith")n=11;
-  else if(kind.startsWith("npc_")){
+ function chooseSprite(kind,state){
+  if(kind==="wolf"||kind==="npc_hound")return 9;
+  if(kind==="bandit")return 10;
+  if(kind==="wraith")return 11;
+  if(kind.startsWith("npc_")){
    const role=kind.slice(4);
-   n={forge:7,inn:6,hunter:8,guard:10,hermit:8,merchant:5,hound:9}[role]??8;
-  }else{
-   // Deliberately use only the intact idle/walk frames. Earlier combat/cast
-   // frames were truncated by concept-sheet extraction and looked transparent.
-   n=(state&&state.moving)?1:0;
+   // Never display the source sheet's incomplete/clipped merchant frame.
+   return ({forge:7,inn:6,hunter:8,guard:10,hermit:8,merchant:6})[role]??6;
   }
-  const hound=kind==="npc_hound"||kind==="wolf";
-  const width=kind==="npc_forge"?150:kind==="npc_merchant"?116:kind==="npc_inn"?124:kind==="npc_hermit"?137:
-    kind==="npc_guard"?118:kind==="npc_hunter"?135:kind==="wolf"?130:kind==="wraith"?138:
-    kind==="bandit"?135:hound?110:125;
-  const height=kind==="npc_forge"?148:kind==="npc_merchant"?131:kind==="npc_inn"?133:kind==="npc_hermit"?137:
-    kind==="npc_guard"?138:kind==="npc_hunter"?140:kind==="wolf"?118:kind==="wraith"?145:
-    kind==="bandit"?135:hound?104:145;
-  let fx=(n%4)*FRAME_W,fy=Math.floor(n/4)*FRAME_H;
-  c.save();
-  const moving=state&&state.moving&&!kind.startsWith("npc_");
-  const bounce=moving?Math.abs(Math.sin(step*12))*2.1:Math.sin(performance.now()/600)*.3;
-  c.globalAlpha=.32;c.fillStyle="#08121c";c.beginPath();c.ellipse(x,y+1,width*.19,4.2,0,0,Math.PI*2);c.fill();c.globalAlpha=1;
-  const face=state&&state.facing;
-  if(face&&face.x<-.35){c.translate(x,y);c.scale(-1,1);x=0;y=0}
-  c.imageSmoothingEnabled=false;
-  c.drawImage(actors,fx,fy,FRAME_W,FRAME_H,Math.round(x-width/2),Math.round(y-height+bounce),width,height);
-  c.restore();
+  return state&&state.moving?1:0;
+ }
+ function dimensions(kind){
+  const dims={
+   human:[86,110],
+   wolf:[108,70],bandit:[96,113],wraith:[121,95],
+   npc_forge:[106,133],npc_inn:[90,119],npc_hunter:[102,127],
+   npc_guard:[91,117],npc_hermit:[102,127],npc_merchant:[91,119],
+   npc_hound:[104,66]
+  };
+  return dims[kind]||dims.human;
+ }
+ function shadow(ctx,x,y,w,kind){
+  const rx=w*(kind==="wolf"||kind==="npc_hound"?.39:.29);
+  ctx.save();
+  ctx.translate(x,y+2);
+  ctx.scale(rx,6.2);
+  const gr=ctx.createRadialGradient(0,0,0,0,0,1);
+  gr.addColorStop(0,"rgba(12,24,44,.24)");
+  gr.addColorStop(.52,"rgba(18,30,45,.13)");
+  gr.addColorStop(1,"rgba(16,24,34,0)");
+  ctx.fillStyle=gr;
+  ctx.beginPath();ctx.arc(0,0,1,0,2*Math.PI);ctx.fill();
+  ctx.restore();
+ }
+ function actor(ctx,x,y,kind,step,attack,state){
+  if(!sheet||!sheet.complete||!sheet.naturalWidth)return false;
+  const idx=chooseSprite(kind,state);
+  const rect=crops[idx];
+  const [width,height]=dimensions(kind);
+  const sx=(idx%4)*CELL_W+rect[0],sy=Math.floor(idx/4)*CELL_H+rect[1];
+  // The running pose changes the legs, but feet still align with ground.
+  const walk=state&&state.moving&&!kind.startsWith("npc_");
+  const bob=walk?Math.abs(Math.sin(step*10))*1.2:0;
+  shadow(ctx,x,y,width,kind);
+  ctx.save();
+  if(state?.facing&&state.facing.x<-.35){
+   ctx.translate(x,y);ctx.scale(-1,1);x=0;y=0;
+  }
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality="high";
+  ctx.drawImage(sheet,sx,sy,rect[2],rect[3],
+   Math.round(x-width/2),Math.round(y-height+bob),width,height);
+  // Ash is a live hound, not a feral monster: an independent collar.
+  if(kind==="npc_hound"){
+   ctx.fillStyle="#b94b45";
+   const xx=Math.round(x+width*.24),yy=Math.round(y-height*.52+bob);
+   ctx.fillRect(xx,yy,Math.max(4,Math.round(width*.075)),3);
+  }
+  ctx.restore();
   return true;
  }
- function glows(c,zone,time){
+ function glows(ctx,zone,t){
   if(!scenes[zone])return;
-  c.save();
-  if(zone==="village"){
-    const a=[[879,279,35],[716,342,28],[1430,1002,30],[797,1160,19]];
-    for(let i=0;i<a.length;i++){let [x,y,r]=a[i];let n=1+.07*Math.sin(time*4+i*3);let grad=c.createRadialGradient(x,y-25,2,x,y-25,r*n*2);grad.addColorStop(0,"rgba(255,186,86,.17)");grad.addColorStop(1,"rgba(255,168,65,0)");c.fillStyle=grad;c.beginPath();c.arc(x,y-25,r*n*2,0,7);c.fill()}
+  const spots=zone==="village"?
+    [[879,279,45],[716,342,32],[1430,1002,38],[797,1160,30]]:
+    zone==="forge"?[[1260,420,170]]:zone==="cave"?[[1580,370,150]]:[];
+  ctx.save();
+  for(let i=0;i<spots.length;i++){
+   const [x,y,r]=spots[i];const radius=r*(1+.045*Math.sin(t*4+i));
+   const gr=ctx.createRadialGradient(x,y-25,0,x,y-25,radius);
+   const color=zone==="cave"?"133,109,242":"255,183,96";
+   gr.addColorStop(0,"rgba("+color+",.14)");
+   gr.addColorStop(1,"rgba("+color+",0)");
+   ctx.fillStyle=gr;
+   ctx.fillRect(x-radius,y-25-radius,2*radius,2*radius);
   }
-  if(zone==="forge"){
-    let grad=c.createRadialGradient(1260,420,5,1260,420,240);grad.addColorStop(0,"rgba(255,154,42,.22)");grad.addColorStop(1,"rgba(255,130,24,0)");c.fillStyle=grad;c.fillRect(980,160,540,560);
-  }
-  if(zone==="cave"){
-    const grad=c.createRadialGradient(1580,370,15,1580,370,320);grad.addColorStop(0,"rgba(133,93,255,.16)");grad.addColorStop(1,"rgba(110,68,214,0)");c.fillStyle=grad;c.fillRect(1260,50,570,700);
-  }
-  c.restore()
+  ctx.restore();
  }
  function blocked(zone,x,y){
-  // Conservative handcrafted gameplay masks: buildings/cliff voids remain blocked,
-  // central walkways and bridge paths remain navigable.
-  if(zone==="village"){
-    if(x<65||y<90)return true;
-    if(y<360&&x<700)return true;
-    if(y<330&&x>1220)return true;
-    if(y>970&&x<800)return true;
-    if(y>1030&&x>1300)return true;
-    if(x>1680&&y>860)return true;
-  }else if(zone==="wilds"){
-    if(x<90||y<85)return true;
-    if(x>1800&&y<350)return true;
-    if(x<500&&y<710)return true; // stream and cliff; bridge lies farther south
-    if(y>1090&&x>1350)return true;
-  }else if(zone==="cave"){
-    if(x<120||y<140)return true;
-    if(y>990)return true;
-    if(x<570&&y<490)return true;
-    if(x>1640&&y>850)return true;
-  }else if(zone==="forge"){
-    if(x<150||x>1740||y<350||y>1100)return true;
-  }
+  // Real collision geometry is in navigation.js. Fallback for initial load.
+  if(x<65||y<70||x>1815||y>1160)return true;
   return false;
  }
- window.VeilwardArt={background,actor,glows,blocked,ready:()=>!!(scenes.village&&actors&&actors.complete&&actors.naturalWidth),version:"0.5.0"};
+ window.VeilwardArt={background,actor,glows,blocked,
+  ready:()=>!!(scenes.village&&sheet&&sheet.complete&&sheet.naturalWidth),
+  version:"0.6.0"};
 })();
