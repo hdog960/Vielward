@@ -3,7 +3,7 @@
 (function(){
  "use strict";
  const BASE="./assets/";
- const maps={village:"village.jpg",wilds:"wilds.jpg",cave:"cave.jpg",forge:"forge.jpg"};
+ const maps={village:"village_clean.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
  const scenes={};
  let actors=null;
  const FRAME_W=192,FRAME_H=150;
@@ -15,10 +15,10 @@
     else {scenes[name]=img;window.dispatchEvent(new CustomEvent("veilward-art-loaded",{detail:name}))}
   };
   img.onerror=()=>console.warn("Veilward art load failed",src);
-  img.src=BASE+src+"?art=3";
+  img.src=BASE+src+"?art=4";
  }
  for(const [name,src] of Object.entries(maps))load(name,src,false);
- load("actors","actors.webp",true);
+ load("actors","actors_clean.png",true);
  function background(zone){return scenes[zone]||null}
  function actor(c,x,y,kind,step,att,state){
   if(!actors||!actors.complete||!actors.naturalWidth)return false;
@@ -27,22 +27,27 @@
   else if(kind==="bandit")n=10;
   else if(kind==="wraith")n=11;
   else if(kind.startsWith("npc_")){
-    const role=kind.slice(4);n={forge:7,inn:6,hunter:8,guard:10,hermit:8}[role]??5;
+   const role=kind.slice(4);
+   n={forge:7,inn:6,hunter:8,guard:10,hermit:8,merchant:5,hound:9}[role]??8;
+  }else{
+   // Deliberately use only the intact idle/walk frames. Earlier combat/cast
+   // frames were truncated by concept-sheet extraction and looked transparent.
+   n=(state&&state.moving)?1:0;
   }
-  else if(state&&state.dodgeV>0)n=4;
-  else if(state&&state.castV>0)n=3;
-  else if(att>0)n=2;
-  else if(state&&state.moving)n=1;
-  else n=0;
-  let width=kind==="wolf"?175:kind==="wraith"?166:kind==="bandit"?171:kind==="npc_forge"?186:kind.startsWith("npc_")?164:230;
-  let height=kind==="wolf"?135:kind==="wraith"?145:kind==="bandit"?155:kind==="npc_forge"?170:kind.startsWith("npc_")?155:210;
+  const hound=kind==="npc_hound"||kind==="wolf";
+  const width=kind==="npc_forge"?164:kind==="npc_merchant"?127:kind==="npc_inn"?134:kind==="npc_hermit"?148:
+    kind==="npc_guard"?125:kind==="npc_hunter"?142:kind==="wolf"?135:kind==="wraith"?138:
+    kind==="bandit"?137:hound?115:142;
+  const height=kind==="npc_forge"?142:kind==="npc_merchant"?133:kind==="npc_inn"?136:kind==="npc_hermit"?137:
+    kind==="npc_guard"?138:kind==="npc_hunter"?140:kind==="wolf"?118:kind==="wraith"?145:
+    kind==="bandit"?135:hound?104:151;
   let fx=(n%4)*FRAME_W,fy=Math.floor(n/4)*FRAME_H;
   c.save();
   const moving=state&&state.moving&&!kind.startsWith("npc_");
-  const bounce=moving?Math.abs(Math.sin(step*10))*2.8:Math.sin(performance.now()/460)*.7;
-  c.globalAlpha=.4;c.fillStyle="#08121c";c.beginPath();c.ellipse(x,y+2,width*.22,7,0,0,Math.PI*2);c.fill();c.globalAlpha=1;
-  let face=state&&state.facing;
-  if(face&&face.x<-.22){c.translate(x,y);c.scale(-1,1);x=0;y=0}
+  const bounce=moving?Math.abs(Math.sin(step*12))*2.1:Math.sin(performance.now()/600)*.3;
+  c.globalAlpha=.32;c.fillStyle="#08121c";c.beginPath();c.ellipse(x,y+1,width*.19,4.2,0,0,Math.PI*2);c.fill();c.globalAlpha=1;
+  const face=state&&state.facing;
+  if(face&&face.x<-.35){c.translate(x,y);c.scale(-1,1);x=0;y=0}
   c.imageSmoothingEnabled=true;
   c.drawImage(actors,fx,fy,FRAME_W,FRAME_H,x-width/2,y-height+bounce,width,height);
   c.restore();
@@ -88,5 +93,5 @@
   }
   return false;
  }
- window.VeilwardArt={background,actor,glows,blocked,ready:()=>!!(scenes.village&&actors&&actors.complete&&actors.naturalWidth),version:"0.2.1"};
+ window.VeilwardArt={background,actor,glows,blocked,ready:()=>!!(scenes.village&&actors&&actors.complete&&actors.naturalWidth),version:"0.4.0"};
 })();
