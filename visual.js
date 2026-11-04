@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const ROOT="./assets/",ART="10";
+const ROOT="./assets/",ART="11";
 const files={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
 const scene=Object.create(null);
 let npcAtlas=null,heroAtlas=null;
@@ -13,21 +13,56 @@ const NPCCELL={w:192,h:176,columns:4};
 const HERO={w:160,h:180,columns:17,rows:8};
 const NPC={forge:2,guard:3,inn:4,hunter:5,merchant:6,hermit:11,hound:10};
 const ENEMY={wolf:8,bandit:7,wraith:9};
-function load(id,file,kind){
- const image=new Image();image.decoding="async";
- image.onload=()=>{
+// Each art load announces the exact zone. A previous version emitted an Event
+// without detail: the game then re-cached "undefined" and never rebuilt the
+// solid-color village canvas after images finished loading.
+const loadErrors=Object.create(null);
+const alternatives={
+ village:["village_clean.jpg","village_golden_v05.jpg"],
+ wilds:["wilds.jpg"],cave:["cave.jpg"],forge:[]
+};
+function signal(id,kind,type="veilward-art-loaded"){
+ window.dispatchEvent(new CustomEvent(type,{detail:{zone:id,kind}}));
+}
+function load(id,file,kind,backup=[]){
+ const candidates=[file,...backup];let attempt=0;
+ function next(){
+  const filename=candidates[attempt];
+  const image=new Image();
+  image.decoding="async";
+  image.onload=()=>{
+   if(!image.naturalWidth || !image.naturalHeight){failed();return;}
    if(kind==="hero")heroAtlas=image;
    else if(kind==="npc")npcAtlas=image;
    else scene[id]=image;
-   window.dispatchEvent(new Event("veilward-art-loaded"));
- };
- image.onerror=()=>console.warn("Veilward asset failed:",file);
- image.src=ROOT+file+"?art="+ART;
+   delete loadErrors[id];
+   signal(id,kind);
+  };
+  function failed(){
+   console.warn("Veilward image failed:",filename);
+   if(++attempt<candidates.length){next();return;}
+   loadErrors[id]=filename;
+   signal(id,kind,"veilward-art-error");
+  }
+  image.onerror=failed;
+  image.src=ROOT+filename+"?art="+ART;
+ }
+ next();
 }
-Object.entries(files).forEach(([id,file])=>load(id,file,"scene"));
+Object.entries(files).forEach(([id,file])=>load(id,file,"scene",alternatives[id]||[]));
 load("actors","actors_v07.png","npc");
 load("hero","hero_full_8way_v10.png","hero");
 
+function sceneReady(zone){
+ const img=scene[zone];
+ return !!(img&&img.complete&&img.naturalWidth>0&&img.naturalHeight>0);
+}
+function retryScene(zone){
+ if(!files[zone])return;
+ delete loadErrors[zone];
+ load(zone,files[zone],"scene",alternatives[zone]||[]);
+}
+function sceneError(zone){return loadErrors[zone]||null}
 // Screen-space Y increases toward the bottom. Clockwise sectors:
 const SECTOR_TO_ROW=[2,1,0,7,6,5,4,3];
 function directionRow(facing){
@@ -95,7 +130,7 @@ function actor(ctx,x,y,kind,step,attack,state){
  ctx.restore();
  return true;
 }
-function background(zone){return scene[zone]||null}
+function background(zone){return sceneReady(zone)?scene[zone]:null}
 function glows(ctx,zone,time){
  if(!scene[zone])return;
  const spots=zone==="village"?[[879,279,45],[716,342,32],[1430,1002,38],[797,1160,30]]:
@@ -113,11 +148,11 @@ function glows(ctx,zone,time){
 }
 function blocked(zone,x,y){return x<65||y<70||x>1815||y>1160}
 window.VeilwardArt={
- background,actor,glows,blocked,
+ background,actor,glows,blocked,sceneReady,sceneError,retryScene,
  directionRow,sequence,
  sheetDimensions:()=>({...HERO}),
  ready:()=>!!(scene.village&&heroAtlas&&npcAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
  spritesReady:()=>!!(heroAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
- version:"1.0.0"
+ version:"1.0.1"
 };
 })();
