@@ -1,5 +1,15 @@
 ## v0.8 — Directional walking (November 3, 2026)
 
+## v0.9 — Rear-facing character animation correction
+
+The prior v0.8 back-facing animation was procedurally painted over the front sprite with an angular brown hair silhouette and a rectangular blue armor plate. That shortcut is removed. The game now loads a separately authored, transparent six-pose rear-view sprite sheet at `assets/hero_back_strides_v09.webp`, retaining textured hair, fitted plated armor, crossed leather straps, and the scarf. Rear sprites are drawn only when moving north; the other directions keep their established artwork.
+
+Walking timing now advances approximately 9 frames per second instead of one pose per second. The iPhone service-worker cache is versioned to v0.9; existing saves and quest progress are unaffected.
+
+Verified in a simulated game runtime: 103 rendered player frames, both front and rear rows, all six rear walk frames, uninterrupted scene rendering, successful save. Not yet confirmed on a physical iPhone.
+
+---
+
 - Fixed the stationary/sliding player: a cached **four-direction, six-frame animation** is generated from the complete v0.7 hero artwork.
 - Walking **up shows the back** of the character; down shows the front, and left/right face in the correct directions. Direction follows keyboard or touch joystick movement.
 - Legs alternate during walking while keeping full-body pixels and consistent foot anchoring; no earlier cropped animation cells are reused.
