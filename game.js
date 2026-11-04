@@ -31,10 +31,10 @@ function reset(){localStorage.removeItem(SAVE);p=JSON.parse(JSON.stringify(DEFAU
 function newEnemy(x,y,type,zone){return{x,y,homeX:x,homeY:y,type,zone,hp:type==="bandit"?70:type==="wraith"?95:40,max:type==="bandit"?70:type==="wraith"?95:40,atk:0,wind:0,stun:0,dead:false,dir:1,step:0,loot:false}}
 function setup(){
 enemies={village:[],wilds:[
-newEnemy(745,720,"wolf","wilds"),newEnemy(970,430,"wolf","wilds"),
+newEnemy(850,690,"wolf","wilds"),newEnemy(1100,640,"wolf","wilds"),
 newEnemy(1245,667,"bandit","wilds"),newEnemy(1480,850,"wolf","wilds")],
 cave:[newEnemy(1050,670,"bandit","cave"),newEnemy(1425,650,"bandit","cave"),
-newEnemy(1510,435,"wraith","cave")],forge:[]};
+newEnemy(1450,550,"wraith","cave")],forge:[]};
 npc=[
  // All named figures below are painted into the approved environment plates.
  // Their interaction anchors are reachable FLOOR points, not their painted head positions.
