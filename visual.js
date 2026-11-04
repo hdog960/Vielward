@@ -31,7 +31,7 @@
   img.src=ASSET_ROOT+file+"?art=6";
  }
  for(const [zone,file] of Object.entries(scenePaths))loadAsset(zone,file);
- loadAsset("actors","actors_silhouette_v06.png",true);
+ loadAsset("actors","actors_silhouette_v062.png",true);
  const dogImg=new Image();
  dogImg.decoding="async";
  dogImg.onload=()=>{hound=dogImg;window.dispatchEvent(new Event("veilward-hound-ready"))};
@@ -130,5 +130,5 @@
  }
  window.VeilwardArt={background,actor,glows,blocked,
   ready:()=>!!(scenes.village&&sheet&&sheet.complete&&sheet.naturalWidth),
-  version:"0.6.1"};
+  version:"0.6.2"};
 })();
