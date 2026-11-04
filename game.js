@@ -318,7 +318,7 @@ const targetX=clamp(p.x-vw*.5,0,Math.max(0,WORLD.w-vw)),targetY=clamp(p.y-vh*.51
 g.save();g.translate(-Math.floor(cam.x)+(Math.random()-.5)*shake,-Math.floor(cam.y)+(Math.random()-.5)*shake);
 g.drawImage(terrainCache[p.zone],0,0);
 window.VeilwardArt?.glows(g,p.zone,worldTime);
-if(typeof location!=="undefined"&&new URLSearchParams(location.search).has("debugNav"))window.VeilwardNav?.drawDebug(g,p.zone);
+if(typeof location!=="undefined"&&location.search.includes("debugNav"))window.VeilwardNav?.drawDebug(g,p.zone);
 
 let visible=decorCache[p.zone].filter(o=>o.x>cam.x-250&&o.x<cam.x+vw+250&&o.y>cam.y-250&&o.y<cam.y+vh+250);
 const ents=[...visible.map(o=>({...o,renderType:"prop"})),...npc.filter(n=>n.zone===p.zone).map(n=>({...n,renderType:"npc"})),...enemies[p.zone].filter(e=>!e.dead).map(e=>({...e,renderType:"enemy"})),{...p,renderType:"player"}];
