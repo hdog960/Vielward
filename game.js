@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v0.5: full clean village rebuild from golden pixel-art benchmark. */
+/* VEILWARD — Hollowreach v0.8: responsive direction-aware movement animation and collision. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -291,10 +291,17 @@ p.attackCd=Math.max(0,(p.attackCd||0)-dt);p.spellCd=Math.max(0,(p.spellCd||0)-dt
 p.st=Math.min(100,p.st+dt*18);p.mp=Math.min(p.mpMax,p.mp+dt*1.1);
 p.castV=Math.max(0,(p.castV||0)-dt);p.dodgeV=Math.max(0,(p.dodgeV||0)-dt);
 let ax=Number(!!(keys.KeyD||keys.ArrowRight))-Number(!!(keys.KeyA||keys.ArrowLeft))+joy.x,ay=Number(!!(keys.KeyS||keys.ArrowDown))-Number(!!(keys.KeyW||keys.ArrowUp))+joy.y,m=Math.hypot(ax,ay);if(m>1){ax/=m;ay/=m}
-p.moving=m>.04;let speed=165;if(p.dodgeTime>0){ax=p.dvx/350;ay=p.dvy/350;speed=390;p.dodgeTime-=dt}else if(m>.05){p.facing={x:ax,y:ay};p.step=(p.step||0)+dt}
+const previousX=p.x,previousY=p.y;
+let speed=165;
+if(p.dodgeTime>0){ax=p.dvx/350;ay=p.dvy/350;speed=390;p.dodgeTime-=dt}
+else if(m>.05){p.facing={x:ax,y:ay}}
 const moved=window.VeilwardNav?.projectMotion(p.zone,p.x,p.y,ax*speed*dt,ay*speed*dt,8);
 if(moved){p.x=moved.x;p.y=moved.y}
 else{const nx=clamp(p.x+ax*speed*dt,35,WORLD.w-35),ny=clamp(p.y+ay*speed*dt,72,WORLD.h-25);if(!occupied(nx,p.y))p.x=nx;if(!occupied(p.x,ny))p.y=ny}
+// Animate by ACTUAL travel distance: walking in place against a wall is no longer possible.
+const travelled=Math.hypot(p.x-previousX,p.y-previousY);
+p.moving=travelled>.3;
+if(p.moving)p.step=((p.step||0)+travelled*Math.PI*2/68)%(Math.PI*200);
 for(let e of enemies[p.zone]){if(e.dead)continue;
 e.stun=Math.max(0,e.stun-dt);e.atk=Math.max(0,e.atk-dt);const d=dist(e,p);
 if(d<340&&e.stun<=0){let dx=(p.x-e.x)/(d||1),dy=(p.y-e.y)/(d||1);if(d>(e.type==="wraith"?42:39)){let speed=e.type==="wolf"?92:e.type==="wraith"?63:73;const target=window.VeilwardNav?.projectMotion(p.zone,e.x,e.y,dx*speed*dt,dy*speed*dt,7);
