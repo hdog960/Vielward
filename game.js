@@ -1,6 +1,4 @@
-/* VEILWARD: The Broken Sky — Hollowreach playable foundation v0.1.
-   Original canvas-drawn procedural pixel scenery; no external asset, API, or framework.
-   This is the FIRST playable engineering/art pass, not approved final-quality sprite art. */
+/* VEILWARD — Hollowreach v0.3: illustrated scene collision, reachable quests, safe travel, and authored navigation. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -11,7 +9,7 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
 const SAVE="veilward-hollowreach-v01";
-const DEFAULT={zone:"village",x:901,y:625,artVersion:2,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
+const DEFAULT={zone:"village",x:900,y:625,artVersion:2,navVersion:3,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
 let p=JSON.parse(JSON.stringify(DEFAULT)),enemies={village:[],wilds:[],cave:[],forge:[]},npc=[],objects=[],worldTime=0,invTab="pack",attacks=[],autosaveClock=0;
 function rand(seed){let x=Math.sin(seed*127.1+78.233)*43758.5453;return x-Math.floor(x)}
 function rng(n){return rand(n*1.931+0.321)}
@@ -38,24 +36,29 @@ newEnemy(1245,667,"bandit","wilds"),newEnemy(1480,850,"wolf","wilds")],
 cave:[newEnemy(1050,670,"bandit","cave"),newEnemy(1425,650,"bandit","cave"),
 newEnemy(1510,435,"wraith","cave")],forge:[]};
 npc=[
-{id:"joren",name:"Joren · Blacksmith",zone:"village",x:1495,y:435,homeX:1495,homeY:435,color:"#9b6244",role:"forge"},
-{id:"mira",name:"Mira · Innkeeper",zone:"village",x:343,y:376,homeX:343,homeY:376,color:"#987db7",role:"inn"},
-{id:"eldric",name:"Eldric · Hunter",zone:"village",x:590,y:650,homeX:590,homeY:650,color:"#547f65",role:"hunter"},
-{id:"guard",name:"Warden Hal",zone:"village",x:1132,y:284,homeX:1132,homeY:284,color:"#6d87ae",role:"guard"},
-{id:"hermit",name:"The Green Hermit",zone:"wilds",x:1310,y:536,homeX:1310,homeY:536,color:"#5f9771",role:"hermit"},
-{id:"jorenInside",name:"Joren · Master Smith",zone:"forge",x:1190,y:624,homeX:1190,homeY:624,color:"#9b6244",role:"forge"}];
+ // All named figures below are painted into the approved environment plates.
+ // Their interaction anchors are reachable FLOOR points, not their painted head positions.
+ {id:"joren",name:"Joren · Blacksmith",zone:"village",x:1370,y:517,homeX:1370,homeY:517,color:"#9b6244",role:"forge",painted:true},
+ {id:"mira",name:"Mira · Innkeeper",zone:"village",x:690,y:510,homeX:690,homeY:510,color:"#987db7",role:"inn",painted:true},
+ {id:"eldric",name:"Eldric · Hunter",zone:"village",x:212,y:814,homeX:212,homeY:814,color:"#547f65",role:"hunter",painted:true},
+ {id:"guard",name:"Warden Hal",zone:"village",x:954,y:483,homeX:954,homeY:483,color:"#6d87ae",role:"guard",painted:true},
+ {id:"hermit",name:"The Green Hermit",zone:"wilds",x:1275,y:543,homeX:1275,homeY:543,color:"#5f9771",role:"hermit",painted:true},
+ {id:"jorenInside",name:"Joren · Master Smith",zone:"forge",x:1050,y:745,homeX:1050,homeY:745,color:"#9b6244",role:"forge",painted:true}
+];
 objects=[
-{zone:"village",type:"portal",x:1745,y:655,to:"wilds",tx:845,ty:695,label:"Eastern Trail"},
-{zone:"village",type:"portal",x:1335,y:545,to:"forge",tx:825,ty:785,label:"Enter the Forge"},
-{zone:"village",type:"board",x:385,y:572,label:"Hollowreach Notices"},
-{zone:"forge",type:"portal",x:823,y:945,to:"village",tx:1240,ty:635,label:"Leave the Forge"},
-{zone:"wilds",type:"portal",x:612,y:1048,to:"village",tx:1620,ty:655,label:"Return to Hollowreach"},
-{zone:"wilds",type:"portal",x:1707,y:723,to:"cave",tx:370,ty:778,label:"Smuggler's Cave"},
-{zone:"wilds",type:"herb",x:485,y:812,label:"Blueleaf Sprig"},
-{zone:"wilds",type:"herb",x:1110,y:1052,label:"Blueleaf Sprig"},
-{zone:"wilds",type:"scar",x:1465,y:384,label:"Shimmering Worldscar"},
-{zone:"cave",type:"portal",x:280,y:803,to:"wilds",tx:1580,ty:751,label:"Greenwood Trail"},
-{zone:"cave",type:"chest",x:365,y:575,label:"Bandit Supplies"}];
+ // Traveling requires an explicit TALK / INTERACT press; no hidden automatic teleport.
+ {zone:"village",type:"portal",x:1555,y:1044,to:"wilds",tx:735,ty:991,label:"Eastern Trail"},
+ {zone:"village",type:"portal",x:1310,y:580,to:"forge",tx:900,ty:794,label:"Enter the Forge"},
+ {zone:"village",type:"board",x:500,y:756,label:"Hollowreach Notices"},
+ {zone:"forge",type:"portal",x:896,y:1036,to:"village",tx:1315,ty:602,label:"Leave the Forge"},
+ {zone:"wilds",type:"portal",x:540,y:1068,to:"village",tx:1500,ty:1000,label:"Return to Hollowreach"},
+ {zone:"wilds",type:"portal",x:1700,y:745,to:"cave",tx:775,ty:741,label:"Smuggler's Cave"},
+ {zone:"wilds",type:"herb",x:400,y:760,label:"Blueleaf Sprig"},
+ {zone:"wilds",type:"herb",x:1190,y:714,label:"Blueleaf Sprig"},
+ {zone:"wilds",type:"scar",x:1480,y:420,label:"Shimmering Worldscar"},
+ {zone:"cave",type:"portal",x:344,y:786,to:"wilds",tx:1644,ty:737,label:"Greenwood Trail"},
+ {zone:"cave",type:"chest",x:888,y:689,label:"Bandit Supplies"}
+];
 if(p.herbs)objects.filter(o=>o.type==="herb").slice(0,p.herbs).forEach(o=>o.taken=true);
 if(p.supplies)objects.find(o=>o.type==="chest").taken=true;
 if(p.zone==="cave"&&p.quest>=3)enemies.cave.forEach(e=>{if(e.type==="bandit")e.dead=true});
@@ -207,10 +210,23 @@ if(att>0){c.strokeStyle=enemy?"#e79980":"#f7e0b4";c.lineWidth=4;c.beginPath();c.
 c.restore()
 }
 function drawHealth(c,e){if(e.hp>=e.max)return;rect(c,e.x-22,e.y-64,44,6,"#18232a");rect(c,e.x-21,e.y-63,42*e.hp/e.max,4,e.type==="wraith"?"#9e80ce":"#cb6657")}
-function occupied(x,y){
-return window.VeilwardArt?.blocked(p.zone,x,y)??false;
+function occupied(x,y,zone=p.zone){
+ return window.VeilwardNav ? !window.VeilwardNav.canWalk(zone,x,y,8) : (window.VeilwardArt?.blocked(zone,x,y)??false);
 }
-function changeZone(z,tx,ty){p.zone=z;p.x=tx;p.y=ty;particles=[];projectiles=[];effects=[];cam.x=clamp(p.x-vw/2,0,WORLD.w-vw);cam.y=clamp(p.y-vh/2,0,WORLD.h-vh);if(!terrainCache[z])generate(z);$("location").textContent=C[z].label;notify("Discovered: "+C[z].label);save(true)}
+function safePosition(zone,x,y){
+ return window.VeilwardNav?.safePoint(zone,x,y)||{x,y};
+}
+function changeZone(z,tx,ty){
+ const safe=safePosition(z,tx,ty);
+ p.zone=z;p.x=safe.x;p.y=safe.y;p.dodgeTime=0;p.dodgeV=0;p.invuln=1;
+ joy.x=0;joy.y=0;p.navVersion=3;
+ particles=[];projectiles=[];effects=[];
+ cam.x=clamp(p.x-vw/2,0,Math.max(0,WORLD.w-vw));
+ cam.y=clamp(p.y-vh/2,0,Math.max(0,WORLD.h-vh));
+ if(!terrainCache[z])generate(z);
+ $("location").textContent=C[z].label;
+ notify("Discovered: "+C[z].label);save(true)
+}
 function updateUI(){
 $("hp").style.width=clamp(p.hp/p.hpMax*100,0,100)+"%";$("mp").style.width=clamp(p.mp/p.mpMax*100,0,100)+"%";$("st").style.width=clamp(p.st/100*100,0,100)+"%";$("level").textContent="LV "+p.lv;
 const q=[["A Cold Welcome","Speak with Joren the village blacksmith."],["The Missing Supplies","Follow the eastern trail into Greenwood."],["The Missing Supplies","Defeat the bandit raider and find Joren's stolen supplies."],["The Missing Supplies","Return the supplies to Joren in Hollowreach."],["A Whisper in the Stone","Investigate the glowing Worldscar in Greenwood."],["The Frontier Awaits","Explore Hollowreach, recover herbs, and uncover the cave's secret."]];
@@ -221,7 +237,18 @@ function spell(){if(modal||!active||p.mp<16||p.spellCd>0)return;p.castV=.32;p.mp
 function dodge(){if(modal||!active||p.st<24||p.dodgeCd>0)return;p.dodgeV=.29;p.st-=24;p.dodgeCd=.7;p.invuln=.33;let d=Math.hypot(joy.x,joy.y)>0.1?joy:p.facing||{x:1,y:0};p.dvx=d.x*350;p.dvy=d.y*350;p.dodgeTime=.18;updateUI()}
 function potion(){if(modal||p.potions<=0||p.hp>=p.hpMax)return;p.potions--;p.hp=Math.min(p.hpMax,p.hp+60);notify("Restored 60 health");updateUI();save(true)}
 function killEnemy(e){e.dead=true;p.gold+=e.type==="bandit"?14:5;p.kills++;giveXP(e.type==="bandit"?28:14,"blade");effects.push({x:e.x,y:e.y,t:.6,type:"burst"});notify("Enemy defeated · Gold found");if(p.quest===2&&e.type==="bandit"){notify("The bandits have been scattered. Search their cave!")}save(true)}
-function nearest(){let list=[...npc.filter(n=>n.zone===p.zone).map(n=>({...n,interaction:n.role})),...objects.filter(o=>o.zone===p.zone&&!o.taken).map(o=>({...o,interaction:o.type}))];list.sort((a,b)=>dist(a,p)-dist(b,p));return list[0]&&dist(list[0],p)<94?list[0]:null}
+function nearest(){
+ let list=[...npc.filter(n=>n.zone===p.zone).map(n=>({...n,interaction:n.role})),
+           ...objects.filter(o=>o.zone===p.zone&&!o.taken).map(o=>({...o,interaction:o.type}))];
+ // Painted figures can be talked to from the path beside a fence or anvil.
+ // Physical pick-ups have shorter radii so they cannot be collected from afar.
+ const reach={forge:157,inn:140,hunter:133,guard:135,hermit:145,
+              portal:100,board:112,herb:75,scar:150,chest:90};
+ list=list.map(n=>({...n,reach:reach[n.interaction]||100,dist:dist(n,p)}))
+          .filter(n=>n.dist<=n.reach)
+          .sort((a,b)=>(a.dist/a.reach)-(b.dist/b.reach));
+ return list[0]||null
+}
 function interact(){if(modal||!active)return;let target=nearest();if(!target){notify("No one nearby to interact with");return}if(target.interaction==="portal"){changeZone(target.to,target.tx,target.ty);return}
 if(target.interaction==="herb"){objects.find(o=>o.zone===target.zone&&o.x===target.x&&o.y===target.y).taken=true;p.herbs++;giveXP(13,"survival");notify("Gathered Blueleaf Sprig");save(true);return}
 if(target.interaction==="chest"){objects.find(o=>o.type==="chest").taken=true;p.supplies=true;p.gold+=30;if(p.quest<=2)p.quest=3;notify("Recovered stolen supplies · +30 gold");updateUI();save(true);return}
@@ -265,16 +292,20 @@ p.st=Math.min(100,p.st+dt*18);p.mp=Math.min(p.mpMax,p.mp+dt*1.1);
 p.castV=Math.max(0,(p.castV||0)-dt);p.dodgeV=Math.max(0,(p.dodgeV||0)-dt);
 let ax=Number(!!(keys.KeyD||keys.ArrowRight))-Number(!!(keys.KeyA||keys.ArrowLeft))+joy.x,ay=Number(!!(keys.KeyS||keys.ArrowDown))-Number(!!(keys.KeyW||keys.ArrowUp))+joy.y,m=Math.hypot(ax,ay);if(m>1){ax/=m;ay/=m}
 p.moving=m>.04;let speed=165;if(p.dodgeTime>0){ax=p.dvx/350;ay=p.dvy/350;speed=390;p.dodgeTime-=dt}else if(m>.05){p.facing={x:ax,y:ay};p.step=(p.step||0)+dt}
-let nx=clamp(p.x+ax*speed*dt,35,WORLD.w-35),ny=clamp(p.y+ay*speed*dt,72,WORLD.h-25);if(!occupied(nx,p.y))p.x=nx;if(!occupied(p.x,ny))p.y=ny;
+const moved=window.VeilwardNav?.projectMotion(p.zone,p.x,p.y,ax*speed*dt,ay*speed*dt,8);
+if(moved){p.x=moved.x;p.y=moved.y}
+else{const nx=clamp(p.x+ax*speed*dt,35,WORLD.w-35),ny=clamp(p.y+ay*speed*dt,72,WORLD.h-25);if(!occupied(nx,p.y))p.x=nx;if(!occupied(p.x,ny))p.y=ny}
 for(let e of enemies[p.zone]){if(e.dead)continue;
 e.stun=Math.max(0,e.stun-dt);e.atk=Math.max(0,e.atk-dt);const d=dist(e,p);
-if(d<340&&e.stun<=0){let dx=(p.x-e.x)/(d||1),dy=(p.y-e.y)/(d||1);if(d>(e.type==="wraith"?42:39)){let speed=e.type==="wolf"?92:e.type==="wraith"?63:73;let nx=e.x+dx*speed*dt,ny=e.y+dy*speed*dt;if(!occupied(nx,ny)){e.x=nx;e.y=ny;e.step+=dt}}}
+if(d<340&&e.stun<=0){let dx=(p.x-e.x)/(d||1),dy=(p.y-e.y)/(d||1);if(d>(e.type==="wraith"?42:39)){let speed=e.type==="wolf"?92:e.type==="wraith"?63:73;const target=window.VeilwardNav?.projectMotion(p.zone,e.x,e.y,dx*speed*dt,dy*speed*dt,7);
+if(target&&target.x!==e.x||target&&target.y!==e.y){e.x=target.x;e.y=target.y;e.step+=dt}
+else if(!target){let nx=e.x+dx*speed*dt,ny=e.y+dy*speed*dt;if(!occupied(nx,ny)){e.x=nx;e.y=ny;e.step+=dt}}}}
 if(d<56&&e.atk<=0&&e.wind<=0){e.wind=.55;e.atk=1.65}
-if(e.wind>0){e.wind-=dt;if(e.wind<=0&&d<67&&p.invuln<=0){p.hp=Math.max(0,p.hp-(e.type==="wraith"?22:12));p.invuln=.5;shake=7;particles.push({x:p.x,y:p.y-55,t:.7,text:"−"+(e.type==="wraith"?22:12),color:"#f0a19f"});if(p.hp<=0){p.hp=p.hpMax;p.mp=p.mpMax;p.gold=Math.max(0,p.gold-12);p.x=795;p.y=730;p.zone="village";notify("You awaken in Hollowreach · −12 gold");save(true)}}}} 
+if(e.wind>0){e.wind-=dt;if(e.wind<=0&&d<67&&p.invuln<=0){p.hp=Math.max(0,p.hp-(e.type==="wraith"?22:12));p.invuln=.5;shake=7;particles.push({x:p.x,y:p.y-55,t:.7,text:"−"+(e.type==="wraith"?22:12),color:"#f0a19f"});if(p.hp<=0){p.hp=p.hpMax;p.mp=p.mpMax;p.gold=Math.max(0,p.gold-12);changeZone("village",900,625);notify("You awaken in Hollowreach · −12 gold");save(true)}}}} 
 for(let b of projectiles){b.x+=b.vx*dt;b.y+=b.vy*dt;b.age+=dt;for(let e of enemies[p.zone])if(!e.dead&&Math.hypot(e.x-b.x,e.y-25-b.y)<35){e.hp-=35+p.lv*3;e.stun=.45;b.age=10;particles.push({x:e.x,y:e.y-35,t:.7,text:"−"+(35+p.lv*3),color:"#83dcff"});if(e.hp<=0)killEnemy(e);break}}projectiles=projectiles.filter(b=>b.age<1.4);
 effects.forEach(f=>f.t-=dt);effects=effects.filter(f=>f.t>0);particles.forEach(f=>{f.t-=dt;f.y-=dt*24});particles=particles.filter(f=>f.t>0);
 const t=nearest();setHint(t?(t.interaction==="portal"?"✋ Travel to "+t.label:"✋ "+(t.label||t.name||"Interact")):"");
-for(const o of objects)if(o.type==="portal"&&o.zone===p.zone&&dist(o,p)<43&&!modal)changeZone(o.to,o.tx,o.ty);
+// Area travel is explicit: show a prompt and wait for player to tap Talk / press E. No accidental portal loops.
 if(p.quest===1&&p.zone==="wilds"){p.quest=p.supplies?3:2;updateUI();notify("New objective: Recover the missing supplies")}
 if(p.quest===4&&p.zone==="wilds"){p.quest=4;updateUI()}
 autosaveClock+=dt;if(autosaveClock>20){autosaveClock=0;save(true)}
@@ -287,17 +318,29 @@ const targetX=clamp(p.x-vw*.5,0,Math.max(0,WORLD.w-vw)),targetY=clamp(p.y-vh*.51
 g.save();g.translate(-Math.floor(cam.x)+(Math.random()-.5)*shake,-Math.floor(cam.y)+(Math.random()-.5)*shake);
 g.drawImage(terrainCache[p.zone],0,0);
 window.VeilwardArt?.glows(g,p.zone,worldTime);
+if(typeof location!=="undefined"&&new URLSearchParams(location.search).has("debugNav"))window.VeilwardNav?.drawDebug(g,p.zone);
+
 let visible=decorCache[p.zone].filter(o=>o.x>cam.x-250&&o.x<cam.x+vw+250&&o.y>cam.y-250&&o.y<cam.y+vh+250);
 const ents=[...visible.map(o=>({...o,renderType:"prop"})),...npc.filter(n=>n.zone===p.zone).map(n=>({...n,renderType:"npc"})),...enemies[p.zone].filter(e=>!e.dead).map(e=>({...e,renderType:"enemy"})),{...p,renderType:"player"}];
 for(const o of objects)if(o.zone===p.zone&&!o.taken){if(o.type==="scar"||o.type==="herb"||o.type==="chest"||o.type==="portal")ents.push({...o,renderType:"object"})}
 ents.sort((a,b)=>a.y-b.y);
-for(let e of ents){if(e.renderType==="prop")drawProp(g,e,night);else if(e.renderType==="npc"){drawHero(g,e.x,e.y,0,worldTime*.3,e.color,false,"npc_"+e.role);if(dist(e,p)<140)imgText(g,e.name.split(" · ")[0],e.x,e.y-67,10,"#f2e1b8")}
+for(let e of ents){if(e.renderType==="prop")drawProp(g,e,night);else if(e.renderType==="npc"){
+ // Do not draw a second person over the same NPC painted in the background.
+ // Keep the original illustrated person visible; interaction remains fully live.
+ if(!e.painted||!window.VeilwardArt?.background(p.zone))drawHero(g,e.x,e.y,0,worldTime*.3,e.color,false,"npc_"+e.role);
+ if(dist(e,p)<(e.role==="forge"?180:145))imgText(g,e.name.split(" · ")[0],e.x,e.y-63,11,"#fff0bc")
+}
 else if(e.renderType==="enemy"){drawHero(g,e.x,e.y,0,e.step,"",true,e.type,e.wind>0?.25:0);drawHealth(g,e);if(e.wind>0){g.strokeStyle="#e8996f";g.lineWidth=2;g.beginPath();g.arc(e.x,e.y-14,27,0,Math.PI*2);g.stroke()}}
 else if(e.renderType==="player"){drawHero(g,e.x,e.y,0,e.step||0,"#637f96",false,"human",e.attackV||0)}
 else if(e.renderType==="object"){if(e.type==="scar"){for(let k=0;k<5;k++){let xx=e.x+(k-2)*17,yy=e.y-14-Math.abs(2-k)*13;poly(g,[[xx-9,yy],[xx,yy-40-5*Math.sin(worldTime*2+k)],[xx+9,yy],[xx,yy+4]],k%2?"#7b7aca":"#62bdca");rect(g,xx-2,yy-26,3,13,"#d6e7ff")}}
 if(e.type==="herb"){for(let k=0;k<5;k++){stroke(g,[[e.x,e.y],[e.x+(k-2)*6,e.y-15-rng(k)*12]],2,"#549c91");circle(g,e.x+(k-2)*5,e.y-21-rng(k)*8,3,"#8ad9d0")}}
 if(e.type==="chest"){rect(g,e.x-21,e.y-18,42,24,"#634a34");rect(g,e.x-22,e.y-22,44,12,"#947052");rect(g,e.x-4,e.y-21,8,25,"#ddbd74")}
-if(e.type==="portal"){circle(g,e.x,e.y,19,"#abc7cc22");stroke(g,[[e.x-12,e.y-15],[e.x,e.y-26],[e.x+12,e.y-15]],4,"#dbcfad");if(dist(e,p)<200)imgText(g,e.label,e.x,e.y-39,11)}}
+if(e.type==="portal"){
+ circle(g,e.x,e.y,15,"#f7d78722");
+ g.lineWidth=2;g.strokeStyle="#ecd19a";g.beginPath();g.arc(e.x,e.y-11,13,0,Math.PI*2);g.stroke();
+ poly(g,[[e.x,e.y-28],[e.x+8,e.y-12],[e.x,e.y-4],[e.x-8,e.y-12]],"#f2c477");
+ if(dist(e,p)<210)imgText(g,e.label,e.x,e.y-40,11)
+}}
 }
 for(const b of projectiles){circle(g,b.x,b.y,11,"#75c9f3");circle(g,b.x,b.y,6,"#e2f7ff");for(let k=1;k<4;k++)circle(g,b.x-b.vx*.014*k,b.y-b.vy*.014*k,4,"#5aa5d6")}
 for(let fx of effects){if(fx.type==="slash"){g.strokeStyle="#f3e5ba";g.lineWidth=7;g.beginPath();g.arc(fx.x,fx.y,29,fx.angle-.9,fx.angle+.9);g.stroke();g.strokeStyle="#9ed2f1";g.lineWidth=2;g.stroke()}else for(let k=0;k<8;k++){let a=k*Math.PI/4;rect(g,fx.x+Math.cos(a)*25,fx.y+Math.sin(a)*25,5,5,"#e6c184")}}
@@ -312,7 +355,11 @@ shake*=.78;if(shake<.2)shake=0;if(toastTime>0){toastTime-=.016;if(toastTime<=0)$
 }
 function frame(now){let dt=Math.min(.055,(now-last)/1000||.016);last=now;tick(dt);render();requestAnimationFrame(frame)}
 load();
-if(!p.artVersion){p.zone="village";p.x=901;p.y=625;p.artVersion=2;}
+if(!p.artVersion){p.zone="village";p.x=900;p.y=625;p.artVersion=2}
+if(p.navVersion!==3||window.VeilwardNav&&!window.VeilwardNav.canWalk(p.zone,p.x,p.y,8)){
+ const pt=safePosition(p.zone,p.x,p.y);
+ p.x=pt.x;p.y=pt.y;p.navVersion=3;save(true);
+}
 setup();bind();
 window.addEventListener("veilward-art-loaded",e=>{
 delete terrainCache[e.detail];generate(e.detail);
