@@ -12,7 +12,7 @@
   forge:"forge.jpg"
  };
  const scenes=Object.create(null);
- let sheet=null;
+ let sheet=null,hound=null;
  const CELL_W=192,CELL_H=150;
  // Cell-relative cropped, alpha-clean sprite silhouettes (x,y,w,h).
  const crops=[
@@ -32,6 +32,11 @@
  }
  for(const [zone,file] of Object.entries(scenePaths))loadAsset(zone,file);
  loadAsset("actors","actors_silhouette_v06.png",true);
+ const dogImg=new Image();
+ dogImg.decoding="async";
+ dogImg.onload=()=>{hound=dogImg;window.dispatchEvent(new Event("veilward-hound-ready"))};
+ dogImg.onerror=()=>console.warn("Veilward husky sprite unavailable; using fallback silhouette");
+ dogImg.src=ASSET_ROOT+"husky_clean_v06.png?art=6";
  function background(zone){return scenes[zone]||null}
  function chooseSprite(kind,state){
   if(kind==="wolf"||kind==="npc_hound")return 9;
@@ -50,7 +55,7 @@
    wolf:[108,70],bandit:[96,113],wraith:[121,95],
    npc_forge:[106,133],npc_inn:[90,119],npc_hunter:[102,127],
    npc_guard:[91,117],npc_hermit:[102,127],npc_merchant:[91,119],
-   npc_hound:[104,66]
+   npc_hound:[85,77]
   };
   return dims[kind]||dims.human;
  }
@@ -68,6 +73,13 @@
   ctx.restore();
  }
  function actor(ctx,x,y,kind,step,attack,state){
+  if(kind==="npc_hound"&&hound&&hound.complete&&hound.naturalWidth){
+   const [width,height]=dimensions(kind);
+   shadow(ctx,x,y,width,kind);
+   ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
+   ctx.drawImage(hound,Math.round(x-width/2),Math.round(y-height),width,height);
+   ctx.restore();return true;
+  }
   if(!sheet||!sheet.complete||!sheet.naturalWidth)return false;
   const idx=chooseSprite(kind,state);
   const rect=crops[idx];
@@ -118,5 +130,5 @@
  }
  window.VeilwardArt={background,actor,glows,blocked,
   ready:()=>!!(scenes.village&&sheet&&sheet.complete&&sheet.naturalWidth),
-  version:"0.6.0"};
+  version:"0.6.1"};
 })();
