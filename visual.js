@@ -115,7 +115,7 @@ function facingRow(face){
 function frameIndex(step){
  const tau=Math.PI*2;
  const normal=((step||0)%tau+tau)%tau;
- return Math.floor(normal/tau*STRIDE)%STRIDE;
+ return Math.floor(normal/tau*STRIDE+1e-6)%STRIDE;
 }
 function roleSprite(kind){
  if(kind==="wolf")return SPRITE.wolf;
