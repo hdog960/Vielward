@@ -1,13 +1,13 @@
-/* VEILWARD visual runtime v0.8 — real direction-aware walking animation.
+/* VEILWARD visual runtime v0.9 — authored rear-facing sprite & six-frame strides.
  * The original complete v0.7 character art is preserved. Hero poses are built
  * as cached 6-frame strides from that intact sprite, not broken alpha cutouts.
  * No paid services, extra dependencies, or new sprite downloads needed. */
 (function(){
 "use strict";
-const ROOT="./assets/",ASSET_VERSION="8";
+const ROOT="./assets/",ASSET_VERSION="9";
 const sceneFiles={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
 const scenes=Object.create(null);
-let actors=null,animation=null;
+let actors=null,animation=null,rearFrames=null;
 const CELL_W=192,CELL_H=176,COLUMNS=4,STRIDE=6;
 const SPRITE={hero:0,joren:2,warden:3,mira:4,hunter:5,merchant:6,bandit:7,wolf:8,wraith:9,hound:10,hermit:11};
 
@@ -23,6 +23,16 @@ function loadAsset(id,file,isActor){
 }
 for(const [zone,file] of Object.entries(sceneFiles))loadAsset(zone,file,false);
 loadAsset("actors","actors_v07.png",true);
+// A full-body rear view is now a dedicated game art asset. Never paint over
+// the character's face with rectangular chest and hair polygons again.
+const rearImage=new Image();rearImage.decoding="async";
+rearImage.onload=()=>{
+ rearFrames=rearImage;
+ try{buildAnimation()}catch(error){console.warn("Veilward rear animation build failed",error)}
+ window.dispatchEvent(new Event("veilward-rear-ready"));
+};
+rearImage.onerror=()=>console.warn("Veilward rear sprite unavailable");
+rearImage.src=ROOT+"hero_back_strides_v09.webp?art="+ASSET_VERSION;
 
 function canvas(w=CELL_W,h=CELL_H){
  const el=document.createElement("canvas");el.width=w;el.height=h;return el;
@@ -46,34 +56,6 @@ function bodyWithoutLegs(source){
  g.fillStyle="#fff";path(g,LEFT);g.fill();path(g,RIGHT);g.fill();
  g.globalCompositeOperation="source-over";return c;
 }
-function backFacing(front){
- const c=canvas(),g=c.getContext("2d");g.drawImage(front,0,0);
- function shape(pts,color){path(g,pts);g.fillStyle=color;g.fill()}
- function line(pts,color,width){g.beginPath();g.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)g.lineTo(...pts[i]);g.strokeStyle=color;g.lineWidth=width;g.stroke()}
- // Paint a full back-facing view; never invert the visible face.
- shape([[52,39],[55,27],[68,21],[90,20],[100,32],[98,56],[89,65],[63,65],[49,57]],"#64382f");
- shape([[56,31],[69,20],[83,22],[93,31],[98,42],[93,58],[84,64],[66,62],[54,54]],"#955139");
- [
-  [[[55,33],[66,24],[69,35],[63,53]],"#b66f46"],
-  [[[70,20],[80,23],[74,44],[67,48]],"#bd764d"],
-  [[[84,24],[95,34],[90,48],[84,53]],"#743b2e"],
-  [[[61,48],[72,56],[77,60],[60,59]],"#7e3f34"],
-  [[[78,37],[88,33],[92,40],[86,58]],"#ad6545"]
- ].forEach(([pts,color])=>shape(pts,color));
- line([[58,56],[68,62],[82,63],[90,56]],"#4c2830",3);
- shape([[57,69],[68,73],[94,71],[98,82],[94,117],[67,121],[54,112]],"#303d59");
- shape([[59,72],[66,76],[90,74],[93,83],[88,111],[71,113],[58,104]],"#536889");
- line([[77,80],[78,112]],"#899cb8",3);
- line([[59,84],[66,79],[72,80]],"#b6c5d4",2);
- line([[92,82],[88,77],[83,78]],"#b2c6d6",2);
- for(const y of [91,99,107]){line([[66,y],[88,y+1]],"#2d384d",3);line([[69,y-2],[86,y-1]],"#92a2b9",1)}
- for(const [x,y] of [[64,86],[91,89],[72,105],[84,105]]){
-  g.fillStyle="#b99a5a";g.fillRect(x-2,y-2,4,4)
- }
- shape([[91,65],[105,67],[118,84],[126,99],[118,118],[100,106],[93,91]],"#8b3541");
- line([[94,68],[112,89],[115,112]],"#d35f58",3);
- return c;
-}
 function frame(source,phase,isIdle){
  if(isIdle)return source;
  const left=maskLayer(source,LEFT),right=maskLayer(source,RIGHT),torso=bodyWithoutLegs(source);
@@ -93,16 +75,27 @@ function buildAnimation(){
  if(!actors||!actors.naturalWidth)return;
  const source=canvas(),g=source.getContext("2d");
  g.imageSmoothingEnabled=false;g.drawImage(actors,0,0,CELL_W,CELL_H,0,0,CELL_W,CELL_H);
- const back=backFacing(source);
+ // Rear-facing poses are sourced from the separately authored WEBP sheet.
  // Row 0 forward (down), row 1 left, row 2 right, row 3 away (up).
  animation=canvas(CELL_W*STRIDE,CELL_H*4);
  const dest=animation.getContext("2d");dest.imageSmoothingEnabled=false;
- for(let direction=0;direction<4;direction++){
-  const pose=direction===3?back:source;
+ for(let direction=0;direction<3;direction++){
   for(let i=0;i<STRIDE;i++){
-   let f=frame(pose,i*Math.PI*2/STRIDE,i===0);
+   let f=frame(source,i*Math.PI*2/STRIDE,i===0);
    if(direction===2)f=flip(f);
    dest.drawImage(f,i*CELL_W,direction*CELL_H);
+  }
+ }
+ // Rear frames are preauthored and checked at native 192x176 resolution.
+ // Preserve the actual rendered shoulder, scarf, hair and boots in each frame.
+ if(rearFrames&&rearFrames.complete&&rearFrames.naturalWidth){
+  for(let i=0;i<STRIDE;i++){
+   dest.drawImage(rearFrames,i*CELL_W,0,CELL_W,CELL_H,i*CELL_W,3*CELL_H,CELL_W,CELL_H);
+  }
+ }else{
+  // Temporary image-loading fallback, replaced immediately on rear load.
+  for(let i=0;i<STRIDE;i++){
+   dest.drawImage(source,i*CELL_W,3*CELL_H,CELL_W,CELL_H);
   }
  }
 }
@@ -113,9 +106,9 @@ function facingRow(face){
  return y<0?3:0;
 }
 function frameIndex(step){
- const tau=Math.PI*2;
- const normal=((step||0)%tau+tau)%tau;
- return Math.floor(normal/tau*STRIDE+1e-6)%STRIDE;
+ // About 9 distinct poses per second; previous version took >1 second
+ // just to advance one pose, which looked like sliding.
+ return ((Math.floor((step||0)*9)%STRIDE)+STRIDE)%STRIDE;
 }
 function roleSprite(kind){
  if(kind==="wolf")return SPRITE.wolf;
@@ -181,6 +174,7 @@ window.VeilwardArt={
  background,actor,glows,blocked,ready:()=>!!(scenes.village&&actors&&actors.complete&&actors.naturalWidth),
  spritesReady:()=>!!(actors&&actors.complete&&actors.naturalWidth),
  directionRow:facingRow,walkFrame:frameIndex,animationReady:()=>!!animation,
- version:"0.8.0"
+ rearReady:()=>!!(rearFrames&&rearFrames.complete&&rearFrames.naturalWidth),
+ version:"0.9.0"
 };
 })();
