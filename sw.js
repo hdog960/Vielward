@@ -1,13 +1,13 @@
-/* VEILWARD offline cache v0.7 — no stale damaged character sprites.
+/* VEILWARD offline cache v0.8 — no stale damaged character sprites.
    Network-first HTML/JS, versioned atlas, stable image cache.
    Older installed-app caches removed when this worker activates. */
-const CACHE="veilward-hollowreach-v070-full-actors";
+const CACHE="veilward-hollowreach-v080-directional-walk";
 const FILES=[
- "./","./index.html","./game.js?v=8","./navigation.js?v=7",
- "./visual.js?v=12","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
- "./assets/village_v06_clear.jpg?art=7","./assets/wilds_clean.jpg?art=7",
- "./assets/cave_clean.jpg?art=7","./assets/forge.jpg?art=7",
- "./assets/actors_v07.png?art=7"
+ "./","./index.html","./game.js?v=9","./navigation.js?v=7",
+ "./visual.js?v=13","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
+ "./assets/village_v06_clear.jpg?art=8","./assets/wilds_clean.jpg?art=8",
+ "./assets/cave_clean.jpg?art=8","./assets/forge.jpg?art=8",
+ "./assets/actors_v07.png?art=8"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{
