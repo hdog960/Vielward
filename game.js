@@ -39,8 +39,8 @@ cave:[newEnemy(1050,670,"bandit","cave"),newEnemy(1425,650,"bandit","cave"),
 newEnemy(1450,550,"wraith","cave")],forge:[]};
 npc=[
  {id:"joren",name:"Joren · Blacksmith",zone:"village",x:885,y:520,homeX:885,homeY:520,color:"#9b6244",role:"forge"},
- {id:"mira",name:"Mira · Innkeeper",zone:"village",x:1100,y:760,homeX:1100,homeY:760,color:"#987db7",role:"inn"},
- {id:"eldric",name:"Eldric · Hunter",zone:"village",x:640,y:841,homeX:640,homeY:841,color:"#547f65",role:"hunter"},
+ {id:"mira",name:"Mira · Innkeeper",zone:"village",x:1430,y:990,homeX:1430,homeY:990,color:"#987db7",role:"inn"},
+ {id:"eldric",name:"Eldric · Hunter",zone:"village",x:750,y:910,homeX:750,homeY:910,color:"#547f65",role:"hunter"},
  {id:"guard",name:"Warden Hal",zone:"village",x:1290,y:595,homeX:1290,homeY:595,color:"#6d87ae",role:"guard"},
  {id:"hound",name:"Ash · Village Hound",zone:"village",x:1075,y:705,homeX:1075,homeY:705,color:"#c3ced5",role:"hound"},
  {id:"hermit",name:"The Green Hermit",zone:"wilds",x:1275,y:543,homeX:1275,homeY:543,color:"#5f9771",role:"hermit"}
