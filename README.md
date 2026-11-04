@@ -1,3 +1,32 @@
+# Veilward — Hollowreach v0.6.2
+
+## Artifact repair update
+
+This release directly addresses the defects reported in the November 3 playtest screenshots.
+
+- **Blue crystalline creature removed:** Replaced the baked-in creature from the original golden-reference village background with reconstructed matching snow texture. It is no longer a static ghost image behind the player.
+- **Live actor masks rebuilt:** Hero, Warden, Joren, hunter, innkeeper, and enemies are drawn from tightly cropped transparent sprite silhouettes instead of wide atlas boxes containing leftover flowers, snow and ground debris.
+- **Warden's snow-strip issue:** Removed separate disconnected atlas components under boots (including ground-like rectangular and horizontal streaks). The renderer creates its own soft radial shadows.
+- **Friendly village hound:** Replaced the damaged wild-wolf sprite used for Ash with a separate clean seated husky sprite, cut out without the original snow background.
+- **Animation and scale:** Aligned actor foot positions at a consistent baseline and improved source cropping so sprites occupy their actual body bounds.
+- **Old saves retained:** No changes to localStorage save key or quest state and no required save reset.
+- **iPhone cache:** Versioned visual.js and service-worker cache keys so Home Screen installations can refresh the new imagery.
+
+### Verified before commit
+- Programmatic browser-runtime simulation passed startup, movement, attacks, casting, saving, Joren dialogue, Warden dialogue, Ash interaction and travel to Greenwood.
+- Every file referenced by the new game and offline service worker was verified in GitHub.
+- Isolated sprite masks and the replacement snow area were visually inspected from the source assets.
+
+### Remaining design limitations
+This is a significant **asset-cleanup pass**, not the full graphical completion milestone. The village is still a single illustrated background plate instead of individually layered, animated pixel tiles; advanced animation sets, natural NPC schedules and full environmental occlusion remain pending. A physical iPhone and live GitHub Pages rendering test were not available from this chat session. Do not claim those tests occurred.
+
+### Repository
+`hdog960/Vielward` on branch `main`, published through the user's GitHub Pages configuration.
+
+---
+
+## Previous release notes
+
 # Veilward — v0.5 clean scene reset
 
 This commit is a **real game update**, not a concept-art deliverable.
