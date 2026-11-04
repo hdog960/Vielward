@@ -1,180 +1,123 @@
-/* VEILWARD visual runtime v0.9 — authored rear-facing sprite & six-frame strides.
- * The original complete v0.7 character art is preserved. Hero poses are built
- * as cached 6-frame strides from that intact sprite, not broken alpha cutouts.
- * No paid services, extra dependencies, or new sprite downloads needed. */
+/* VEILWARD — FULL CHARACTER ATLAS v1.0
+ * Complete 8-direction, 136-frame hero sheet, built from original full-body
+ * front, genuine rear and profile art. No synthetic painted backplate.
+ * Each draw samples one complete atlas cell; no destructive masks or crop guesses.
+ */
 (function(){
 "use strict";
-const ROOT="./assets/",ASSET_VERSION="9";
-const sceneFiles={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
-const scenes=Object.create(null);
-let actors=null,animation=null,rearFrames=null;
-const CELL_W=192,CELL_H=176,COLUMNS=4,STRIDE=6;
-const SPRITE={hero:0,joren:2,warden:3,mira:4,hunter:5,merchant:6,bandit:7,wolf:8,wraith:9,hound:10,hermit:11};
-
-function loadAsset(id,file,isActor){
+const ROOT="./assets/",ART="10";
+const files={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
+const scene=Object.create(null);
+let npcAtlas=null,heroAtlas=null;
+const NPCCELL={w:192,h:176,columns:4};
+const HERO={w:160,h:180,columns:17,rows:8};
+const NPC={forge:2,guard:3,inn:4,hunter:5,merchant:6,hermit:11,hound:10};
+const ENEMY={wolf:8,bandit:7,wraith:9};
+function load(id,file,kind){
  const image=new Image();image.decoding="async";
  image.onload=()=>{
-  if(isActor){actors=image;try{buildAnimation()}catch(error){console.warn("Veilward walk frame build failed",error)}
-    window.dispatchEvent(new Event("veilward-actors-ready"))}
-  else{scenes[id]=image;window.dispatchEvent(new CustomEvent("veilward-art-loaded",{detail:id}))}
+   if(kind==="hero")heroAtlas=image;
+   else if(kind==="npc")npcAtlas=image;
+   else scene[id]=image;
+   window.dispatchEvent(new Event("veilward-art-loaded"));
  };
- image.onerror=()=>console.warn("Veilward art unavailable:",file);
- image.src=ROOT+file+"?art="+ASSET_VERSION;
+ image.onerror=()=>console.warn("Veilward asset failed:",file);
+ image.src=ROOT+file+"?art="+ART;
 }
-for(const [zone,file] of Object.entries(sceneFiles))loadAsset(zone,file,false);
-loadAsset("actors","actors_v07.png",true);
-// A full-body rear view is now a dedicated game art asset. Never paint over
-// the character's face with rectangular chest and hair polygons again.
-const rearImage=new Image();rearImage.decoding="async";
-rearImage.onload=()=>{
- rearFrames=rearImage;
- try{buildAnimation()}catch(error){console.warn("Veilward rear animation build failed",error)}
- window.dispatchEvent(new Event("veilward-rear-ready"));
-};
-rearImage.onerror=()=>console.warn("Veilward rear sprite unavailable");
-rearImage.src=ROOT+"hero_back_strides_v09.webp?art="+ASSET_VERSION;
+Object.entries(files).forEach(([id,file])=>load(id,file,"scene"));
+load("actors","actors_v07.png","npc");
+load("hero","hero_full_8way_v10.png","hero");
 
-function canvas(w=CELL_W,h=CELL_H){
- const el=document.createElement("canvas");el.width=w;el.height=h;return el;
+// Screen-space Y increases toward the bottom. Clockwise sectors:
+const SECTOR_TO_ROW=[2,1,0,7,6,5,4,3];
+function directionRow(facing){
+ if(!facing)return 0; // default south, showing the face
+ const x=Number(facing.x)||0,y=Number(facing.y)||0;
+ if(Math.abs(x)+Math.abs(y)<.0001)return 0;
+ const sector=((Math.round(Math.atan2(y,x)/(Math.PI/4))%8)+8)%8;
+ return SECTOR_TO_ROW[sector];
 }
-function path(ctx,points){
- ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);
- for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.closePath();
-}
-const LEFT=[[41,121],[79,121],[77,138],[76,174],[38,174],[37,146]];
-const RIGHT=[[78,121],[110,121],[113,151],[111,174],[77,174],[77,142]];
-function maskLayer(source,polygon){
- const c=canvas(),g=c.getContext("2d");
- g.drawImage(source,0,0);
- g.globalCompositeOperation="destination-in";g.fillStyle="#fff";path(g,polygon);g.fill();
- g.globalCompositeOperation="source-over";
- return c;
-}
-function bodyWithoutLegs(source){
- const c=canvas(),g=c.getContext("2d");
- g.drawImage(source,0,0);g.globalCompositeOperation="destination-out";
- g.fillStyle="#fff";path(g,LEFT);g.fill();path(g,RIGHT);g.fill();
- g.globalCompositeOperation="source-over";return c;
-}
-function frame(source,phase,isIdle){
- if(isIdle)return source;
- const left=maskLayer(source,LEFT),right=maskLayer(source,RIGHT),torso=bodyWithoutLegs(source);
- const c=canvas(),g=c.getContext("2d");
- const sway=Math.sin(phase),lift=Math.abs(Math.cos(phase));
- g.save();g.translate(64,125);g.rotate(sway*.13);g.translate(-64,-125);
- g.drawImage(left,sway*2.2,-Math.max(0,-sway)*2.5);g.restore();
- g.save();g.translate(93,125);g.rotate(-sway*.13);g.translate(-93,-125);
- g.drawImage(right,-sway*2.2,-Math.max(0,sway)*2.5);g.restore();
- g.drawImage(torso,0,-lift*.8);
- return c;
-}
-function flip(source){
- const c=canvas(),g=c.getContext("2d");g.translate(CELL_W,0);g.scale(-1,1);g.drawImage(source,0,0);return c
-}
-function buildAnimation(){
- if(!actors||!actors.naturalWidth)return;
- const source=canvas(),g=source.getContext("2d");
- g.imageSmoothingEnabled=false;g.drawImage(actors,0,0,CELL_W,CELL_H,0,0,CELL_W,CELL_H);
- // Rear-facing poses are sourced from the separately authored WEBP sheet.
- // Row 0 forward (down), row 1 left, row 2 right, row 3 away (up).
- animation=canvas(CELL_W*STRIDE,CELL_H*4);
- const dest=animation.getContext("2d");dest.imageSmoothingEnabled=false;
- for(let direction=0;direction<3;direction++){
-  for(let i=0;i<STRIDE;i++){
-   let f=frame(source,i*Math.PI*2/STRIDE,i===0);
-   if(direction===2)f=flip(f);
-   dest.drawImage(f,i*CELL_W,direction*CELL_H);
-  }
+function sequence(state){
+ if((state?.dodgeV||0)>0)return {start:16,frames:1};
+ if((state?.attackV||0)>0) {
+   const t=Math.max(0,Math.min(.999,(.18-state.attackV)/.18));
+   return {start:11+Math.min(2,Math.floor(t*3)),frames:1};
  }
- // Rear frames are preauthored and checked at native 192x176 resolution.
- // Preserve the actual rendered shoulder, scarf, hair and boots in each frame.
- if(rearFrames&&rearFrames.complete&&rearFrames.naturalWidth){
-  for(let i=0;i<STRIDE;i++){
-   dest.drawImage(rearFrames,i*CELL_W,0,CELL_W,CELL_H,i*CELL_W,3*CELL_H,CELL_W,CELL_H);
-  }
- }else{
-  // Temporary image-loading fallback, replaced immediately on rear load.
-  for(let i=0;i<STRIDE;i++){
-   dest.drawImage(source,i*CELL_W,3*CELL_H,CELL_W,CELL_H);
-  }
+ if((state?.castV||0)>0){
+   const t=Math.max(0,Math.min(.999,(.32-state.castV)/.32));
+   return {start:14+Math.min(1,Math.floor(t*2)),frames:1};
  }
-}
-function facingRow(face){
- if(!face)return 0;
- const x=face.x||0,y=face.y||0;
- if(Math.abs(x)>Math.abs(y)*.8)return x>0?2:1;
- return y<0?3:0;
-}
-function frameIndex(step){
- // About 9 distinct poses per second; previous version took >1 second
- // just to advance one pose, which looked like sliding.
- return ((Math.floor((step||0)*9)%STRIDE)+STRIDE)%STRIDE;
-}
-function roleSprite(kind){
- if(kind==="wolf")return SPRITE.wolf;
- if(kind==="bandit")return SPRITE.bandit;
- if(kind==="wraith")return SPRITE.wraith;
- const npc={npc_forge:SPRITE.joren,npc_guard:SPRITE.warden,npc_inn:SPRITE.mira,
-  npc_hunter:SPRITE.hunter,npc_hermit:SPRITE.hermit,npc_hound:SPRITE.hound,npc_merchant:SPRITE.merchant};
- return npc[kind]??SPRITE.hero;
+ if(state?.moving){
+   const cycle=((((Number(state.step)||0)/(Math.PI*2))%1)+1)%1;
+   return {start:1+Math.floor(cycle*6),frames:1};
+ }
+ return {start:0,frames:1};
 }
 function dimensions(kind){
- const dims={human:[151,142],bandit:[165,145],wraith:[170,133],wolf:[164,119],
-  npc_forge:[161,149],npc_guard:[160,147],npc_inn:[148,145],npc_hunter:[151,144],
-  npc_hermit:[151,144],npc_hound:[154,117],npc_merchant:[159,148]};
- return dims[kind]||dims.human
+ const dims={human:[150,154],bandit:[165,145],wraith:[170,133],wolf:[164,119],
+ npc_forge:[161,149],npc_guard:[160,147],npc_inn:[148,145],
+ npc_hunter:[151,144],npc_hermit:[151,144],npc_hound:[154,117],
+ npc_merchant:[159,148]};
+ return dims[kind]||dims.human;
 }
-function shadow(ctx,x,y,w,kind){
+function drawShadow(ctx,x,y,w,kind){
+ ctx.save();
  const beast=kind==="wolf"||kind==="npc_hound"||kind==="wraith";
- ctx.save();ctx.translate(Math.round(x),Math.round(y)+2);ctx.scale(w*(beast?.31:.22),5.6);
- const gr=ctx.createRadialGradient(0,0,.02,0,0,1);
- gr.addColorStop(0,"rgba(9,17,34,.25)");gr.addColorStop(.46,"rgba(17,28,43,.16)");
- gr.addColorStop(1,"rgba(16,26,37,0)");
- ctx.fillStyle=gr;ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);ctx.fill();ctx.restore()
+ ctx.translate(Math.round(x),Math.round(y)+2);
+ ctx.scale(w*(beast?.28:.19),5);
+ const grad=ctx.createRadialGradient(0,0,.02,0,0,1);
+ grad.addColorStop(0,"rgba(14,22,35,.24)");
+ grad.addColorStop(.55,"rgba(18,25,43,.10)");
+ grad.addColorStop(1,"rgba(18,25,43,0)");
+ ctx.fillStyle=grad;ctx.beginPath();ctx.arc(0,0,1,0,2*Math.PI);ctx.fill();ctx.restore();
 }
 function actor(ctx,x,y,kind,step,attack,state){
- if(!actors||!actors.complete||!actors.naturalWidth)return false;
+ const isHero=kind==="human";
+ const img=isHero?heroAtlas:npcAtlas;
+ if(!img||!img.complete||!img.naturalWidth)return false;
  const [w,h]=dimensions(kind);
- shadow(ctx,x,y,w,kind);
- ctx.save();ctx.imageSmoothingEnabled=false;
- if(kind==="human"&&animation){
-  // Full-body frames anchor all boots at the same baseline.
-  const row=facingRow(state?.facing);
-  const col=state?.moving?frameIndex(step):0;
-  ctx.drawImage(animation,col*CELL_W,row*CELL_H,CELL_W,CELL_H,
-    Math.round(x-w/2),Math.round(y-h),w,h);
+ drawShadow(ctx,x,y,w,kind);
+ ctx.save();ctx.imageSmoothingEnabled=true;
+ if(isHero){
+   const row=directionRow(state?.facing);
+   const col=sequence(state).start;
+   ctx.drawImage(img,col*HERO.w,row*HERO.h,HERO.w,HERO.h,
+     Math.round(x-w/2),Math.round(y-h),w,h);
  }else{
-  // Non-player NPC and enemy sprites remain intact, with no crop masking.
-  const n=roleSprite(kind),sx=n%4*CELL_W,sy=Math.floor(n/4)*CELL_H;
-  ctx.drawImage(actors,sx,sy,CELL_W,CELL_H,Math.round(x-w/2),Math.round(y-h),w,h);
+   let index=0;
+   if(kind.startsWith("npc_"))index=NPC[kind.slice(4)]??0;
+   else index=ENEMY[kind]??0;
+   const sx=(index%NPCCELL.columns)*NPCCELL.w;
+   const sy=Math.floor(index/NPCCELL.columns)*NPCCELL.h;
+   ctx.drawImage(img,sx,sy,NPCCELL.w,NPCCELL.h,
+     Math.round(x-w/2),Math.round(y-h),w,h);
  }
- if(kind==="human"&&attack>0){
-  ctx.strokeStyle="rgba(241,227,182,.82)";ctx.lineWidth=3;
-  ctx.beginPath();ctx.arc(x+9,y-h*.55,29,-.8,.8);ctx.stroke()
- }
- ctx.restore();return true
+ ctx.restore();
+ return true;
 }
-function background(zone){return scenes[zone]||null}
+function background(zone){return scene[zone]||null}
 function glows(ctx,zone,time){
- if(!scenes[zone])return;
+ if(!scene[zone])return;
  const spots=zone==="village"?[[879,279,45],[716,342,32],[1430,1002,38],[797,1160,30]]:
-  zone==="forge"?[[1260,420,170]]:zone==="cave"?[[1580,370,150]]:[];
+ zone==="forge"?[[1260,420,170]]:zone==="cave"?[[1580,370,150]]:[];
  ctx.save();
  for(let i=0;i<spots.length;i++){
   const [x,y,r]=spots[i],radius=r*(1+.045*Math.sin(time*4+i));
   const gr=ctx.createRadialGradient(x,y-25,0,x,y-25,radius);
   const color=zone==="cave"?"133,109,242":"255,183,96";
-  gr.addColorStop(0,"rgba("+color+",.14)");gr.addColorStop(1,"rgba("+color+",0)");
+  gr.addColorStop(0,"rgba("+color+",.14)");
+  gr.addColorStop(1,"rgba("+color+",0)");
   ctx.fillStyle=gr;ctx.fillRect(x-radius,y-25-radius,2*radius,2*radius);
  }
- ctx.restore()
+ ctx.restore();
 }
 function blocked(zone,x,y){return x<65||y<70||x>1815||y>1160}
 window.VeilwardArt={
- background,actor,glows,blocked,ready:()=>!!(scenes.village&&actors&&actors.complete&&actors.naturalWidth),
- spritesReady:()=>!!(actors&&actors.complete&&actors.naturalWidth),
- directionRow:facingRow,walkFrame:frameIndex,animationReady:()=>!!animation,
- rearReady:()=>!!(rearFrames&&rearFrames.complete&&rearFrames.naturalWidth),
- version:"0.9.0"
+ background,actor,glows,blocked,
+ directionRow,sequence,
+ sheetDimensions:()=>({...HERO}),
+ ready:()=>!!(scene.village&&heroAtlas&&npcAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
+ spritesReady:()=>!!(heroAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
+ version:"1.0.0"
 };
 })();

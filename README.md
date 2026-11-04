@@ -1,3 +1,18 @@
+# Veilward — v1.0 Complete Hero Sprite Sheet
+
+The Wanderer now uses a real **8-row × 17-column sprite atlas**, not generated torso rectangles painted on top of front-facing sprites.
+
+- 8 direction slots with a full 136-frame atlas: S, SE, E, NE, N, NW, W, SW.
+- Dedicated artwork for the front, actual rear and side views; mirrored/nearest-angle views are used for some diagonal slots.
+- Frame groups: idle (1), walk (6), run (4), sword attack (3), cast (2), dodge (1) for each direction.
+- The new renderer draws complete frame cells directly, with animation driven by world movement distance, facing, and action state.
+- All frames have transparent surrounding space and keep a common ground anchor. No ad-hoc removal of legs or old generated blue square backplate.
+- Physical iPhone quality control still needed; this is the first complete sprite atlas, not a promise of final polished 8-angle hand-drawn animation.
+
+Source: `assets/hero_full_8way_v10.png`. Frame-layout documentation: `assets/hero_full_8way_v10.json`.
+
+---
+
 ## v0.8 — Directional walking (November 3, 2026)
 
 ## v0.9 — Rear-facing character animation correction

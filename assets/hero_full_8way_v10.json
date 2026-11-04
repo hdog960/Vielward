@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "cellWidth": 160,
+  "cellHeight": 180,
+  "directions": [
+    "S",
+    "SE",
+    "E",
+    "NE",
+    "N",
+    "NW",
+    "W",
+    "SW"
+  ],
+  "animations": {
+    "idle": {
+      "start": 0,
+      "frames": 1
+    },
+    "walk": {
+      "start": 1,
+      "frames": 6
+    },
+    "run": {
+      "start": 7,
+      "frames": 4
+    },
+    "attack": {
+      "start": 11,
+      "frames": 3
+    },
+    "cast": {
+      "start": 14,
+      "frames": 2
+    },
+    "dodge": {
+      "start": 16,
+      "frames": 1
+    }
+  },
+  "file": "hero_full_8way_v10.png",
+  "imageWidth": 2720,
+  "imageHeight": 1440,
+  "origin": "x=center, y=feet",
+  "notes": "136 complete cells, 8 facing rows, independent front/back/profile base artwork. Character silhouettes do not use painted-over reversal. Some diagonal facings reuse the nearest profile or rear pose with mirrored perspective."
+}
