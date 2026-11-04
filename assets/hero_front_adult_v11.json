@@ -1,0 +1,28 @@
+{
+  "version": "1.0.2",
+  "file": "hero_front_adult_v11.png",
+  "cellWidth": 112,
+  "cellHeight": 126,
+  "columns": 3,
+  "rows": 1,
+  "positions": [
+    "idle",
+    "stride_left",
+    "stride_right"
+  ],
+  "rowReplaced": "S",
+  "renderSizeWorld": [
+    150,
+    154
+  ],
+  "matchingOriginalAtlas": "hero_full_8way_v10.png",
+  "frameCycle": [
+    1,
+    0,
+    2,
+    0,
+    1,
+    2
+  ],
+  "note": "Front-only adult-proportion patch. Other seven facings use original 136-frame atlas; right/left strides here are independently drawn poses."
+}

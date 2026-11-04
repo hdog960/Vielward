@@ -1,14 +1,16 @@
-/* VEILWARD — FULL CHARACTER ATLAS v1.0
+/* VEILWARD — HERO AGE/PROPORTION FIX v1.0.2
  * Complete 8-direction, 136-frame hero sheet, built from original full-body
  * front, genuine rear and profile art. No synthetic painted backplate.
  * Each draw samples one complete atlas cell; no destructive masks or crop guesses.
  */
 (function(){
 "use strict";
-const ROOT="./assets/",ART="11";
+const ROOT="./assets/",ART="12";
 const files={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
 const scene=Object.create(null);
-let npcAtlas=null,heroAtlas=null;
+let npcAtlas=null,heroAtlas=null,adultFrontAtlas=null;
+// New, consistent adult-front art: 3 complete poses, shared between idle, walk and actions.
+const ADULT_FRONT={w:112,h:126,columns:3};
 const NPCCELL={w:192,h:176,columns:4};
 const HERO={w:160,h:180,columns:17,rows:8};
 const NPC={forge:2,guard:3,inn:4,hunter:5,merchant:6,hermit:11,hound:10};
@@ -33,6 +35,7 @@ function load(id,file,kind,backup=[]){
   image.onload=()=>{
    if(!image.naturalWidth || !image.naturalHeight){failed();return;}
    if(kind==="hero")heroAtlas=image;
+   else if(kind==="front")adultFrontAtlas=image;
    else if(kind==="npc")npcAtlas=image;
    else scene[id]=image;
    delete loadErrors[id];
@@ -52,6 +55,7 @@ function load(id,file,kind,backup=[]){
 Object.entries(files).forEach(([id,file])=>load(id,file,"scene",alternatives[id]||[]));
 load("actors","actors_v07.png","npc");
 load("hero","hero_full_8way_v10.png","hero");
+load("heroFront","hero_front_adult_v11.png","front");
 
 function sceneReady(zone){
  const img=scene[zone];
@@ -88,6 +92,16 @@ function sequence(state){
  }
  return {start:0,frames:1};
 }
+function adultFrontColumn(state,sequenceColumn){
+ if(!state?.moving){
+   if((state?.attackV||0)>0)return sequenceColumn%2?1:2;
+   if((state?.dodgeV||0)>0)return 2;
+   return 0;
+ }
+ // Always move the legs when traversing ground, without changing body scale.
+ // Hold each stride long enough to read clearly on a small iPhone screen.
+ return [1,0,2,0,1,2][(Math.max(1,sequenceColumn)-1)%6];
+}
 function dimensions(kind){
  const dims={human:[150,154],bandit:[165,145],wraith:[170,133],wolf:[164,119],
  npc_forge:[161,149],npc_guard:[160,147],npc_inn:[148,145],
@@ -116,8 +130,20 @@ function actor(ctx,x,y,kind,step,attack,state){
  if(isHero){
    const row=directionRow(state?.facing);
    const col=sequence(state).start;
-   ctx.drawImage(img,col*HERO.w,row*HERO.h,HERO.w,HERO.h,
-     Math.round(x-w/2),Math.round(y-h),w,h);
+   if(row===0&&adultFrontAtlas?.complete&&adultFrontAtlas.naturalWidth===ADULT_FRONT.w*ADULT_FRONT.columns&&adultFrontAtlas.naturalHeight===ADULT_FRONT.h){
+     // The prior south row showed a much younger-looking, swordless hero.
+     // Use three complete adult front frames instead of deforming/cropping him.
+     const frontCol=adultFrontColumn(state,col);
+     ctx.drawImage(adultFrontAtlas,frontCol*ADULT_FRONT.w,0,ADULT_FRONT.w,ADULT_FRONT.h,
+       Math.round(x-w/2),Math.round(y-h),w,h);
+   }else{
+     // Original clean full-body profiles and rear atlas stay in place.
+     // Old cast cells contain stray cyan marker dots; show a clean
+     // full-body pose until their independent combat art is replaced.
+     const safeCol=col===14||col===15?0:col;
+     ctx.drawImage(img,safeCol*HERO.w,row*HERO.h,HERO.w,HERO.h,
+       Math.round(x-w/2),Math.round(y-h),w,h);
+   }
  }else{
    let index=0;
    if(kind.startsWith("npc_"))index=NPC[kind.slice(4)]??0;
@@ -151,8 +177,10 @@ window.VeilwardArt={
  background,actor,glows,blocked,sceneReady,sceneError,retryScene,
  directionRow,sequence,
  sheetDimensions:()=>({...HERO}),
+ frontDimensions:()=>({...ADULT_FRONT}),
+ adultFrontLoaded:()=>!!(adultFrontAtlas?.complete&&adultFrontAtlas.naturalWidth===336),
  ready:()=>!!(scene.village&&heroAtlas&&npcAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
  spritesReady:()=>!!(heroAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
- version:"1.0.1"
+ version:"1.0.2"
 };
 })();

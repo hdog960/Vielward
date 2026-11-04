@@ -1,3 +1,17 @@
+# Veilward — v1.0.2 hero age/proportion correction (November 4, 2026)
+
+The November 4 mobile screenshots showed a juvenile-looking, swordless hero facing south/down, while left/right showed an adult armored wanderer. **The original 136-cell atlas is real, but the south row is not visually consistent with the side rows.**
+
+- Added a separate **three-pose adult south-facing sprite strip** (`assets/hero_front_adult_v11.png`). It includes an idle, left stride and right stride, with the adult's full armor, red scarf, sword, boots and fixed ground anchor. It replaces the problematic south row at render time for movement, stationary facing and short action poses. Other seven directions continue to use the existing full atlas.
+- Kept consistent on-screen hero dimensions (`150 × 154` world units) and foot position **for all directions**, with no intentional shrink/stretch when direction changes. Actual world-distance animation is unchanged.
+- Replaced stray blue-dot cast cells (in the inherited atlas) with a clean pose pending a dedicated combat atlas. **This is not a complete redrawing of all eight directional attack animations.**
+- Bumped visual assets and offline worker versions so iPhone home-screen users receive the artwork on a refreshed load. Saves, world terrain and quest progression are unchanged.
+- Source art: a newly authored adult-forward 3-frame strip. The original `assets/hero_full_8way_v10.png` remains in use for the other directions. The supplemental strip is a temporary art-correction until all 8 facings have equally polished, independently animated frame sequences.
+
+**Validation:** Asset layout and renderer wiring reviewed, cache dependencies enumerated. Physical iPhone/animation playtesting still requires creator verification. No gate or broader roadmap is declared complete.
+
+---
+
 # Veilward — v1.0 Complete Hero Sprite Sheet
 
 The Wanderer now uses a real **8-row × 17-column sprite atlas**, not generated torso rectangles painted on top of front-facing sprites.
