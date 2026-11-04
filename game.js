@@ -1,9 +1,11 @@
-/* VEILWARD — Hollowreach v0.3: illustrated scene collision, reachable quests, safe travel, and authored navigation. */
+/* VEILWARD — Hollowreach v0.4: live NPCs, repaired characters, unified outdoor forge, wider camera. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
 let vw=innerWidth,vh=innerHeight,last=0,terrainCache={},decorCache={},active=false,modal=false,toastTime=0,hint="",shake=0,night=0;
-const WORLD={w:1850,h:1200};let cam={x:0,y:0},keys={},joy={x:0,y:0,pid:null},effects=[],projectiles=[],particles=[],weather=[];
+const WORLD={w:1850,h:1200};
+const WORLD_ZOOM=.78;
+const viewWidth=()=>vw/WORLD_ZOOM,viewHeight=()=>vh/WORLD_ZOOM;let cam={x:0,y:0},keys={},joy={x:0,y:0,pid:null},effects=[],projectiles=[],particles=[],weather=[];
 const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",label:"Hollowreach · Frostbound Village"},
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
@@ -36,21 +38,17 @@ newEnemy(1245,667,"bandit","wilds"),newEnemy(1480,850,"wolf","wilds")],
 cave:[newEnemy(1050,670,"bandit","cave"),newEnemy(1425,650,"bandit","cave"),
 newEnemy(1450,550,"wraith","cave")],forge:[]};
 npc=[
- // All named figures below are painted into the approved environment plates.
- // Their interaction anchors are reachable FLOOR points, not their painted head positions.
- {id:"joren",name:"Joren · Blacksmith",zone:"village",x:1370,y:517,homeX:1370,homeY:517,color:"#9b6244",role:"forge",painted:true},
- {id:"mira",name:"Mira · Innkeeper",zone:"village",x:690,y:510,homeX:690,homeY:510,color:"#987db7",role:"inn",painted:true},
- {id:"eldric",name:"Eldric · Hunter",zone:"village",x:212,y:814,homeX:212,homeY:814,color:"#547f65",role:"hunter",painted:true},
- {id:"guard",name:"Warden Hal",zone:"village",x:954,y:483,homeX:954,homeY:483,color:"#6d87ae",role:"guard",painted:true},
- {id:"hermit",name:"The Green Hermit",zone:"wilds",x:1275,y:543,homeX:1275,homeY:543,color:"#5f9771",role:"hermit",painted:true},
- {id:"jorenInside",name:"Joren · Master Smith",zone:"forge",x:1050,y:745,homeX:1050,homeY:745,color:"#9b6244",role:"forge",painted:true}
+ {id:"joren",name:"Joren · Blacksmith",zone:"village",x:1370,y:517,homeX:1370,homeY:517,color:"#9b6244",role:"forge"},
+ {id:"mira",name:"Mira · Innkeeper",zone:"village",x:690,y:510,homeX:690,homeY:510,color:"#987db7",role:"inn"},
+ {id:"eldric",name:"Eldric · Hunter",zone:"village",x:212,y:814,homeX:212,homeY:814,color:"#547f65",role:"hunter"},
+ {id:"guard",name:"Warden Hal",zone:"village",x:954,y:483,homeX:954,homeY:483,color:"#6d87ae",role:"guard"},
+ {id:"hound",name:"Ash · Village Hound",zone:"village",x:1100,y:635,homeX:1100,homeY:635,color:"#c3ced5",role:"hound"},
+ {id:"hermit",name:"The Green Hermit",zone:"wilds",x:1275,y:543,homeX:1275,homeY:543,color:"#5f9771",role:"hermit"}
 ];
 objects=[
- // Traveling requires an explicit TALK / INTERACT press; no hidden automatic teleport.
+ // The visible outdoor forge IS Joren's shop. Do not enter via a person.
  {zone:"village",type:"portal",x:1555,y:1044,to:"wilds",tx:735,ty:991,label:"Eastern Trail"},
- {zone:"village",type:"portal",x:1310,y:580,to:"forge",tx:900,ty:794,label:"Enter the Forge"},
  {zone:"village",type:"board",x:500,y:756,label:"Hollowreach Notices"},
- {zone:"forge",type:"portal",x:896,y:1036,to:"village",tx:1315,ty:602,label:"Leave the Forge"},
  {zone:"wilds",type:"portal",x:540,y:1068,to:"village",tx:1500,ty:1000,label:"Return to Hollowreach"},
  {zone:"wilds",type:"portal",x:1700,y:745,to:"cave",tx:775,ty:741,label:"Smuggler's Cave"},
  {zone:"wilds",type:"herb",x:400,y:760,label:"Blueleaf Sprig"},
@@ -221,8 +219,8 @@ function changeZone(z,tx,ty){
  p.zone=z;p.x=safe.x;p.y=safe.y;p.dodgeTime=0;p.dodgeV=0;p.invuln=1;
  joy.x=0;joy.y=0;p.navVersion=3;
  particles=[];projectiles=[];effects=[];
- cam.x=clamp(p.x-vw/2,0,Math.max(0,WORLD.w-vw));
- cam.y=clamp(p.y-vh/2,0,Math.max(0,WORLD.h-vh));
+ cam.x=clamp(p.x-viewWidth()/2,0,Math.max(0,WORLD.w-viewWidth()));
+ cam.y=clamp(p.y-viewHeight()/2,0,Math.max(0,WORLD.h-viewHeight()));
  if(!terrainCache[z])generate(z);
  $("location").textContent=C[z].label;
  notify("Discovered: "+C[z].label);save(true)
@@ -242,7 +240,7 @@ function nearest(){
            ...objects.filter(o=>o.zone===p.zone&&!o.taken).map(o=>({...o,interaction:o.type}))];
  // Painted figures can be talked to from the path beside a fence or anvil.
  // Physical pick-ups have shorter radii so they cannot be collected from afar.
- const reach={forge:185,inn:140,hunter:133,guard:135,hermit:145,
+ const reach={forge:185,inn:140,hunter:133,guard:135,hermit:145,hound:100,
               portal:100,board:112,herb:75,scar:150,chest:90};
  list=list.map(n=>({...n,reach:reach[n.interaction]||100,dist:dist(n,p)}))
           .filter(n=>n.dist<=n.reach)
@@ -258,6 +256,7 @@ if(target.interaction==="forge"){if(p.quest===0){p.quest=p.supplies?3:1;updateUI
 if(target.interaction==="inn"){showDialog("Mira the Innkeeper",p.herbs>=2?"Those blueleaf sprigs would make excellent medicine. The village is grateful.":"If you're headed beyond the bridge, take care. The forest hasn't been right since the last storm.",[{text:p.herbs>=2?"Trade 2 Blueleaf for a healing potion":"Buy a healing potion (20 gold)",action:()=>{if(p.herbs>=2){p.herbs-=2;p.potions++;notify("Traded blueleaf for a potion")}else if(p.gold>=20){p.gold-=20;p.potions++;notify("Purchased a healing potion")}else notify("Not enough gold");save(true);closeAll()}},{text:"Rest by the hearth (restore health)",action:()=>{p.hp=p.hpMax;p.mp=p.mpMax;save(true);closeAll();notify("Rested at the Hollowreach Inn")}},{text:"Goodbye",action:closeAll}]);return}
 if(target.interaction==="hunter"){showDialog("Eldric the Hunter","I lost a friend near the old stones in Greenwood. If you find tracks or clues, bring back word.",[{text:"Tell me about the forest",action:()=>showDialog("Eldric the Hunter","Wolves haunt the eastern groves. There's a strange light near the ruined altar, and a cave the guards won't enter.",[{text:"Thank you",action:closeAll}])},{text:"Farewell",action:closeAll}]);return}
 if(target.interaction==="guard"){showDialog("Warden Hal","Hollowreach is peaceful enough — unless you travel beyond the eastern trail. Keep that blade ready.",[{text:"Where should I explore?",action:()=>showDialog("Warden Hal","The bridge leads east to Greenwood, and a broken tower guards the northern heights. Old stories speak of a fissure in the sky.",[{text:"Understood",action:closeAll}])},{text:"Take care",action:closeAll}]);return}
+if(target.interaction==="hound"){showDialog("Ash the Village Hound","The gray hound wags his tail curiously.",[{text:"Pet Ash",action:()=>{closeAll();notify("Ash seems pleased.")}},{text:"Continue",action:closeAll}]);return}
 if(target.interaction==="hermit"){showDialog("The Green Hermit","The land remembers what the sky has forgotten. Seek the glowing stones at the old altar. They know your name.",[{text:"I will investigate",action:closeAll}]);return}
 }
 function shop(title){showDialog(title,"Joren offers a keenly balanced blade, forged here in Hollowreach.",[{text:"Buy Tempered Sword (65 gold)",action:()=>{if(p.gold<65){notify("Not enough gold");closeAll();return}p.gold-=65;p.weapon="Tempered Steel Sword";notify("Equipped: Tempered Steel Sword");save(true);closeAll()}},{text:"Leave the forge",action:closeAll}])}
@@ -314,21 +313,23 @@ updateUI()
 function render(){
 g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,vw,vh);
 if(!terrainCache[p.zone])generate(p.zone);
-const targetX=clamp(p.x-vw*.5,0,Math.max(0,WORLD.w-vw)),targetY=clamp(p.y-vh*.51,0,Math.max(0,WORLD.h-vh));cam.x+=(targetX-cam.x)*.13;cam.y+=(targetY-cam.y)*.13;
-g.save();g.translate(-Math.floor(cam.x)+(Math.random()-.5)*shake,-Math.floor(cam.y)+(Math.random()-.5)*shake);
+const viewW=viewWidth(),viewH=viewHeight();
+const targetX=clamp(p.x-viewW*.5,0,Math.max(0,WORLD.w-viewW)),targetY=clamp(p.y-viewH*.51,0,Math.max(0,WORLD.h-viewH));cam.x+=(targetX-cam.x)*.13;cam.y+=(targetY-cam.y)*.13;
+g.save();g.scale(WORLD_ZOOM,WORLD_ZOOM);g.translate(-Math.floor(cam.x)+(Math.random()-.5)*shake,-Math.floor(cam.y)+(Math.random()-.5)*shake);
 g.drawImage(terrainCache[p.zone],0,0);
 window.VeilwardArt?.glows(g,p.zone,worldTime);
 if(typeof location!=="undefined"&&location.search.includes("debugNav"))window.VeilwardNav?.drawDebug(g,p.zone);
 
-let visible=decorCache[p.zone].filter(o=>o.x>cam.x-250&&o.x<cam.x+vw+250&&o.y>cam.y-250&&o.y<cam.y+vh+250);
+let visible=decorCache[p.zone].filter(o=>o.x>cam.x-250&&o.x<cam.x+viewW+250&&o.y>cam.y-250&&o.y<cam.y+viewH+250);
 const ents=[...visible.map(o=>({...o,renderType:"prop"})),...npc.filter(n=>n.zone===p.zone).map(n=>({...n,renderType:"npc"})),...enemies[p.zone].filter(e=>!e.dead).map(e=>({...e,renderType:"enemy"})),{...p,renderType:"player"}];
 for(const o of objects)if(o.zone===p.zone&&!o.taken){if(o.type==="scar"||o.type==="herb"||o.type==="chest"||o.type==="portal")ents.push({...o,renderType:"object"})}
 ents.sort((a,b)=>a.y-b.y);
 for(let e of ents){if(e.renderType==="prop")drawProp(g,e,night);else if(e.renderType==="npc"){
- // Do not draw a second person over the same NPC painted in the background.
- // Keep the original illustrated person visible; interaction remains fully live.
- if(!e.painted||!window.VeilwardArt?.background(p.zone))drawHero(g,e.x,e.y,0,worldTime*.3,e.color,false,"npc_"+e.role);
- if(dist(e,p)<(e.role==="forge"?180:145))imgText(g,e.name.split(" · ")[0],e.x,e.y-63,11,"#fff0bc")
+ drawHero(g,e.x,e.y,0,worldTime*.25,e.color,false,"npc_"+e.role);
+ if(dist(e,p)<(e.role==="forge"?185:145)){
+  const hh=e.role==="forge"?122:e.role==="hound"?72:96;
+  imgText(g,e.name.split(" · ")[0],e.x,e.y-hh,11,"#fff0bc")
+ }
 }
 else if(e.renderType==="enemy"){drawHero(g,e.x,e.y,0,e.step,"",true,e.type,e.wind>0?.25:0);drawHealth(g,e);if(e.wind>0){g.strokeStyle="#e8996f";g.lineWidth=2;g.beginPath();g.arc(e.x,e.y-14,27,0,Math.PI*2);g.stroke()}}
 else if(e.renderType==="player"){drawHero(g,e.x,e.y,0,e.step||0,"#637f96",false,"human",e.attackV||0)}
@@ -356,6 +357,7 @@ shake*=.78;if(shake<.2)shake=0;if(toastTime>0){toastTime-=.016;if(toastTime<=0)$
 function frame(now){let dt=Math.min(.055,(now-last)/1000||.016);last=now;tick(dt);render();requestAnimationFrame(frame)}
 load();
 if(!p.artVersion){p.zone="village";p.x=900;p.y=625;p.artVersion=2}
+if(p.zone==="forge"){p.zone="village";p.x=1250;p.y=627;p.navVersion=0}
 if(p.navVersion!==3||window.VeilwardNav&&!window.VeilwardNav.canWalk(p.zone,p.x,p.y,8)){
  const pt=safePosition(p.zone,p.x,p.y);
  p.x=pt.x;p.y=pt.y;p.navVersion=3;save(true);
