@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v0.4: live NPCs, repaired characters, unified outdoor forge, wider camera. */
+/* VEILWARD — Hollowreach v0.5: full clean village rebuild from golden pixel-art benchmark. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -11,7 +11,7 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
 const SAVE="veilward-hollowreach-v01";
-const DEFAULT={zone:"village",x:900,y:625,artVersion:2,navVersion:3,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
+const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:3,sceneVersion:5,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
 let p=JSON.parse(JSON.stringify(DEFAULT)),enemies={village:[],wilds:[],cave:[],forge:[]},npc=[],objects=[],worldTime=0,invTab="pack",attacks=[],autosaveClock=0;
 function rand(seed){let x=Math.sin(seed*127.1+78.233)*43758.5453;return x-Math.floor(x)}
 function rng(n){return rand(n*1.931+0.321)}
@@ -38,18 +38,19 @@ newEnemy(1245,667,"bandit","wilds"),newEnemy(1480,850,"wolf","wilds")],
 cave:[newEnemy(1050,670,"bandit","cave"),newEnemy(1425,650,"bandit","cave"),
 newEnemy(1450,550,"wraith","cave")],forge:[]};
 npc=[
- {id:"joren",name:"Joren · Blacksmith",zone:"village",x:1370,y:517,homeX:1370,homeY:517,color:"#9b6244",role:"forge"},
- {id:"mira",name:"Mira · Innkeeper",zone:"village",x:690,y:510,homeX:690,homeY:510,color:"#987db7",role:"inn"},
- {id:"eldric",name:"Eldric · Hunter",zone:"village",x:212,y:814,homeX:212,homeY:814,color:"#547f65",role:"hunter"},
- {id:"guard",name:"Warden Hal",zone:"village",x:954,y:483,homeX:954,homeY:483,color:"#6d87ae",role:"guard"},
- {id:"hound",name:"Ash · Village Hound",zone:"village",x:1100,y:635,homeX:1100,homeY:635,color:"#c3ced5",role:"hound"},
+ {id:"joren",name:"Joren · Blacksmith",zone:"village",x:885,y:520,homeX:885,homeY:520,color:"#9b6244",role:"forge"},
+ {id:"mira",name:"Mira · Innkeeper",zone:"village",x:1100,y:760,homeX:1100,homeY:760,color:"#987db7",role:"inn"},
+ {id:"eldric",name:"Eldric · Hunter",zone:"village",x:640,y:841,homeX:640,homeY:841,color:"#547f65",role:"hunter"},
+ {id:"guard",name:"Warden Hal",zone:"village",x:1290,y:595,homeX:1290,homeY:595,color:"#6d87ae",role:"guard"},
+ {id:"hound",name:"Ash · Village Hound",zone:"village",x:1075,y:705,homeX:1075,homeY:705,color:"#c3ced5",role:"hound"},
  {id:"hermit",name:"The Green Hermit",zone:"wilds",x:1275,y:543,homeX:1275,homeY:543,color:"#5f9771",role:"hermit"}
 ];
 objects=[
- // The visible outdoor forge IS Joren's shop. Do not enter via a person.
- {zone:"village",type:"portal",x:1555,y:1044,to:"wilds",tx:735,ty:991,label:"Eastern Trail"},
- {zone:"village",type:"board",x:500,y:756,label:"Hollowreach Notices"},
- {zone:"wilds",type:"portal",x:540,y:1068,to:"village",tx:1500,ty:1000,label:"Return to Hollowreach"},
+ // Native image is the original golden cabin-and-bridge, with no painted
+ // characters: every named character now has its own live rendering and dialog.
+ {zone:"village",type:"portal",x:1070,y:1090,to:"wilds",tx:735,ty:991,label:"Greenwood Trail"},
+ {zone:"village",type:"board",x:774,y:568,label:"Trail Noticepost"},
+ {zone:"wilds",type:"portal",x:540,y:1068,to:"village",tx:1070,ty:990,label:"Frostbridge Outpost"},
  {zone:"wilds",type:"portal",x:1700,y:745,to:"cave",tx:775,ty:741,label:"Smuggler's Cave"},
  {zone:"wilds",type:"herb",x:400,y:760,label:"Blueleaf Sprig"},
  {zone:"wilds",type:"herb",x:1190,y:714,label:"Blueleaf Sprig"},
@@ -356,12 +357,17 @@ shake*=.78;if(shake<.2)shake=0;if(toastTime>0){toastTime-=.016;if(toastTime<=0)$
 }
 function frame(now){let dt=Math.min(.055,(now-last)/1000||.016);last=now;tick(dt);render();requestAnimationFrame(frame)}
 load();
-if(!p.artVersion){p.zone="village";p.x=900;p.y=625;p.artVersion=2}
-if(p.zone==="forge"){p.zone="village";p.x=1250;p.y=627;p.navVersion=0}
-if(p.navVersion!==3||window.VeilwardNav&&!window.VeilwardNav.canWalk(p.zone,p.x,p.y,8)){
- const pt=safePosition(p.zone,p.x,p.y);
- p.x=pt.x;p.y=pt.y;p.navVersion=3;save(true);
+if(!p.artVersion){p.zone="village";p.x=925;p.y=620;p.artVersion=2;}
+if(p.sceneVersion!==5){
+ // Rebuild the original location: migrate old coordinates onto the newly
+ // hand-marked snow paths while keeping equipment, XP, quests and gold intact.
+ if(p.zone==="village"){p.x=925;p.y=620;}
+ p.sceneVersion=5;p.navVersion=3;
 }
+if(window.VeilwardNav&&!window.VeilwardNav.canWalk(p.zone,p.x,p.y,8)){
+ const pt=safePosition(p.zone,p.x,p.y);p.x=pt.x;p.y=pt.y;
+}
+save(true);
 setup();bind();
 window.addEventListener("veilward-art-loaded",e=>{
 delete terrainCache[e.detail];generate(e.detail);
