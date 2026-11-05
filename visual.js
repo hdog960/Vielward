@@ -1,11 +1,11 @@
-/* VEILWARD — WARDEN AND HOME SCREEN REPAIR v1.1.3
+/* VEILWARD — WARDEN HAL COMPLETE REBUILD v1.2.0
  * A unified four-pose, eight-facing, 32-frame authored hero atlas.
  * Shared physical proportions, full-body foot anchor, consistent armor/scarf/sword.
  * Combat effects remain enabled; new direction-specific attack/cast sprites are future work.
  */
 (function(){
 "use strict";
-const ROOT="./assets/",ART="16";
+const ROOT="./assets/",ART="17";
 const files={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
 const scene=Object.create(null);
 let npcAtlas=null,heroAtlas=null,adultFrontAtlas=null,wardenSprite=null;
@@ -36,7 +36,8 @@ function load(id,file,kind,backup=[]){
    if(!image.naturalWidth || !image.naturalHeight){failed();return;}
    if(kind==="hero")heroAtlas=image;
    else if(kind==="front")adultFrontAtlas=image;
-   else if(kind==="npc"){npcAtlas=image;wardenSprite=createWardenVariant(image);}
+   else if(kind==="npc")npcAtlas=image;
+   else if(kind==="warden")wardenSprite=image;
    else scene[id]=image;
    delete loadErrors[id];
    signal(id,kind);
@@ -54,6 +55,7 @@ function load(id,file,kind,backup=[]){
 }
 Object.entries(files).forEach(([id,file])=>load(id,file,"scene",alternatives[id]||[]));
 load("actors","actors_v07.png","npc");
+load("warden","warden_hal_v13.png","warden");
 load("hero","hero_approved_8way_v12.webp","hero",["hero_full_8way_v10.png"]);
 load("heroFront","hero_front_adult_v11.png","front");
 
@@ -118,58 +120,9 @@ function dimensions(kind){
 
 // Pixel-accurate Warden Hal treatment; a separate outfit and cropped haircut.
 // Guard edits only: the player hero atlas and movement are deliberately unchanged.
-function createWardenVariant(img){
- // Warden Hal owns an independent image buffer. Never paint boxes, shields or
- // helmets over his head; those broke the screenshot in v1.1.1.
- try{
-  const canvas=document.createElement("canvas");
-  canvas.width=NPCCELL.w;
-  canvas.height=NPCCELL.h;
-  const c=canvas.getContext("2d",{willReadFrequently:true});
-  if(!c)return null;
-  c.imageSmoothingEnabled=false;
-  const index=NPC.guard;
-  c.drawImage(img,(index%NPCCELL.columns)*NPCCELL.w,
-    Math.floor(index/NPCCELL.columns)*NPCCELL.h,
-    NPCCELL.w,NPCCELL.h,0,0,NPCCELL.w,NPCCELL.h);
-  const frame=c.getImageData(0,0,NPCCELL.w,NPCCELL.h);
-  const px=frame.data;
-  for(let y=0;y<NPCCELL.h;y++)for(let x=0;x<NPCCELL.w;x++){
-   const i=(y*NPCCELL.w+x)*4;
-   if(px[i+3]<16)continue;
-   const r=px[i],g=px[i+1],b=px[i+2];
-   const lum=.30*r+.58*g+.12*b;
-   const hairBrown=r>g*1.13&&g>b*.77&&r<168&&g<127&&b<114&&r>42;
-   const redCloth=r>g*1.36&&r>b*1.26&&r<174&&g<107;
-   // The former hair-color cutoff was a rectangle! Detect the actual
-   // brown hair pixels, not a bounding box or a slab of face skin.
-   if(y<55&&x>56&&x<142&&hairBrown){
-    // Shape a tighter, shorter side-part: remove spiky stray tips based on
-    // their silhouette coordinates, never with clearRect or fillRect.
-    const tip=(y<13)||(x<74&&y<34)||(x>121&&y<34);
-    if(tip){px[i+3]=0;continue;}
-    // Dark ash military crop with intact pixel-level strand shading.
-    px[i]=Math.min(255,lum*.68+23);
-    px[i+1]=Math.min(255,lum*.78+30);
-    px[i+2]=Math.min(255,lum*.91+35);
-   }else if(y>54&&y<104&&redCloth){
-    // Blue-gray winter mantle instead of the Wanderer's red scarf.
-    px[i]=Math.min(255,lum*.39+15);
-    px[i+1]=Math.min(255,lum*.66+29);
-    px[i+2]=Math.min(255,lum*.97+47);
-   }else if(y>77&&y<145&&b>=r*.88&&g>=r*.78&&r>24&&r<175){
-    px[i]=Math.min(255,r*.82+7);
-    px[i+1]=Math.min(255,g*.91+8);
-    px[i+2]=Math.min(255,b*1.02+14);
-   }
-  }
-  c.putImageData(frame,0,0);
-  return canvas;
- }catch(error){
-  console.warn("Warden art transformation unavailable",error);
-  return null;
- }
-}
+// Warden Hal uses an independent, authored transparent PNG asset. No recoloring,
+// canvas-painted geometry, or parts of the playable Wanderer's atlas.
+
 function drawShadow(ctx,x,y,w,kind){
  ctx.save();
  const beast=kind==="wolf"||kind==="npc_hound"||kind==="wraith";
@@ -185,7 +138,7 @@ function drawShadow(ctx,x,y,w,kind){
 }
 function actor(ctx,x,y,kind,step,attack,state){
  const isHero=kind==="human";
- const img=isHero?heroAtlas:npcAtlas;
+ const img=isHero?heroAtlas:(kind==="npc_guard"?wardenSprite:npcAtlas);
  if(!img||!img.complete||!img.naturalWidth)return false;
  const [w,h]=dimensions(kind);
  drawShadow(ctx,x,y,w,kind);
@@ -219,9 +172,12 @@ function actor(ctx,x,y,kind,step,attack,state){
    else index=ENEMY[kind]??0;
    const sx=(index%NPCCELL.columns)*NPCCELL.w;
    const sy=Math.floor(index/NPCCELL.columns)*NPCCELL.h;
-   if(kind==="npc_guard"&&wardenSprite){
-     ctx.drawImage(wardenSprite,0,0,NPCCELL.w,NPCCELL.h,
-       Math.round(x-w/2),Math.round(y-h),w,h);
+   if(kind==="npc_guard"){
+     // Dedicated original Warden Hal artwork: 192x176 cell, feet 6px above edge.
+     // This branch is independent of both the player and general NPC atlases.
+     const soleOffset=Math.round(h*6/NPCCELL.h);
+     ctx.drawImage(img,0,0,NPCCELL.w,NPCCELL.h,
+       Math.round(x-w/2),Math.round(y-h+soleOffset),w,h);
    }else{
      ctx.drawImage(img,sx,sy,NPCCELL.w,NPCCELL.h,
        Math.round(x-w/2),Math.round(y-h),w,h);
@@ -255,6 +211,6 @@ window.VeilwardArt={
  adultFrontLoaded:()=>!!(adultFrontAtlas?.complete&&adultFrontAtlas.naturalWidth===336),
  ready:()=>!!(scene.village&&heroAtlas&&npcAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
  spritesReady:()=>!!(heroAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
- version:"1.1.3"
+ version:"1.2.0"
 };
 })();

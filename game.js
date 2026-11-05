@@ -428,7 +428,7 @@ refreshStartStatus();
 requestAnimationFrame(frame);
 // Keep the iOS Home Screen installation current, not just Safari.
 if("serviceWorker" in navigator){
- const BUILD="1.1.3";
+ const BUILD="1.2.0";
  let checking=false,refreshing=false;
  async function checkGameUpdates(){
   if(checking)return;

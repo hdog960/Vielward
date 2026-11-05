@@ -1,0 +1,18 @@
+{
+  "version": "1.2.0",
+  "character": "Warden Hal",
+  "asset": "warden_hal_v13.png",
+  "source": "Independent original Warden Hal art",
+  "width": 192,
+  "height": 176,
+  "anchor": {
+    "x": 96,
+    "y": 170
+  },
+  "drawSizeWorld": [
+    160,
+    147
+  ],
+  "appearance": "Middle-aged commander, braided topknot, dark beard, fur-lined navy cloak, engraved gold tabard, sword",
+  "playerSpriteUntouched": true
+}

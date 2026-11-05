@@ -1,3 +1,17 @@
+# Veilward v1.2.0 — Warden Hal rebuilt as his own character (November 4, 2026)
+
+**Actual game asset rebuild.** The screenshot with Warden Hal's still-squared hair prompted a full replacement instead of another hair/armor color filter.
+
+- New original transparent sprite `assets/warden_hal_v13.png` (192×176 pixels) with a middle-aged bearded Warden, tightly pulled-back dark hair/topknot, fur-lined navy-blue commander cloak, gold clasp, engraved blue tabard, layered brown-metal armor and a substantial sword. Distinct body, face, clothes, hair and weapon silhouette from the younger brown-haired Wanderer.
+- Warden is now **loaded as its own file** in `visual.js`. The original `createWardenVariant()` painted/recolored guard routine has been completely deleted. He does not share a hero frame, reuse a player pose, or use an overpainted NPC swordfighter.
+- Warden ground foot anchoring adjusted by six source pixels; existing character layering and shadow kept.
+- **Player untouched**: no changes to hero sprite file or its rendering branches, movement, attack controls, HP, quest, game saves or navigation.
+- PWA bumped to version 1.2.0 and cache `veilward-hollowreach-v120-warden-original`; Safari and Home Screen assets use versioned URLs. UI pause panel version updated.
+- Source art is extracted and reworked from an original Warden Hal-specific RPG scene created for this revision, not from the Wanderer or old guard cell. Dedicated sprite has transparent cutout.
+
+**QA:** reviewed cropped sprite and source alpha; JavaScript syntax and source wiring checked. Real Safari/iPhone visual verification is the player's next playtest.
+
+---
 # REQUIRED WORKFLOW — READ BEFORE DEVELOPING
 
 **Patching the real, playable game after each user feedback report is a REQUIREMENT, not an authorization or suggestion.** The user tests → the assistant patches the GitHub game → the user retests. Do not send plans, diagnostics, or standalone art instead of an update. See [AGENTS.md](./AGENTS.md) for the mandatory, persistent operational contract and the outstanding Warden Hal work order.

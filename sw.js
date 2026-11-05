@@ -1,16 +1,17 @@
-/* VEILWARD 1.1.3 — PWA self-update on Home Screen and Safari.
+/* VEILWARD 1.2.0 — PWA self-update on Home Screen and Safari.
    Use network-first for HTML/scripts, and preserve offline assets. */
-const BUILD="1.1.3";
-const CACHE="veilward-hollowreach-v113-home-screen-sync";
+const BUILD="1.2.0";
+const CACHE="veilward-hollowreach-v120-warden-original";
 const FILES=[
- "./","./index.html","./game.js?v=11","./navigation.js?v=7",
- "./visual.js?v=26","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
- "./assets/village_v06_clear.jpg?art=16","./assets/wilds_clean.jpg?art=16",
- "./assets/cave_clean.jpg?art=16","./assets/forge.jpg?art=16",
- "./assets/actors_v07.png?art=16",
- "./assets/hero_full_8way_v10.png?art=16",
- "./assets/hero_approved_8way_v12.webp?art=16",
- "./assets/hero_front_adult_v11.png?art=16"
+ "./","./index.html","./game.js?v=12","./navigation.js?v=7",
+ "./visual.js?v=27","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
+ "./assets/village_v06_clear.jpg?art=17","./assets/wilds_clean.jpg?art=17",
+ "./assets/cave_clean.jpg?art=17","./assets/forge.jpg?art=17",
+ "./assets/actors_v07.png?art=17",
+ "./assets/warden_hal_v13.png?art=17",
+ "./assets/hero_full_8way_v10.png?art=17",
+ "./assets/hero_approved_8way_v12.webp?art=17",
+ "./assets/hero_front_adult_v11.png?art=17"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{
