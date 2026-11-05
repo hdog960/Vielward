@@ -212,6 +212,33 @@ else{rect(c,13,-28,4,20,"#aab2b3");rect(c,10,-31,10,4,"#75624c")}
 if(att>0){c.strokeStyle=enemy?"#e79980":"#f7e0b4";c.lineWidth=4;c.beginPath();c.arc(0,-22,39,-.8,1.05);c.stroke()}
 c.restore()
 }
+
+function drawFocusedNpcName(c,e){
+ if(!e||!e.role||e.zone!==p.zone)return;
+ const kind="npc_"+e.role;
+ const top=window.VeilwardArt?.actorTopOffset?.(kind)||
+   (e.role==="hound"?92:133);
+ const title=e.name.split(" · ")[0];
+ c.save();
+ c.font="bold 13px Georgia,serif";
+ c.textAlign="center";
+ const width=Math.ceil(c.measureText(title).width)+20;
+ // Name tag cannot clip against the phone's visible landscape viewport.
+ const x=clamp(e.x,cam.x+width/2+8,cam.x+viewWidth()-width/2-8);
+ const y=clamp(e.y-top-12,cam.y+22,cam.y+viewHeight()-8);
+ c.fillStyle="rgba(10,20,33,.76)";
+ c.strokeStyle="rgba(194,157,97,.88)";
+ c.lineWidth=1;
+ c.fillRect(Math.round(x-width/2),Math.round(y-16),width,21);
+ c.strokeRect(Math.round(x-width/2)+.5,Math.round(y-16)+.5,width-1,20);
+ c.fillStyle="#f6dfad";
+ c.strokeStyle="#081420";
+ c.lineWidth=2.5;
+ c.strokeText(title,Math.round(x),Math.round(y-2));
+ c.fillText(title,Math.round(x),Math.round(y-2));
+ c.restore();
+}
+
 function drawHealth(c,e){if(e.hp>=e.max)return;rect(c,e.x-22,e.y-64,44,6,"#18232a");rect(c,e.x-21,e.y-63,42*e.hp/e.max,4,e.type==="wraith"?"#9e80ce":"#cb6657")}
 function occupied(x,y,zone=p.zone){
  return window.VeilwardNav ? !window.VeilwardNav.canWalk(zone,x,y,8) : (window.VeilwardArt?.blocked(zone,x,y)??false);
@@ -353,13 +380,9 @@ const ents=[...visible.map(o=>({...o,renderType:"prop"})),...npc.filter(n=>n.zon
 for(const o of objects)if(o.zone===p.zone&&!o.taken){if(o.type==="scar"||o.type==="herb"||o.type==="chest"||o.type==="portal")ents.push({...o,renderType:"object"})}
 ents.sort((a,b)=>a.y-b.y);
 for(let e of ents){if(e.renderType==="prop")drawProp(g,e,night);else if(e.renderType==="npc"){
- drawHero(g,e.x,e.y,0,worldTime*.25,e.color,false,"npc_"+e.role);
- if(dist(e,p)<(e.role==="forge"?185:145)){
-  const hh=e.role==="forge"?122:e.role==="hound"?72:96;
-  imgText(g,e.name.split(" · ")[0],e.x,e.y-hh,11,"#fff0bc")
+  drawHero(g,e.x,e.y,0,worldTime*.25,e.color,false,"npc_"+e.role);
  }
-}
-else if(e.renderType==="enemy"){drawHero(g,e.x,e.y,0,e.step,"",true,e.type,e.wind>0?.25:0);drawHealth(g,e);if(e.wind>0){g.strokeStyle="#e8996f";g.lineWidth=2;g.beginPath();g.arc(e.x,e.y-14,27,0,Math.PI*2);g.stroke()}}
+ else if(e.renderType==="enemy"){drawHero(g,e.x,e.y,0,e.step,"",true,e.type,e.wind>0?.25:0);drawHealth(g,e);if(e.wind>0){g.strokeStyle="#e8996f";g.lineWidth=2;g.beginPath();g.arc(e.x,e.y-14,27,0,Math.PI*2);g.stroke()}}
 else if(e.renderType==="player"){drawHero(g,e.x,e.y,0,e.step||0,"#637f96",false,"human",e.attackV||0)}
 else if(e.renderType==="object"){if(e.type==="scar"){for(let k=0;k<5;k++){let xx=e.x+(k-2)*17,yy=e.y-14-Math.abs(2-k)*13;poly(g,[[xx-9,yy],[xx,yy-40-5*Math.sin(worldTime*2+k)],[xx+9,yy],[xx,yy+4]],k%2?"#7b7aca":"#62bdca");rect(g,xx-2,yy-26,3,13,"#d6e7ff")}}
 if(e.type==="herb"){for(let k=0;k<5;k++){stroke(g,[[e.x,e.y],[e.x+(k-2)*6,e.y-15-rng(k)*12]],2,"#549c91");circle(g,e.x+(k-2)*5,e.y-21-rng(k)*8,3,"#8ad9d0")}}
@@ -374,6 +397,10 @@ if(e.type==="portal"){
 for(const b of projectiles){circle(g,b.x,b.y,11,"#75c9f3");circle(g,b.x,b.y,6,"#e2f7ff");for(let k=1;k<4;k++)circle(g,b.x-b.vx*.014*k,b.y-b.vy*.014*k,4,"#5aa5d6")}
 for(let fx of effects){if(fx.type==="slash"){g.strokeStyle="#f3e5ba";g.lineWidth=7;g.beginPath();g.arc(fx.x,fx.y,29,fx.angle-.9,fx.angle+.9);g.stroke();g.strokeStyle="#9ed2f1";g.lineWidth=2;g.stroke()}else for(let k=0;k<8;k++){let a=k*Math.PI/4;rect(g,fx.x+Math.cos(a)*25,fx.y+Math.sin(a)*25,5,5,"#e6c184")}}
 for(const v of particles)imgText(g,v.text,v.x,v.y,14,v.color);
+ // In-world NPC nameplates are UI, drawn AFTER depth-sorted actors;
+ // showing only the current interaction target avoids overlapping faces.
+ const focus=!modal?nearest():null;
+ if(focus?.role)drawFocusedNpcName(g,focus);
 if(p.zone==="village"){ // delicate drifting snow, deterministic and cheap
 for(let i=0;i<62;i++){let x=(rng(i*24+11)*WORLD.w+worldTime*(10+i%5))%WORLD.w,y=(rng(i*17+13)*WORLD.h+worldTime*(21+i%3))%WORLD.h;if(x>cam.x&&x<cam.x+vw&&y>cam.y&&y<cam.y+vh)rect(g,x,y,2,2,"#f6f8ff88")}}
 if(p.zone==="cave"){for(let i=0;i<8;i++){let x=220+i*205,y=120+(i%3)*350;circle(g,x,y,8+Math.sin(worldTime+i)*3,"#6ac2e044")}}
@@ -428,7 +455,7 @@ refreshStartStatus();
 requestAnimationFrame(frame);
 // Keep the iOS Home Screen installation current, not just Safari.
 if("serviceWorker" in navigator){
- const BUILD="1.2.0";
+ const BUILD="1.2.1";
  let checking=false,refreshing=false;
  async function checkGameUpdates(){
   if(checking)return;

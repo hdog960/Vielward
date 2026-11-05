@@ -1,11 +1,11 @@
-/* VEILWARD — WARDEN HAL COMPLETE REBUILD v1.2.0
+/* VEILWARD — NPC FOOT ANCHORS AND LABEL POSITIONS v1.2.1
  * A unified four-pose, eight-facing, 32-frame authored hero atlas.
  * Shared physical proportions, full-body foot anchor, consistent armor/scarf/sword.
  * Combat effects remain enabled; new direction-specific attack/cast sprites are future work.
  */
 (function(){
 "use strict";
-const ROOT="./assets/",ART="17";
+const ROOT="./assets/",ART="18";
 const files={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
 const scene=Object.create(null);
 let npcAtlas=null,heroAtlas=null,adultFrontAtlas=null,wardenSprite=null;
@@ -15,6 +15,54 @@ const ADULT_FRONT={w:112,h:126,columns:3};
 const NPCCELL={w:192,h:176,columns:4};
 const NPC={forge:2,guard:3,inn:4,hunter:5,merchant:6,hermit:11,hound:10};
 const ENEMY={wolf:8,bandit:7,wraith:9};
+
+const actorCellMetrics=Object.create(null);
+const FALLBACK_METRICS=Object.freeze({top:8,bottom:170,left:0,right:192});
+function measureCell(image,x,y){
+ // Measure illustrated alpha once, not every frame. A different bottom
+ // margin on each atlas cell previously made village characters hover.
+ try{
+  const canvas=document.createElement("canvas");
+  canvas.width=NPCCELL.w;canvas.height=NPCCELL.h;
+  const c=canvas.getContext("2d",{willReadFrequently:true});
+  if(!c)return FALLBACK_METRICS;
+  c.clearRect(0,0,NPCCELL.w,NPCCELL.h);
+  c.drawImage(image,x,y,NPCCELL.w,NPCCELL.h,0,0,NPCCELL.w,NPCCELL.h);
+  const rgba=c.getImageData(0,0,NPCCELL.w,NPCCELL.h).data;
+  let l=NPCCELL.w,t=NPCCELL.h,r=-1,b=-1;
+  for(let py=0;py<NPCCELL.h;py++)for(let px=0;px<NPCCELL.w;px++){
+   if(rgba[(py*NPCCELL.w+px)*4+3]<40)continue;
+   if(px<l)l=px;if(px>r)r=px;
+   if(py<t)t=py;if(py>b)b=py;
+  }
+  return r<l?FALLBACK_METRICS:{left:l,top:t,right:r+1,bottom:b+1};
+ }catch(error){console.warn("Sprite bounds inspection failed",error);return FALLBACK_METRICS}
+}
+function measureNpcAtlas(image){
+ for(const [role,index] of Object.entries(NPC)){
+  if(role==="guard")continue; // Dedicated Hal asset, never the cloned cell.
+  actorCellMetrics["npc_"+role]=measureCell(image,
+   (index%NPCCELL.columns)*NPCCELL.w,
+   Math.floor(index/NPCCELL.columns)*NPCCELL.h);
+ }
+ for(const [role,index] of Object.entries(ENEMY)){
+  actorCellMetrics[role]=measureCell(image,
+   (index%NPCCELL.columns)*NPCCELL.w,
+   Math.floor(index/NPCCELL.columns)*NPCCELL.h);
+ }
+}
+function actorBottomPadding(kind){
+ const bounds=actorCellMetrics[kind]||FALLBACK_METRICS;
+ return Math.max(0,NPCCELL.h-bounds.bottom);
+}
+function actorTopOffset(kind){
+ const h=dimensions(kind)[1];
+ if(kind==="human")return h;
+ const bounds=actorCellMetrics[kind]||FALLBACK_METRICS;
+ const bottomGap=NPCCELL.h-bounds.bottom;
+ return Math.max(0,h-(bottomGap+bounds.top)*h/NPCCELL.h);
+}
+
 // Each art load announces the exact zone. A previous version emitted an Event
 // without detail: the game then re-cached "undefined" and never rebuilt the
 // solid-color village canvas after images finished loading.
@@ -36,8 +84,12 @@ function load(id,file,kind,backup=[]){
    if(!image.naturalWidth || !image.naturalHeight){failed();return;}
    if(kind==="hero")heroAtlas=image;
    else if(kind==="front")adultFrontAtlas=image;
-   else if(kind==="npc")npcAtlas=image;
-   else if(kind==="warden")wardenSprite=image;
+   else if(kind==="npc"){npcAtlas=image;measureNpcAtlas(image);}
+   else if(kind==="warden"){
+    if(image.naturalWidth!==NPCCELL.w||image.naturalHeight!==NPCCELL.h){failed();return}
+    wardenSprite=image;
+    actorCellMetrics.npc_guard=measureCell(image,0,0);
+   }
    else scene[id]=image;
    delete loadErrors[id];
    signal(id,kind);
@@ -173,14 +225,16 @@ function actor(ctx,x,y,kind,step,attack,state){
    const sx=(index%NPCCELL.columns)*NPCCELL.w;
    const sy=Math.floor(index/NPCCELL.columns)*NPCCELL.h;
    if(kind==="npc_guard"){
-     // Dedicated original Warden Hal artwork: 192x176 cell, feet 6px above edge.
-     // This branch is independent of both the player and general NPC atlases.
-     const soleOffset=Math.round(h*6/NPCCELL.h);
+     // Dedicated Warden sprite. Its visible sole is pixel y=170 out of 176;
+     // use measured alpha, never another arbitrary per-character offset.
+     const soleOffset=Math.round(h*actorBottomPadding(kind)/NPCCELL.h);
      ctx.drawImage(img,0,0,NPCCELL.w,NPCCELL.h,
        Math.round(x-w/2),Math.round(y-h+soleOffset),w,h);
    }else{
+     // Source NPCs have different transparent margins under their boots.
+     const soleOffset=Math.round(h*actorBottomPadding(kind)/NPCCELL.h);
      ctx.drawImage(img,sx,sy,NPCCELL.w,NPCCELL.h,
-       Math.round(x-w/2),Math.round(y-h),w,h);
+       Math.round(x-w/2),Math.round(y-h+soleOffset),w,h);
    }
  }
  ctx.restore();
@@ -205,12 +259,13 @@ function glows(ctx,zone,time){
 function blocked(zone,x,y){return x<65||y<70||x>1815||y>1160}
 window.VeilwardArt={
  background,actor,glows,blocked,sceneReady,sceneError,retryScene,
- directionRow,sequence,approvedSequence,
+ directionRow,sequence,approvedSequence,actorTopOffset,
+ actorMetrics:kind=>({...actorCellMetrics[kind]||FALLBACK_METRICS}),
  sheetDimensions:()=>({...HERO}),
  frontDimensions:()=>({...ADULT_FRONT}),
  adultFrontLoaded:()=>!!(adultFrontAtlas?.complete&&adultFrontAtlas.naturalWidth===336),
  ready:()=>!!(scene.village&&heroAtlas&&npcAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
  spritesReady:()=>!!(heroAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
- version:"1.2.0"
+ version:"1.2.1"
 };
 })();

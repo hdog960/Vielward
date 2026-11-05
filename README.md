@@ -1,3 +1,18 @@
+# Veilward v1.2.1 — Hollowreach polish sprint: Phase 1
+
+**Implemented and tested (simulated Canvas):**
+- Added transparent-alpha footprint measurement for the 10 existing NPC/enemy atlas cells and Warden Hal's separate authored `assets/warden_hal_v13.png`. NPCs now use their **own measured transparent sole padding** to place feet on the navigation ground consistently rather than a one-size-fits-all offset.
+- Corrected floating NPC name labels: only the currently interactable NPC displays an in-world name; it is placed above the **measured** visible head, drawn after all actors so depth-sorted sprites don't cover it, and clamped within the landscape camera. The old hard-coded y-96 Warden label bisected his head.
+- Warden Hal source `192×176` alpha bbox `(32,11,160,170)` confirmed; foot margin `6px`. No edits to his dedicated art file.
+- **Approved Wanderer source, the eight-direction animation-selection/render branch, player navigation and movement, NPC interactions, game saves and quests are unchanged.**
+- Bumped `visual.js?v=28`, `game.js?v=13`, asset `?art=18` and service worker `veilward-hollowreach-v121-character-grounding` to propagate through iOS Home Screen installation.
+
+**QA:** All modified JavaScript passed syntax checks. Mock-canvas alpha tests checked 10 cell measurements and 6 grounded NPC roles: all feet landed within 0.5 world unit of their target; Warden label plate ends 7.2 world units above the detected top of his head. Actual iPhone screenshot inspection is **pending the user's next test**. Bridge-rail foreground occlusion remains a known later art/depth task.
+
+**Sprint:** Phase 1 complete in code; **stop here**, do not proceed to Phase 2 before "Continue development".
+
+---
+
 # ACTIVE DEVELOPMENT PLAN — Two-hour Hollowreach polish sprint
 
 Five sequential, testable phases totaling **120 minutes planned effort** (acceptable 90–150). One entire phase per user **"continue development"** message; patch the actual game, verify the GitHub commit, then stop for feedback. **Phase 1 has not begun.** See [TWO_HOUR_SLICE_ROADMAP.md](./TWO_HOUR_SLICE_ROADMAP.md) for phase requirements and acceptance checks. The existing long-term [PROTOTYPE_ROADMAP.md](./PROTOTYPE_ROADMAP.md) stays in force.
