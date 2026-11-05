@@ -39,3 +39,9 @@ If the repository is genuinely inaccessible, a tool fails, or the task is otherw
 Follow PROTOTYPE_ROADMAP.md: perfect the Hollowreach playable slice and obtain explicit creator approval before broad full-game expansion. Prioritize quality of implemented art, controls, grounded sprites and collision over quantity of new content.
 
 This file is the project's canonical agent instruction and applies on each future development turn. When answering from another chat, **read this file and the latest commit before changing the game**.
+
+## Approved overworld rebuild roadmap — mandatory review gate
+
+The creator approved the 22-phase continuous-overworld rebuild with an explicit new checkpoint: **after Phase 9, the creator must review and approve the appearance and geography of the fully built outdoor overworld** before Phase 10 begins. Deliver a real playable iPhone build with regional screenshots/map, not artwork alone. If the creator supplies corrections, patch the live game, push, and resubmit for review. Do not automatically advance. Source of truth: `OVERWORLD_REBUILD_ROADMAP.md`.
+
+Roadmap approval does not override the established **one complete phase per "Continue development"** workflow. No new phase begins without an explicit continuation instruction.
