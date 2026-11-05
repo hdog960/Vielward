@@ -1,0 +1,63 @@
+{
+  "schema": "veilward.overworld.phase1.lock.v1",
+  "baselineCommit": "dde016f184223eae9bc90a8f427905f3f13cdeb4",
+  "approved": "2026-11-05",
+  "liveGameBuild": "1.2.6",
+  "rule": "Any edit to protected assets requires explicit creator instruction and a deliberate update to this manifest and its tests.",
+  "lockedAssets": [
+    {
+      "path": "assets/hero_approved_8way_v12.webp",
+      "gitBlobSHA": "6c41591697ca4e5b39185b110f7332b676e3c25d",
+      "role": "approved adult Wanderer directional sprite"
+    },
+    {
+      "path": "assets/hero_approved_8way_v12.json",
+      "gitBlobSHA": "030a88bae31c5c0f1b2db03767429b6c35949d3f",
+      "role": "approved eight-way movement/frame metadata"
+    },
+    {
+      "path": "assets/warden_hal_v13.png",
+      "gitBlobSHA": "d9a4a505cfc1804b01ab31e9146b075a823b23e7",
+      "role": "independent Warden Hal art"
+    },
+    {
+      "path": "assets/warden_hal_v13.json",
+      "gitBlobSHA": "01e6756023833861158300185274e7f36c9b3791",
+      "role": "Warden Hal anchor and scale metadata"
+    }
+  ],
+  "goldenReferenceAssets": [
+    {
+      "path": "assets/village_v06_clear.jpg",
+      "gitBlobSHA": "d88c861f990a2624a8e7941fbac7bc634d5732e6"
+    },
+    {
+      "path": "assets/wilds_clean.jpg",
+      "gitBlobSHA": "a5e5aa08c7b9d8c8b949854f63608e13058060bf"
+    },
+    {
+      "path": "assets/cave_clean.jpg",
+      "gitBlobSHA": "04d431eaae85f2517cef1f4875426e2048e4364d"
+    }
+  ],
+  "legacySaveKey": "veilward-hollowreach-v01",
+  "creatorReviewGate": {
+    "afterPhase": 9,
+    "nextPhaseRequiresExplicitApproval": 10,
+    "type": "full outdoor appearance and geography",
+    "mustBeLivePlayable": true
+  },
+  "legacyReferenceSpace": {
+    "nativeImageWidth": 900,
+    "nativeImageHeight": 584,
+    "localWorldWidth": 1850,
+    "localWorldHeight": 1200,
+    "description": "Existing local coordinate projection; NOT next architecture's global coordinate scale"
+  },
+  "oldSceneKeys": [
+    "village",
+    "wilds",
+    "cave",
+    "forge"
+  ]
+}

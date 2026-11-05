@@ -56,6 +56,10 @@ This is a **physical geography proposal**, not a claim that these areas already 
 ### ACT I — World architecture and art foundation
 
 #### Phase 1 — Screenshot issue register and design lock
+**Status: COMPLETE — source audit, 34 issue records, 12/12 PDF pages, design/asset/save protection locked on November 5, 2026. No gameplay or art files changed.**
+**Files:** [Phase 1 readable issue register](./docs/overworld/ISSUE_REGISTER.md) · [machine-readable issue data](./docs/overworld/issue_register.json) · [World design lock](./docs/overworld/WORLD_DESIGN_LOCK.md) · [Current asset/runtime inventory](./docs/overworld/ASSET_AND_RUNTIME_INVENTORY.md) · [Coordinates and save-migration contract](./docs/overworld/COORDINATES_AND_MIGRATION.md) · [Protected asset manifest](./docs/overworld/protected_assets.json) · [Permanent Phase 1 test](./tests/overworld_phase1_audit.test.js).
+**Screenshot verification:** [PDF page-to-reproduction matrix](./docs/overworld/SCREENSHOT_ACCEPTANCE_MATRIX.md) · [legacy scene anchor table](./docs/overworld/legacy_scene_anchors.json) · [completed Phase 1 handoff](./docs/overworld/PHASE1_HANDOFF.md).
+**Exit gate:** Met in documented source audit; **Phase 2 is NOT started** and needs the creator's next "Continue development."
 **Work:** Convert all 12 pages of notes into reproducible game issues, with the pictured location, ground truth, desired interaction and acceptance screenshots. Inventory every existing outdoor scene, actor asset, prop, quest item, collision polygon and travel portal. Record which pieces are approved versus broken. Produce a source-controlled world design bible, layout and image coordinate reference.  
 **Exit gate:** Every PDF complaint is assigned to a concrete future phase; approved Wanderer/visual style and saved progress are explicitly protected.
 

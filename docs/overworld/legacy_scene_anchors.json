@@ -1,0 +1,275 @@
+{
+  "schema": "veilward.overworld.legacy-scene-anchors.v1",
+  "capturedFrom": "game.js/navigation.js/visual.js at v1.2.6 main dde016f184223eae9bc90a8f427905f3f13cdeb4",
+  "note": "These are local world-space coordinates, not locations on the future global map. Do not map blindly to new scene geography.",
+  "world": {
+    "width": 1850,
+    "height": 1200,
+    "sourceImage": {
+      "width": 900,
+      "height": 584
+    },
+    "worldZoom": 0.78,
+    "toWorldX": 2.0555555555555554,
+    "toWorldY": 2.0547945205479454
+  },
+  "zones": [
+    {
+      "id": "village",
+      "name": "Hollowreach · Frostbridge Outpost",
+      "sceneAsset": "assets/village_v06_clear.jpg",
+      "type": "outdoor",
+      "groundPolygons": 8,
+      "solidPolygons": 6,
+      "defaultSpawn": [
+        925,
+        620
+      ],
+      "worldExit": [
+        790,
+        1090
+      ]
+    },
+    {
+      "id": "wilds",
+      "name": "Greenwood · Eastern Trail",
+      "sceneAsset": "assets/wilds_clean.jpg",
+      "type": "outdoor",
+      "groundPolygons": 6,
+      "solidPolygons": 4,
+      "entry": [
+        735,
+        991
+      ]
+    },
+    {
+      "id": "cave",
+      "name": "The Smuggler's Hollow",
+      "sceneAsset": "assets/cave_clean.jpg",
+      "type": "enclosed cave",
+      "groundPolygons": 5,
+      "solidPolygons": 4,
+      "entry": [
+        775,
+        741
+      ]
+    },
+    {
+      "id": "forge",
+      "name": "Hollowreach · Joren's Forge",
+      "sceneAsset": "assets/forge.jpg",
+      "type": "interior art currently not directly enterable",
+      "groundPolygons": 1,
+      "solidPolygons": 4
+    }
+  ],
+  "portals": [
+    {
+      "zone": "village",
+      "x": 790,
+      "y": 1090,
+      "to": "wilds",
+      "arrival": [
+        735,
+        991
+      ],
+      "label": "Greenwood Trail",
+      "future": "seamless outdoor"
+    },
+    {
+      "zone": "wilds",
+      "x": 540,
+      "y": 1068,
+      "to": "village",
+      "arrival": [
+        1030,
+        675
+      ],
+      "label": "Frostbridge Outpost",
+      "future": "seamless outdoor"
+    },
+    {
+      "zone": "wilds",
+      "x": 1700,
+      "y": 745,
+      "to": "cave",
+      "arrival": [
+        775,
+        741
+      ],
+      "label": "Smuggler's Cave",
+      "future": "real visible cave threshold"
+    },
+    {
+      "zone": "cave",
+      "x": 170,
+      "y": 795,
+      "to": "wilds",
+      "arrival": [
+        1520,
+        720
+      ],
+      "label": "Greenwood Trail",
+      "future": "real visible cave exit"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "joren",
+      "zone": "village",
+      "position": [
+        885,
+        520
+      ],
+      "role": "forge"
+    },
+    {
+      "id": "mira",
+      "zone": "village",
+      "position": [
+        1210,
+        665
+      ],
+      "role": "inn"
+    },
+    {
+      "id": "eldric",
+      "zone": "village",
+      "position": [
+        720,
+        1015
+      ],
+      "role": "hunter"
+    },
+    {
+      "id": "guard",
+      "zone": "village",
+      "position": [
+        1290,
+        595
+      ],
+      "role": "guard"
+    },
+    {
+      "id": "hound",
+      "zone": "village",
+      "position": [
+        1075,
+        705
+      ],
+      "role": "hound"
+    },
+    {
+      "id": "hermit",
+      "zone": "wilds",
+      "position": [
+        1275,
+        543
+      ],
+      "role": "hermit"
+    }
+  ],
+  "objects": [
+    {
+      "type": "board",
+      "zone": "village",
+      "position": [
+        845,
+        600
+      ]
+    },
+    {
+      "type": "herb",
+      "id": "blueleaf-west",
+      "zone": "wilds",
+      "position": [
+        500,
+        920
+      ]
+    },
+    {
+      "type": "herb",
+      "id": "blueleaf-east",
+      "zone": "wilds",
+      "position": [
+        1190,
+        714
+      ]
+    },
+    {
+      "type": "scar",
+      "zone": "wilds",
+      "position": [
+        1480,
+        420
+      ]
+    },
+    {
+      "type": "chest",
+      "zone": "cave",
+      "position": [
+        888,
+        689
+      ]
+    }
+  ],
+  "enemies": [
+    {
+      "type": "wolf",
+      "zone": "wilds",
+      "home": [
+        850,
+        690
+      ]
+    },
+    {
+      "type": "wolf",
+      "zone": "wilds",
+      "home": [
+        1100,
+        640
+      ]
+    },
+    {
+      "type": "bandit",
+      "zone": "wilds",
+      "home": [
+        1245,
+        667
+      ]
+    },
+    {
+      "type": "wolf",
+      "zone": "wilds",
+      "home": [
+        1480,
+        850
+      ]
+    },
+    {
+      "type": "bandit",
+      "zone": "cave",
+      "home": [
+        1050,
+        670
+      ]
+    },
+    {
+      "type": "bandit",
+      "zone": "cave",
+      "home": [
+        1425,
+        650
+      ]
+    },
+    {
+      "type": "wraith",
+      "zone": "cave",
+      "home": [
+        1435,
+        525
+      ]
+    }
+  ],
+  "legacySaveKey": "veilward-hollowreach-v01"
+}

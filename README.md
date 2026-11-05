@@ -1,3 +1,21 @@
+## Approved Continuous Overworld Rebuild — Phase 1 Audit (November 5, 2026)
+
+The approved **22-phase** world rebuild has begun. **Phase 1 is a code-and-art audit only**: registered 34 creator issues covering all 12 pages of `Vielward.pdf`, established the visual design contract, inventoried all current scenes/NPCs/enemies/props, documented global-coordinate/save-migration rules, and pinned the approved Wanderer and Warden Hal assets. Run `npm run audit:world` for source baseline/protection assertions.
+
+Start here:
+- [All 34 screenshot/design issues and acceptance criteria](./docs/overworld/ISSUE_REGISTER.md)
+- [Existing scene, NPC, enemy, object and asset inventory](./docs/overworld/ASSET_AND_RUNTIME_INVENTORY.md)
+- [Screenshot-by-screenshot acceptance matrix](./docs/overworld/SCREENSHOT_ACCEPTANCE_MATRIX.md)
+- [Machine-readable old scene coordinates and portals](./docs/overworld/legacy_scene_anchors.json)
+- [Phase 1 completed audit and handoff](./docs/overworld/PHASE1_HANDOFF.md)
+- [Locked design pillars and Phase 9 appearance review gate](./docs/overworld/WORLD_DESIGN_LOCK.md)
+- [Existing local coordinates and future save migration contract](./docs/overworld/COORDINATES_AND_MIGRATION.md)
+- [Approved 22-phase roadmap](./OVERWORLD_REBUILD_ROADMAP.md)
+
+**The playable game remains v1.2.6.** Nothing in this phase edits or claims to fix runtime movement, world art, collision or NPC behavior. Next requested phase: **Phase 2 — complete terrain blueprint and physical overworld topology**, without prematurely replacing a working build. **Creator must review the complete outdoor overworld's appearance after Phase 9 before Phase 10.**
+
+---
+
 # Veilward v1.2.6 — Phase 5: Closed introductory quest and complete sprint regression
 
 **Playable update implemented on GitHub:**

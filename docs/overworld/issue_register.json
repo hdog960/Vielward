@@ -1,0 +1,607 @@
+{
+  "schema": "veilward.overworld.issue-register.v1",
+  "date": "2026-11-05",
+  "baselineCommit": "dde016f184223eae9bc90a8f427905f3f13cdeb4",
+  "baselineVersion": "1.2.6",
+  "source": "Vielward.pdf (12 pages); approved user-specific Phase 9 appearance gate",
+  "caution": "Observed complaints reflect source PDF screenshots; code evidence reflects source snapshot v1.2.6. This Phase 1 register does not claim any reported visual problem is fixed in current iPhone app.",
+  "issues": [
+    {
+      "id": "VW-001",
+      "pages": [
+        1,
+        7,
+        12
+      ],
+      "area": "Overworld",
+      "observation": "Outdoor biome swap uses a Talk/portal action",
+      "codeEvidence": "Confirmed in v1.2.6: village ↔ wilds portal objects call changeZone",
+      "phases": [
+        3,
+        6,
+        7,
+        9
+      ],
+      "acceptance": "Walk from snow through thawline to green forest without a prompt, fade or teleport",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.1,7,12"
+    },
+    {
+      "id": "VW-002",
+      "pages": [
+        1,
+        7
+      ],
+      "area": "Overworld",
+      "observation": "Snowy brush inexplicably becomes lush Greenwood",
+      "codeEvidence": "Current scene assets are independently painted JPGs and geographically unrelated",
+      "phases": [
+        2,
+        7,
+        8
+      ],
+      "acceptance": "Continuous road and gradual climate over believable travel distance",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.1,7"
+    },
+    {
+      "id": "VW-003",
+      "pages": [
+        1,
+        12
+      ],
+      "area": "Scope",
+      "observation": "World feels like three isolated scenes rather than an expansive landscape",
+      "codeEvidence": "Three exterior-like zones include village, wilds and cave; forge art also exists",
+      "phases": [
+        2,
+        3,
+        6,
+        9
+      ],
+      "acceptance": "Whole proposed outdoor geography built and traversable before local slice refinement",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.1,12"
+    },
+    {
+      "id": "VW-004",
+      "pages": [
+        2
+      ],
+      "area": "Movement",
+      "observation": "Trying to walk left requires a large irrational detour",
+      "codeEvidence": "Local polygon mesh/axis sliding; screenshot illustrates mismatch",
+      "phases": [
+        4,
+        8,
+        10
+      ],
+      "acceptance": "Traverse visibly clear adjoining ground directly using joystick",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.2"
+    },
+    {
+      "id": "VW-005",
+      "pages": [
+        2,
+        5,
+        9
+      ],
+      "area": "Navigation",
+      "observation": "Walkable-looking roads terminate or have invisible barriers",
+      "codeEvidence": "Polygon collision separately traced over 900×584 images, not authored together",
+      "phases": [
+        4,
+        8,
+        9,
+        10
+      ],
+      "acceptance": "Every illustrated road leads to a real junction/destination or visible obstruction",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.2,5,9"
+    },
+    {
+      "id": "VW-006",
+      "pages": [
+        3
+      ],
+      "area": "Enemies",
+      "observation": "Combat enemies need complete directional sprite sheets",
+      "codeEvidence": "Enemy atlas slots are selected static NPC cells with frame bobbing; no full enemy sheets",
+      "phases": [
+        17,
+        18,
+        19
+      ],
+      "acceptance": "Each initial enemy has idle/walk/attack/stagger/death frames for relevant directions",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.3"
+    },
+    {
+      "id": "VW-007",
+      "pages": [
+        3
+      ],
+      "area": "Enemies",
+      "observation": "Bandit looks like an ordinary civilian or duplicate hero",
+      "codeEvidence": "Current bandit uses actors_v07 slot 6; distinct asset quality not creator-approved",
+      "phases": [
+        17,
+        18
+      ],
+      "acceptance": "Bandit silhouette, clothing, equipment and animation read clearly as outlaw",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.3"
+    },
+    {
+      "id": "VW-008",
+      "pages": [
+        3
+      ],
+      "area": "Enemies",
+      "observation": "Enemy variety should eventually exceed Skyrim without copying it",
+      "codeEvidence": "Current live hostile types: wolf, bandit and wraith only",
+      "phases": [
+        17,
+        18,
+        19
+      ],
+      "acceptance": "Approved original bestiary with diverse types and distinct completed animation sets",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.3"
+    },
+    {
+      "id": "VW-009",
+      "pages": [
+        3,
+        4,
+        9
+      ],
+      "area": "Pickups",
+      "observation": "Bright blue geometric pickup markers violate aesthetic",
+      "codeEvidence": "World objects use generic draw and icon primitives; source illustration is not an item atlas",
+      "phases": [
+        5,
+        16
+      ],
+      "acceptance": "Handmade pixel-art resource pickups with ground contact and no colored triangles",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.3,4,9"
+    },
+    {
+      "id": "VW-010",
+      "pages": [
+        4
+      ],
+      "area": "Composition",
+      "observation": "Objects seem randomly placed simply to look nice",
+      "codeEvidence": "Existing backgrounds are static compositions; objects are separately overlaid",
+      "phases": [
+        2,
+        5,
+        13,
+        16
+      ],
+      "acceptance": "Each prop placement justified by trail, ecology, ownership or gameplay role",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.4"
+    },
+    {
+      "id": "VW-011",
+      "pages": [
+        5
+      ],
+      "area": "Hollowreach",
+      "observation": "Snowy northward path cannot be followed",
+      "codeEvidence": "Village ground/solids polygons fence off portions of pictured ledges",
+      "phases": [
+        4,
+        8,
+        12
+      ],
+      "acceptance": "Reach the visually available northern trail without clipping solid walls",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.5"
+    },
+    {
+      "id": "VW-012",
+      "pages": [
+        5
+      ],
+      "area": "Hollowreach",
+      "observation": "Cannot walk around the high monument",
+      "codeEvidence": "Current shrine forecourt is a narrow polygon surrounding solid plinth",
+      "phases": [
+        4,
+        8,
+        12
+      ],
+      "acceptance": "Circumnavigate memorial along visible safe paths without walking on posts",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.5"
+    },
+    {
+      "id": "VW-013",
+      "pages": [
+        6
+      ],
+      "area": "Interiors",
+      "observation": "Joren's visible workshop cannot be entered",
+      "codeEvidence": "Forge scene JPG exists but no accessible workshop door object/scene route",
+      "phases": [
+        12,
+        15
+      ],
+      "acceptance": "Real Enter interaction at visible workshop threshold and working interior/exit",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.6"
+    },
+    {
+      "id": "VW-014",
+      "pages": [
+        6
+      ],
+      "area": "Signs",
+      "observation": "Trail sign cannot be read",
+      "codeEvidence": "Board exists as abstract object at (845,600) with dialogue range; visual correspondence unverified",
+      "phases": [
+        12,
+        16
+      ],
+      "acceptance": "Stand near painted notice, use Read and receive meaningful readable text",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.6"
+    },
+    {
+      "id": "VW-015",
+      "pages": [
+        7
+      ],
+      "area": "Roads",
+      "observation": "Path dead-ends in bushes despite a lush-area transition",
+      "codeEvidence": "Village→wilds portal on snowy southwestern road, not continuous terrain",
+      "phases": [
+        2,
+        7,
+        8,
+        12
+      ],
+      "acceptance": "Road extends through connected geography with no bush-trigger teleport",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.7"
+    },
+    {
+      "id": "VW-016",
+      "pages": [
+        7
+      ],
+      "area": "Water",
+      "observation": "Prominent river island has no logical access",
+      "codeEvidence": "No authored island route or transport interaction is implemented",
+      "phases": [
+        2,
+        8,
+        14
+      ],
+      "acceptance": "Cross via visible bridge, ford or deliberate transport and land on mapped solid ground",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.7"
+    },
+    {
+      "id": "VW-017",
+      "pages": [
+        8
+      ],
+      "area": "Foliage",
+      "observation": "Flower texture is abruptly cut off and outlined white",
+      "codeEvidence": "Bloom clusters are baked into JPG; masking/edge fidelity not validated",
+      "phases": [
+        5,
+        13
+      ],
+      "acceptance": "Foliage blends naturally with ground; no matte outline or abrupt rectangular cut",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.8"
+    },
+    {
+      "id": "VW-018",
+      "pages": [
+        8
+      ],
+      "area": "Depth",
+      "observation": "Character stands atop tree/canopy when following misleading route",
+      "codeEvidence": "No co-authored tree-footprint/foreground-depth layer; current nav lacks depth data",
+      "phases": [
+        4,
+        11,
+        13
+      ],
+      "acceptance": "Foot point blocked at trunk; foreground canopy occludes character correctly",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.8"
+    },
+    {
+      "id": "VW-019",
+      "pages": [
+        9
+      ],
+      "area": "Verticality",
+      "observation": "Visible Greenwood stone stairs cannot be climbed",
+      "codeEvidence": "Current world has flat 2D ground polygons and no elevation/h-level model",
+      "phases": [
+        4,
+        8,
+        13
+      ],
+      "acceptance": "Climb actual stair treads to upper ground with correct shadow/elevation",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.9"
+    },
+    {
+      "id": "VW-020",
+      "pages": [
+        9
+      ],
+      "area": "Bridges",
+      "observation": "Smuggler's Hollow rope bridge looks traversable but cannot be crossed",
+      "codeEvidence": "Cave bridge polygons historically repaired; iPhone screenshot still reports blockage",
+      "phases": [
+        4,
+        8,
+        15
+      ],
+      "acceptance": "Walk entire bridge deck bank-to-bank with no rail/collision snag",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.9"
+    },
+    {
+      "id": "VW-021",
+      "pages": [
+        10
+      ],
+      "area": "Grounding",
+      "observation": "Player visibly floats above chasm near lamp/post",
+      "codeEvidence": "Actor uses sprite/sole offsets and flat navigation; no per-foot elevation/depth",
+      "phases": [
+        4,
+        11,
+        15
+      ],
+      "acceptance": "Boot soles and contact shadow align with actual bridge or stone floor",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.10"
+    },
+    {
+      "id": "VW-022",
+      "pages": [
+        10
+      ],
+      "area": "Treasure",
+      "observation": "Chest-looking object seems fake or noninteractive",
+      "codeEvidence": "Single code chest is at cave (888,689); other chest-like shapes baked in painting",
+      "phases": [
+        15,
+        16,
+        20
+      ],
+      "acceptance": "Real chest has reachable hitbox and reward; decorative chest not misleading",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.10"
+    },
+    {
+      "id": "VW-023",
+      "pages": [
+        11
+      ],
+      "area": "Ruins",
+      "observation": "Mysterious oval ground marking can be walked on without explanation",
+      "codeEvidence": "No named oval interaction object in current nine-object setup",
+      "phases": [
+        15,
+        16,
+        20
+      ],
+      "acceptance": "Marking is purposeful puzzle/lore/location or visually clearly ornamental",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.11"
+    },
+    {
+      "id": "VW-024",
+      "pages": [
+        11
+      ],
+      "area": "Worldscar",
+      "observation": "Spectacular violet magical shrine looks pointless",
+      "codeEvidence": "Code has Worldscar attunement dialogue + one XP reward, but no designed shrine exploration",
+      "phases": [
+        15,
+        16,
+        20
+      ],
+      "acceptance": "Site has coherent approach, visual interaction, lore and meaningful one-time reward",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.11"
+    },
+    {
+      "id": "VW-025",
+      "pages": [
+        12
+      ],
+      "area": "Process",
+      "observation": "Full outdoors must precede detailed mechanic slice",
+      "codeEvidence": "Old roadmap built only village/forest/cave prototype",
+      "phases": [
+        1,
+        2,
+        6,
+        9
+      ],
+      "acceptance": "Creator gets full outdoor layout to inspect before intensive slice polish",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.12"
+    },
+    {
+      "id": "VW-026",
+      "pages": [
+        1,
+        3,
+        4
+      ],
+      "area": "Art",
+      "observation": "Beloved high-detail 3/4 pixel style must remain intact",
+      "codeEvidence": "Approved Wanderer atlas exists; scene JPGs have attractive but independent detail",
+      "phases": [
+        1,
+        5,
+        7,
+        11
+      ],
+      "acceptance": "Same material/pixel density/lighting and scaled actors across all region shots",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.1,3,4"
+    },
+    {
+      "id": "VW-027",
+      "pages": [
+        1,
+        6
+      ],
+      "area": "Entrances",
+      "observation": "Enter is appropriate at a real building, cave or ruin only",
+      "codeEvidence": "One wilds→cave entry exists, but snow→forest uses same mechanism",
+      "phases": [
+        3,
+        12,
+        15
+      ],
+      "acceptance": "Exterior walking is seamless; enclosed entrances use believable thresholds",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.1,6"
+    },
+    {
+      "id": "VW-028",
+      "pages": [
+        3
+      ],
+      "area": "Enemy art",
+      "observation": "Individual monsters must stay consistent from front/back/side and in attacks",
+      "codeEvidence": "Wolf/bandit/wraith use atlas NPC cells, unlike protected 8-row player sheet",
+      "phases": [
+        17,
+        18
+      ],
+      "acceptance": "Creature remains recognizably same across all required frames",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.3"
+    },
+    {
+      "id": "VW-029",
+      "pages": [
+        8,
+        10
+      ],
+      "area": "Occlusion",
+      "observation": "Trees, cliff foreground and bridge posts obscure real foot placement",
+      "codeEvidence": "Rendering sorts actor by y and uses alpha bounds; no authored roof/rail masks",
+      "phases": [
+        4,
+        11,
+        13,
+        15
+      ],
+      "acceptance": "Character correctly passes behind/in front of foreground geometry",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.8,10"
+    },
+    {
+      "id": "VW-030",
+      "pages": [
+        3,
+        4
+      ],
+      "area": "Item language",
+      "observation": "Pickups should be visually integrated and intelligible",
+      "codeEvidence": "Objects currently use drawn symbols and simple glow over painted ground",
+      "phases": [
+        5,
+        16
+      ],
+      "acceptance": "Dedicated sprites for blueleaf, quest crate and magical pickups",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.3,4"
+    },
+    {
+      "id": "VW-031",
+      "pages": [
+        2,
+        5,
+        9
+      ],
+      "area": "Height design",
+      "observation": "Stairs, bridges and elevation need an integrated coordinate model",
+      "codeEvidence": "Current navigation projects image polygons into flat 1850×1200 scene",
+      "phases": [
+        2,
+        4,
+        8,
+        10
+      ],
+      "acceptance": "Each traverse uses shared elevation/nav/visual coauthored path data",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.2,5,9"
+    },
+    {
+      "id": "VW-032",
+      "pages": [
+        12
+      ],
+      "area": "Scope",
+      "observation": "Do not build every interior or cave before overworld review",
+      "codeEvidence": "Prototype has four scene images; no continuous outdoor streaming",
+      "phases": [
+        3,
+        6,
+        9,
+        15
+      ],
+      "acceptance": "Entire outdoor world walkable for review; interior depth deferred outside test slice",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.12"
+    },
+    {
+      "id": "VW-033",
+      "pages": [
+        4,
+        6,
+        10,
+        11
+      ],
+      "area": "Affordances",
+      "observation": "Prominent props and environmental landmarks must have believable purpose",
+      "codeEvidence": "Current object set has board, two herbs, one chest, one Worldscar plus portals",
+      "phases": [
+        12,
+        16,
+        20
+      ],
+      "acceptance": "Visible usable objects behave consistently with appearance, and ornament is labeled",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Vielward.pdf p.4,6,10,11"
+    },
+    {
+      "id": "VW-034",
+      "pages": [],
+      "area": "Approval",
+      "observation": "Creator requires appearance review after whole overworld is finished",
+      "codeEvidence": "Approved roadmap explicitly locks Phase 10 behind Phase 9 review",
+      "phases": [
+        9,
+        10,
+        22
+      ],
+      "acceptance": "Stop after Phase 9 with full playable outdoor visual atlas; fix notes before approval",
+      "verification": "OPEN — requires creator iPhone review",
+      "source": "Creator approval instruction, Nov 5 2026"
+    }
+  ]
+}
