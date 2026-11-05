@@ -1,3 +1,9 @@
+# REQUIRED WORKFLOW — READ BEFORE DEVELOPING
+
+**Patching the real, playable game after each user feedback report is a REQUIREMENT, not an authorization or suggestion.** The user tests → the assistant patches the GitHub game → the user retests. Do not send plans, diagnostics, or standalone art instead of an update. See [AGENTS.md](./AGENTS.md) for the mandatory, persistent operational contract and the outstanding Warden Hal work order.
+
+---
+
 # Veilward v1.1.3 — Real Home Screen patch and Warden repair
 
 - The previous assistant incorrectly asserted GitHub access was unavailable instead of checking; this release contains an actual commit.
