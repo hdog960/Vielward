@@ -1,11 +1,11 @@
-/* VEILWARD — WARDEN SPRITE ART REPAIR v1.1.2
+/* VEILWARD — WARDEN AND HOME SCREEN REPAIR v1.1.3
  * A unified four-pose, eight-facing, 32-frame authored hero atlas.
  * Shared physical proportions, full-body foot anchor, consistent armor/scarf/sword.
  * Combat effects remain enabled; new direction-specific attack/cast sprites are future work.
  */
 (function(){
 "use strict";
-const ROOT="./assets/",ART="15";
+const ROOT="./assets/",ART="16";
 const files={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
 const scene=Object.create(null);
 let npcAtlas=null,heroAtlas=null,adultFrontAtlas=null,wardenSprite=null;
@@ -116,12 +116,11 @@ function dimensions(kind){
  return dims[kind]||dims.human;
 }
 
-// Distinct illustrated Warden Hal treatment; preserve source-pixel art fidelity.
-// No geometric, generated or hand-overpainted helmet/shield.
+// Pixel-accurate Warden Hal treatment; a separate outfit and cropped haircut.
+// Guard edits only: the player hero atlas and movement are deliberately unchanged.
 function createWardenVariant(img){
- // Use ONLY the project's shaded, organically drawn NPC pixel art.
- // Previous update placed large flat rectangles over the face and produced
- // a comically oversized 'helmet'; that entire overlay has been removed.
+ // Warden Hal owns an independent image buffer. Never paint boxes, shields or
+ // helmets over his head; those broke the screenshot in v1.1.1.
  try{
   const canvas=document.createElement("canvas");
   canvas.width=NPCCELL.w;
@@ -129,48 +128,45 @@ function createWardenVariant(img){
   const c=canvas.getContext("2d",{willReadFrequently:true});
   if(!c)return null;
   c.imageSmoothingEnabled=false;
-  const slot=NPC.guard;
-  c.drawImage(img,(slot%NPCCELL.columns)*NPCCELL.w,
-    Math.floor(slot/NPCCELL.columns)*NPCCELL.h,
+  const index=NPC.guard;
+  c.drawImage(img,(index%NPCCELL.columns)*NPCCELL.w,
+    Math.floor(index/NPCCELL.columns)*NPCCELL.h,
     NPCCELL.w,NPCCELL.h,0,0,NPCCELL.w,NPCCELL.h);
   const frame=c.getImageData(0,0,NPCCELL.w,NPCCELL.h);
   const px=frame.data;
-  let scarfChanged=0,hairChanged=0,armorChanged=0;
   for(let y=0;y<NPCCELL.h;y++)for(let x=0;x<NPCCELL.w;x++){
    const i=(y*NPCCELL.w+x)*4;
-   if(px[i+3]<10)continue;
+   if(px[i+3]<16)continue;
    const r=px[i],g=px[i+1],b=px[i+2];
-   const luminance=.30*r+.59*g+.11*b;
-   const warm=r>g*1.20&&r>b*1.28&&g<160;
-   // Preserve the *actual textured contours* of every strand of hair.
-   // Silver hair and a navy winter scarf give Hal a different identity
-   // without replacing his face with geometric placeholder artwork.
-   if(y>=7&&y<40&&x>=73&&x<137&&warm){
-    px[i]=Math.min(255,luminance*.96+45);
-    px[i+1]=Math.min(255,luminance*1.04+57);
-    px[i+2]=Math.min(255,luminance*1.18+72);
-    hairChanged++;
-   }else if(y>=63&&y<116&&warm&&r>g*1.36&&g<125&&
-    !(x>83&&x<126&&y<71)){
-    px[i]=Math.min(255,luminance*.42+16);
-    px[i+1]=Math.min(255,luminance*.73+33);
-    px[i+2]=Math.min(255,luminance*1.12+50);
-    scarfChanged++;
-   }else if(y>=74&&y<146&&
-    b>=r*.87&&g>=r*.80&&r>=20&&r<190&&
-    !(x>81&&x<126&&y<83)){
-    // Cold steel armor treatment, keeping every shaded highlight.
-    px[i]=Math.min(255,r*.77+8);
-    px[i+1]=Math.min(255,g*.88+11);
-    px[i+2]=Math.min(255,b*.99+17);
-    armorChanged++;
+   const lum=.30*r+.58*g+.12*b;
+   const hairBrown=r>g*1.13&&g>b*.77&&r<168&&g<127&&b<114&&r>42;
+   const redCloth=r>g*1.36&&r>b*1.26&&r<174&&g<107;
+   // The former hair-color cutoff was a rectangle! Detect the actual
+   // brown hair pixels, not a bounding box or a slab of face skin.
+   if(y<55&&x>56&&x<142&&hairBrown){
+    // Shape a tighter, shorter side-part: remove spiky stray tips based on
+    // their silhouette coordinates, never with clearRect or fillRect.
+    const tip=(y<13)||(x<74&&y<34)||(x>121&&y<34);
+    if(tip){px[i+3]=0;continue;}
+    // Dark ash military crop with intact pixel-level strand shading.
+    px[i]=Math.min(255,lum*.68+23);
+    px[i+1]=Math.min(255,lum*.78+30);
+    px[i+2]=Math.min(255,lum*.91+35);
+   }else if(y>54&&y<104&&redCloth){
+    // Blue-gray winter mantle instead of the Wanderer's red scarf.
+    px[i]=Math.min(255,lum*.39+15);
+    px[i+1]=Math.min(255,lum*.66+29);
+    px[i+2]=Math.min(255,lum*.97+47);
+   }else if(y>77&&y<145&&b>=r*.88&&g>=r*.78&&r>24&&r<175){
+    px[i]=Math.min(255,r*.82+7);
+    px[i+1]=Math.min(255,g*.91+8);
+    px[i+2]=Math.min(255,b*1.02+14);
    }
   }
   c.putImageData(frame,0,0);
-  // This is source-sprite recoloring, never an improvised helmet or icon.
   return canvas;
  }catch(error){
-  console.warn("Failed to process Warden Hal artwork",error);
+  console.warn("Warden art transformation unavailable",error);
   return null;
  }
 }
@@ -259,6 +255,6 @@ window.VeilwardArt={
  adultFrontLoaded:()=>!!(adultFrontAtlas?.complete&&adultFrontAtlas.naturalWidth===336),
  ready:()=>!!(scene.village&&heroAtlas&&npcAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
  spritesReady:()=>!!(heroAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
- version:"1.1.2"
+ version:"1.1.3"
 };
 })();

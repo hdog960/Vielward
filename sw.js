@@ -1,33 +1,58 @@
-/* VEILWARD offline cache v1.1.2 — repaired Warden Hal artwork.
-   Network-first HTML/JS, versioned atlas, stable image cache.
-   Older installed-app caches removed when this worker activates. */
-const CACHE="veilward-hollowreach-v112-warden-art-repair";
+/* VEILWARD 1.1.3 — PWA self-update on Home Screen and Safari.
+   Use network-first for HTML/scripts, and preserve offline assets. */
+const BUILD="1.1.3";
+const CACHE="veilward-hollowreach-v113-home-screen-sync";
 const FILES=[
- "./","./index.html","./game.js?v=10","./navigation.js?v=7",
- "./visual.js?v=25","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
- "./assets/village_v06_clear.jpg?art=15","./assets/wilds_clean.jpg?art=15",
- "./assets/cave_clean.jpg?art=15","./assets/forge.jpg?art=15",
- "./assets/actors_v07.png?art=15",
- "./assets/hero_full_8way_v10.png?art=15",
- "./assets/hero_approved_8way_v12.webp?art=15",
- "./assets/hero_front_adult_v11.png?art=15"
+ "./","./index.html","./game.js?v=11","./navigation.js?v=7",
+ "./visual.js?v=26","./visual.css?v=7","./manifest.webmanifest","./icon.svg",
+ "./assets/village_v06_clear.jpg?art=16","./assets/wilds_clean.jpg?art=16",
+ "./assets/cave_clean.jpg?art=16","./assets/forge.jpg?art=16",
+ "./assets/actors_v07.png?art=16",
+ "./assets/hero_full_8way_v10.png?art=16",
+ "./assets/hero_approved_8way_v12.webp?art=16",
+ "./assets/hero_front_adult_v11.png?art=16"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{
-  // Individual fetches prevent an optional image from blocking the entire install.
-  await Promise.allSettled(FILES.map(async url=>{try{await cache.add(url)}catch(e){}}));
- }).then(()=>self.skipWaiting()))
+  await Promise.allSettled(FILES.map(url=>cache.add(url)));
+ }).then(()=>self.skipWaiting()));
 });
 self.addEventListener("activate",event=>{
- event.waitUntil(caches.keys().then(keys=>Promise.all(
-  keys.filter(key=>key.startsWith("veilward-")&&key!==CACHE).map(key=>caches.delete(key))
- )).then(()=>self.clients.claim()))
+ event.waitUntil((async()=>{
+  const names=await caches.keys();
+  await Promise.all(names.filter(name=>name.startsWith("veilward-")&&name!==CACHE)
+   .map(name=>caches.delete(name)));
+  await self.clients.claim();
+  // Crucial: an already-open old iPhone PWA does not listen for controller
+  // changes. Navigate its window once on activation, even if old JS is running.
+  const windows=await self.clients.matchAll({type:"window",includeUncontrolled:true});
+  await Promise.allSettled(windows.map(async client=>{
+   try{
+    const url=new URL(client.url);
+    if(!url.href.startsWith(self.registration.scope))return;
+    if(url.searchParams.get("vwbuild")===BUILD)return;
+    url.searchParams.set("vwbuild",BUILD);
+    if(typeof client.navigate==="function")await client.navigate(url.toString());
+    else client.postMessage({type:"VEILWARD_BUILD_UPDATED",build:BUILD});
+   }catch(error){console.warn("Client refresh failed",error)}
+  }));
+ })());
+});
+self.addEventListener("message",event=>{
+ if(event.data?.type==="SKIP_WAITING")self.skipWaiting();
 });
 self.addEventListener("fetch",event=>{
  const request=event.request;
  if(request.method!=="GET"||new URL(request.url).origin!==location.origin)return;
- event.respondWith(fetch(request).then(response=>{
-  if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy)).catch(()=>{})}
-  return response;
- }).catch(()=>caches.match(request).then(response=>response||Response.error())))
+ const url=new URL(request.url);
+ const core=request.mode==="navigate"||/[.](?:html|js|webmanifest)$/.test(url.pathname);
+ event.respondWith(
+  fetch(request,core?{cache:"no-store"}:undefined).then(response=>{
+   if(response.ok){
+    const copy=response.clone();
+    event.waitUntil(caches.open(CACHE).then(cache=>cache.put(request,copy)).catch(()=>{}));
+   }
+   return response;
+  }).catch(async()=>await caches.match(request)||Response.error())
+ );
 });

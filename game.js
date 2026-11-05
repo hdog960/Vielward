@@ -426,5 +426,35 @@ if(!terrainCache[p.zone])generate(p.zone);
 $("location").textContent=C[p.zone].label;
 refreshStartStatus();
 requestAnimationFrame(frame);
-if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+// Keep the iOS Home Screen installation current, not just Safari.
+if("serviceWorker" in navigator){
+ const BUILD="1.1.3";
+ let checking=false,refreshing=false;
+ async function checkGameUpdates(){
+  if(checking)return;
+  checking=true;
+  try{
+   const registration=await navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"});
+   await registration.update();
+   if(registration.waiting)registration.waiting.postMessage({type:"SKIP_WAITING"});
+  }catch(err){console.warn("Veilward update check failed",err)}
+  finally{checking=false}
+ }
+ navigator.serviceWorker.addEventListener("controllerchange",()=>{
+  if(refreshing)return;
+  refreshing=true;
+  try{
+   const key="veilward-worker-reloaded";
+   if(sessionStorage.getItem(key)!==BUILD){
+    sessionStorage.setItem(key,BUILD);
+    location.reload();
+   }
+  }catch(error){location.reload()}
+ });
+ window.addEventListener("load",checkGameUpdates);
+ window.addEventListener("pageshow",event=>{if(event.persisted)checkGameUpdates()});
+ document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible")checkGameUpdates();
+ });
+}
 })();

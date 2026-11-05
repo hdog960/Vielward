@@ -1,3 +1,12 @@
+# Veilward v1.1.3 — Real Home Screen patch and Warden repair
+
+- The previous assistant incorrectly asserted GitHub access was unavailable instead of checking; this release contains an actual commit.
+- **iOS Home Screen update:** new registration checks updates on app load, on visibility return and when returning from background; `updateViaCache:"none"` bypasses cached service-worker script; controller changes reload once per build. The new worker removes older caches and attempts to navigate already-open old clients on activation. JavaScript/HTML are fetched with `cache:"no-store"`, while scenes and sprites retain offline caching.
+- **Warden only:** removed arbitrary rectangular recoloring boundaries, changed to per-pixel hair/clothing classification, and cropped hair tips toward a short ash-gray military style instead of the original spiky Wanderer hair. No box helmet, shield icon, or hard-edged hair overlay. This is a conservative repair using existing textured art, not a claim of a completely new hand-drawn NPC.
+- The **approved player sprite atlas** and all player movement and collision routines remain unchanged; same local save key.
+- Manual iPhone Home Screen testing remains required; service-worker updates can only propagate once the device checks online.
+
+---
 # Veilward 1.1.2 — Warden Hal art repair (Nov 4, 2026)
 
 The user found that the prior guard 'helmet' looked like a giant pixel crate/chest rather than a human head. Root cause: code was using broad hard-edged Canvas rectangles, clipping the artist-authored hair and covering the face with a box-shaped overlay, then adding an oversimplified icon shield. This violates Veilward's authored-pixel-art requirements.
