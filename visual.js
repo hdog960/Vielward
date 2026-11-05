@@ -1,11 +1,11 @@
-/* VEILWARD — GROUNDED TRAVEL LANDMARKS v1.2.3
+/* VEILWARD — PHASE 3 SCENE INTEGRITY REBUILD v1.2.4
  * A unified four-pose, eight-facing, 32-frame authored hero atlas.
  * Shared physical proportions, full-body foot anchor, consistent armor/scarf/sword.
  * Combat effects remain enabled; new direction-specific attack/cast sprites are future work.
  */
 (function(){
 "use strict";
-const ROOT="./assets/",ART="20";
+const ROOT="./assets/",ART="21";
 const files={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
 const scene=Object.create(null);
 let npcAtlas=null,heroAtlas=null,adultFrontAtlas=null,wardenSprite=null;
@@ -14,7 +14,7 @@ const LEGACY_HERO={w:160,h:180,columns:17,rows:8};
 const ADULT_FRONT={w:112,h:126,columns:3};
 const NPCCELL={w:192,h:176,columns:4};
 const NPC={forge:2,guard:3,inn:4,hunter:5,merchant:6,hermit:11,hound:10};
-const ENEMY={wolf:8,bandit:7,wraith:9};
+const ENEMY={wolf:8,bandit:6,wraith:9};
 
 const actorCellMetrics=Object.create(null);
 const FALLBACK_METRICS=Object.freeze({top:8,bottom:170,left:0,right:192});
@@ -263,9 +263,9 @@ function routeGlows(ctx,zone,time){
  // artificial floating arrows obscuring the golden reference images.
  if(!sceneReady(zone))return;
  const landmarks={
-  village:[[1070,1090,228,188,125]],
+  village:[[790,1090,228,188,125]],
   wilds:[[540,1068,160,190,121],[1700,745,207,187,125]],
-  cave:[[344,786,173,143,210]]
+  cave:[[170,795,173,143,210]]
  };
  const points=landmarks[zone]||[];
  if(!points.length)return;
@@ -293,6 +293,6 @@ window.VeilwardArt={
  adultFrontLoaded:()=>!!(adultFrontAtlas?.complete&&adultFrontAtlas.naturalWidth===336),
  ready:()=>!!(scene.village&&heroAtlas&&npcAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
  spritesReady:()=>!!(heroAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
- version:"1.2.3"
+ version:"1.2.4"
 };
 })();

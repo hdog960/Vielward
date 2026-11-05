@@ -1,3 +1,23 @@
+# Veilward v1.2.4 — Phase 3 completely rebuilt against actual screenshot evidence
+
+The v1.2.3 world-traversal pass failed visual acceptance. Its connected-region tests did not ensure that walkable polygons coincided with the actual scenery. The Wanderer was shown on **river water**, a **shrine fence**, a **bridge railing**, and a **cave lantern post**. These were real environment/collision bugs.
+
+**The v1.2.4 playable update addresses these four screenshots in the game code:**
+
+- Replaced all three outdoor/dungeon walkable meshes with **image-native 900×584 floor and obstruction polygons**. The village's outdated 707×530 coordinate transform (the main cause of the misplaced river/bridge polygons) has been removed.
+- Gave narrow, foot-safe bridge decking and actual no-walk rails, posts, stone plinths, cliff faces, river regions and water channels. All three scenic zones retain connected gameplay routes.
+- Relocated the **Greenwood Trail marker** to the village's snowy southwest road and the **cave return marker** to the left end of the bridge; placed village return on open snow rather than a bridge post. Both sides of portal travel are now visually coherent and safe.
+- Moved Mira, Eldric, noticepost, one Blueleaf pickup, and a wraith out of visually inaccessible locations. NPC interactions and all quest completion rules preserved.
+- Updated old-save navigation schema to 6 without resetting the user's position when it remains legal; forbidden river/fence saves auto-relocate to the closest available safe walkable ground.
+- Bandit visual now uses the existing distinct olive-armored raider, not a third red-scarfed hero. **Player Wanderer source art, player animations, Warden Hal authored portrait/sprite, save key, quest data and player combat math were NOT changed.**
+- Upgraded `game.js?v=16`, `navigation.js?v=9`, `visual.js?v=31`, `manifest.webmanifest?v=124`, `?art=21`, and service-worker cache `veilward-hollowreach-v124-painted-ground-geometry`.
+
+**Verification:** `node tests/phase3_scene_geometry.test.js` is now a durable, runnable regression suite with **1,319 assertions and 10 complete path replays (612 motion segments)**, including positive and prohibited screenshot-matched coordinates and stale-save recovery. Tests pass in a simulated execution of the committed JavaScript modules. **Real iPhone rendering and movement approval remains pending**; we are not claiming the painted depth-order quality is fully signed off.
+
+**Status:** Repeated Phase 3 only. **Phase 4 is not started.** Full details: [Phase 3 redo QA](./tests/phase3_redo_qa.md).
+
+---
+
 # Veilward v1.2.3 — Hollowreach polish sprint: Phase 3
 
 **Playable-world changes pushed to GitHub:**

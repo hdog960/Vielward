@@ -24,7 +24,7 @@
 - **Acceptance:** New build can be identified in the app; no observed code-level update loop; saves persist; directional movement and actions work in simulated or available device tests. Real device confirmation remains user-owned.
 
 ### Phase 3 — Traversal and cross-biome environmental coherence (30-minute target)
-**Status: IMPLEMENTED — automated route and collision QA passed; iPhone sign-off pending**
+**Status: REBUILT v1.2.4 — screenshot-specific photo/nav checks and 10 route replays passed; iPhone visual approval pending**
 - Walk through the current village → Greenwood → Smuggler's Hollow navigation/transition code and backtracking.
 - Fix unsafe spawn points, stuck spots, invisible barriers, portal targeting/range, confusing exits and conspicuous image-to-collision disagreements.
 - Refine visibly inconsistent snow/forest/cave visual density, layering and landmarks with small, **implemented** art improvements (not screenshot-only mockups).
@@ -101,3 +101,25 @@ This two-hour roadmap is a **focused improvement sprint**, not a claim that the 
 - **Automated QA:** sampled 3 navigation graphs and found exactly one walkable component per zone. Verified 18 key anchors (NPCs, entrances, quest objectives, upper shrine) accessible. Replayed 7 routes via `projectMotion` totaling 421 discrete grid steps with no stalls/escapes; passed route-glow render smoke checks (1/2/1/0 across village/wilds/cave/forge). Actual iPhone playtest and screenshot approval remain pending.
 - **Updated build/cache:** v1.2.3; `game.js?v=15`, `navigation.js?v=8`, `visual.js?v=30`, `art=20`; canonical `veilward-hollowreach-v01` save key preserved.
 - **STOP HERE** for user review; Phase 4 is not started.
+
+## Phase 3 REPEAT — Screenshot-driven rebuild (November 4, 2026)
+
+**The earlier v1.2.3 Phase 3 was NOT visually acceptable.** Its navigation graph tests only checked connectivity, not agreement with the painted scenery. Four creator screenshots exposed physical failures:
+1. Smuggler's Hollow: Wanderer physically stood on a raised lantern post at the end of the rope bridge.
+2. Frostbridge: Wanderer stood knee-deep in blue river water while the old collision mesh counted that water as snowy ground.
+3. Greenwood: Wanderer stood on the raised bridge railing; a separately spawned bandit looked like another copy of the Wanderer.
+4. Frostbridge high shrine: Wanderer stood on top of the decorative fence/rock face.
+
+**Root cause:** village polygons in `navigation.js` were authored for an older 707×530 scene and stretched, even though the active screenshot's painted source is 900×584. The resulting polygons silently placed floor over water, fence railings, cliffs, and posts. The cave/forest maps also had overly permissive bridge approach polygons. The previous broad connectivity-only tests could never catch this.
+
+**Actual game changes in v1.2.4:**
+- Re-authored the village, Greenwood, and cave traversable polygons **directly in their current artwork's 900×584 coordinates**. Marked the stone shrine fence, icy river, waterfall, wood railings, bridge lantern, dark drop-offs and plinths unwalkable. Bridge travel now follows the wood *deck*, not the top of a rail.
+- Moved village/forest/cave exit positions to actual painted floor: village exit `(790,1090)` (southwest snow trail), cave exit `(170,795)` (cave mouth on plank decking), and Greenwood→village return `(1030,675)` (central snowy clearing). Travel return locations remain separated from portals to avoid loops.
+- Moved Mira, Eldric, noticepost, one Blueleaf pickup and a wraith onto walkable photographed ground. Joren, Warden Hal, Ash and core quest progression remain unchanged.
+- Old saved characters on formerly walkable water/fences are now recovered by `safePoint`. Save schema `sceneVersion=6` upgrades coordinates only as needed; **no forced village reset**, no loss of gold, XP, skills, equipment, items, quest progress or save key.
+- Changed only the *bandit enemy's* visual slot from the red-scarfed Wanderer clone to the distinct existing olive-armored axe/hammer-wielding raider. The approved playable eight-angle Wanderer atlas and dedicated Warden Hal art asset are **unchanged**.
+- Versioned assets and Home Screen worker to v1.2.4.
+
+**Permanent automated QA:** `tests/phase3_scene_geometry.test.js` tests the native map image point fixtures (including all four screenshots), verifies disallowed screenshot positions and safe old-save relocation, checks the three zones' mesh connectivity, and replays **10 routes / 612 actual projectMotion movement segments**. **1,319 assertions passed** in a simulated runtime against the committed source. A visual iPhone playtest remains REQUIRED; no unsupported "10/10" claim is made.
+
+**Only Phase 3 has been repeated. Phase 4 is still NOT STARTED; stop for user retest.**

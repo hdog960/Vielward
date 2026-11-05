@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v1.2.3: traversable world routes and seamless biome arrivals. */
+/* VEILWARD — Hollowreach v1.2.4: photo-matched collision and quest routes. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -10,9 +10,9 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
-const APP_VERSION="1.2.3";
+const APP_VERSION="1.2.4";
 const SAVE="veilward-hollowreach-v01";
-const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:3,sceneVersion:5,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
+const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:4,sceneVersion:6,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
 let pendingTravel=null,travelCooldown=0,arrivalPulse=0;
 let p=JSON.parse(JSON.stringify(DEFAULT)),enemies={village:[],wilds:[],cave:[],forge:[]},npc=[],objects=[],worldTime=0,invTab="pack",attacks=[],autosaveClock=0;
 function rand(seed){let x=Math.sin(seed*127.1+78.233)*43758.5453;return x-Math.floor(x)}
@@ -42,11 +42,11 @@ enemies={village:[],wilds:[
 newEnemy(850,690,"wolf","wilds"),newEnemy(1100,640,"wolf","wilds"),
 newEnemy(1245,667,"bandit","wilds"),newEnemy(1480,850,"wolf","wilds")],
 cave:[newEnemy(1050,670,"bandit","cave"),newEnemy(1425,650,"bandit","cave"),
-newEnemy(1450,550,"wraith","cave")],forge:[]};
+newEnemy(1435,525,"wraith","cave")],forge:[]};
 npc=[
  {id:"joren",name:"Joren · Blacksmith",zone:"village",x:885,y:520,homeX:885,homeY:520,color:"#9b6244",role:"forge"},
- {id:"mira",name:"Mira · Innkeeper",zone:"village",x:1430,y:990,homeX:1430,homeY:990,color:"#987db7",role:"inn"},
- {id:"eldric",name:"Eldric · Hunter",zone:"village",x:750,y:910,homeX:750,homeY:910,color:"#547f65",role:"hunter"},
+ {id:"mira",name:"Mira · Innkeeper",zone:"village",x:1210,y:665,homeX:1210,homeY:665,color:"#987db7",role:"inn"},
+ {id:"eldric",name:"Eldric · Hunter",zone:"village",x:720,y:1015,homeX:720,homeY:1015,color:"#547f65",role:"hunter"},
  {id:"guard",name:"Warden Hal",zone:"village",x:1290,y:595,homeX:1290,homeY:595,color:"#6d87ae",role:"guard"},
  {id:"hound",name:"Ash · Village Hound",zone:"village",x:1075,y:705,homeX:1075,homeY:705,color:"#c3ced5",role:"hound"},
  {id:"hermit",name:"The Green Hermit",zone:"wilds",x:1275,y:543,homeX:1275,homeY:543,color:"#5f9771",role:"hermit"}
@@ -54,14 +54,14 @@ npc=[
 objects=[
  // Native image is the original golden cabin-and-bridge, with no painted
  // characters: every named character now has its own live rendering and dialog.
- {zone:"village",type:"portal",x:1070,y:1090,to:"wilds",tx:735,ty:991,label:"Greenwood Trail"},
- {zone:"village",type:"board",x:774,y:568,label:"Trail Noticepost"},
- {zone:"wilds",type:"portal",x:540,y:1068,to:"village",tx:960,ty:925,label:"Frostbridge Outpost"},
+ {zone:"village",type:"portal",x:790,y:1090,to:"wilds",tx:735,ty:991,label:"Greenwood Trail"},
+ {zone:"village",type:"board",x:845,y:600,label:"Trail Noticepost"},
+ {zone:"wilds",type:"portal",x:540,y:1068,to:"village",tx:1030,ty:675,label:"Frostbridge Outpost"},
  {zone:"wilds",type:"portal",x:1700,y:745,to:"cave",tx:775,ty:741,label:"Smuggler's Cave"},
- {zone:"wilds",type:"herb",x:400,y:760,label:"Blueleaf Sprig"},
+ {zone:"wilds",type:"herb",x:500,y:920,label:"Blueleaf Sprig"},
  {zone:"wilds",type:"herb",x:1190,y:714,label:"Blueleaf Sprig"},
  {zone:"wilds",type:"scar",x:1480,y:420,label:"Shimmering Worldscar"},
- {zone:"cave",type:"portal",x:344,y:786,to:"wilds",tx:1520,ty:720,label:"Greenwood Trail"},
+ {zone:"cave",type:"portal",x:170,y:795,to:"wilds",tx:1520,ty:720,label:"Greenwood Trail"},
  {zone:"cave",type:"chest",x:888,y:689,label:"Bandit Supplies"}
 ];
 if(p.herbs)objects.filter(o=>o.type==="herb").slice(0,p.herbs).forEach(o=>o.taken=true);
@@ -267,7 +267,7 @@ function changeZone(z,tx,ty){
  // Combined with safer spawns, avoids double tap returning immediately.
  travelCooldown=1.2;arrivalPulse=.95;
  clearJoystick();
- p.navVersion=3;
+ p.navVersion=4;
  particles=[];projectiles=[];effects=[];
  cam.x=clamp(p.x-viewWidth()/2,0,Math.max(0,WORLD.w-viewWidth()));
  cam.y=clamp(p.y-viewHeight()/2,0,Math.max(0,WORLD.h-viewHeight()));
@@ -480,12 +480,12 @@ shake*=.78;if(shake<.2)shake=0;if(toastTime>0){toastTime-=.016;if(toastTime<=0)$
 function frame(now){let dt=Math.min(.055,(now-last)/1000||.016);last=now;tick(dt);render();requestAnimationFrame(frame)}
 load();
 if(!p.artVersion){p.zone="village";p.x=925;p.y=620;p.artVersion=2;}
-if(p.zone==="forge"){p.zone="village";p.x=925;p.y=620;p.navVersion=3;}
-if(p.sceneVersion!==5){
- // Rebuild the original location: migrate old coordinates onto the newly
- // hand-marked snow paths while keeping equipment, XP, quests and gold intact.
- if(p.zone==="village"){p.x=925;p.y=620;}
- p.sceneVersion=5;p.navVersion=3;
+if(p.zone==="forge"){p.zone="village";p.x=925;p.y=620;p.navVersion=4;}
+if(p.sceneVersion!==6){
+ // Reclassify old water/cliff saves without resetting the zone or quest.
+ // safePosition below moves only the physical character coordinates if
+ // the former saved location was painted water, railing or cliff.
+ p.sceneVersion=6;p.navVersion=4;
 }
 if(window.VeilwardNav&&!window.VeilwardNav.canWalk(p.zone,p.x,p.y,8)){
  const pt=safePosition(p.zone,p.x,p.y);p.x=pt.x;p.y=pt.y;

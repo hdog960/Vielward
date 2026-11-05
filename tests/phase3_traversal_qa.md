@@ -1,3 +1,9 @@
+# SUPERSEDED — v1.2.3 connected-graph-only QA was not sufficient
+
+This older QA passed while the user could still stand on river water, bridge railing, shrine fence and lantern posts. The v1.2.4 screenshot-driven redo supersedes it. For current behavior, see [phase3_redo_qa.md](./phase3_redo_qa.md) and the executable [phase3_scene_geometry.test.js](./phase3_scene_geometry.test.js).
+
+---
+
 # Phase 3 traversal / environmental QA — v1.2.3
 
 **Scope:** Village, Greenwood, Smuggler's Hollow. Synthetic navigation tests against real `navigation.js` (radius 8), service-worker/asset string consistency and simulated Canvas route lighting. Real iPhone QA pending.
