@@ -1,3 +1,9 @@
+# ACTIVE DEVELOPMENT PLAN — Two-hour Hollowreach polish sprint
+
+Five sequential, testable phases totaling **120 minutes planned effort** (acceptable 90–150). One entire phase per user **"continue development"** message; patch the actual game, verify the GitHub commit, then stop for feedback. **Phase 1 has not begun.** See [TWO_HOUR_SLICE_ROADMAP.md](./TWO_HOUR_SLICE_ROADMAP.md) for phase requirements and acceptance checks. The existing long-term [PROTOTYPE_ROADMAP.md](./PROTOTYPE_ROADMAP.md) stays in force.
+
+---
+
 # Veilward v1.2.0 — Warden Hal rebuilt as his own character (November 4, 2026)
 
 **Actual game asset rebuild.** The screenshot with Warden Hal's still-squared hair prompted a full replacement instead of another hair/armor color filter.
