@@ -17,14 +17,14 @@
 - **Acceptance:** No glaring misplaced character sprites, hovering feet, box-like art artifacts, unreadable NPC labels or obvious scene layering issues in tested village views.
 
 ### Phase 2 — iPhone controls and installed-app reliability (20-minute target)
-**Status: NOT STARTED — next phase; STOP until user continues**
+**Status: IMPLEMENTED — automated QA passed; iPhone Home Screen verification pending**
 - Audit current install/update path: GitHub Pages cache versions, service-worker registration, stale Home Screen clients, resume/reload loop safety.
 - Make the running build version visible in the pause menu for accurate user verification.
 - Check landscape joystick controls, attack/spell/dodge/potion/talk target priority, accidental scrolling, safe-area handling and click/touch overlap.
 - **Acceptance:** New build can be identified in the app; no observed code-level update loop; saves persist; directional movement and actions work in simulated or available device tests. Real device confirmation remains user-owned.
 
 ### Phase 3 — Traversal and cross-biome environmental coherence (30-minute target)
-**Status: NOT STARTED**
+**Status: NOT STARTED — wait for next explicit continuation**
 - Walk through the current village → Greenwood → Smuggler's Hollow navigation/transition code and backtracking.
 - Fix unsafe spawn points, stuck spots, invisible barriers, portal targeting/range, confusing exits and conspicuous image-to-collision disagreements.
 - Refine visibly inconsistent snow/forest/cave visual density, layering and landmarks with small, **implemented** art improvements (not screenshot-only mockups).
@@ -79,3 +79,14 @@ This two-hour roadmap is a **focused improvement sprint**, not a claim that the 
 - Preserved character asset files, approved Wanderer animations, the save key, and all quest/interactions; PWA/HTML asset references advanced to v1.2.1.
 - Real landscape iPhone testing is **not** complete; bridge rail foreground masking and cliff/collision refinement remain in the later traversal/scene polish phase.
 - **Do not begin Phase 2 without the user's next instruction.**
+
+
+## Phase 2 implementation record (November 4, 2026)
+- `game.js`: joystick captures **one pointer only**, ignores other moving fingers, resets on cancellation/lost capture/background/modal, and supports simultaneous attack/talk on the opposite side of the screen. Touch actions fire on pointerdown with suppression of duplicate click; keyboard/mouse click remains available.
+- `game.js`: interaction target scoring now prioritizes actual nearby character instead of a distant NPC's larger conversation radius; adds mild penalties for portal and Ash so nearby quest/dialogue NPCs stay easy to talk to.
+- `game.js`: save + release movement on background and pagehide before Home Screen worker refresh; checks for updates on load/pageshow/focus/foreground return; one-time version-tagged reload avoids loops.
+- `sw.js`: versioned cache `veilward-hollowreach-v122-mobile-reliability`, offline fallback for `?vwbuild=...` navigation, activate-only client update navigation, asset/manifest cache busting and worker message fallback.
+- `index.html` and `visual.css`: pause menu displays live JS version `v1.2.2`, narrow-landscape banner and safe-area polish, scrolling retained inside overlays and blocked on game canvas.
+- **Tests passed:** 10 synthetic input/pointer scenarios; 6 interaction-priority scenarios; simulated service-worker activation (single navigation, stale-cache cleanup) and offline versioned URL recovery; source consistency and syntax assertions. No iPhone/browser-device test claimed.
+- **Protected:** approved Wanderer asset, Warden Hal asset, hero rendering branch, physics/combat tick and save key unchanged.
+- **STOP HERE. Phase 3 is not started until creator's next message.**

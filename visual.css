@@ -31,3 +31,37 @@
 #start .menuBtn{background:linear-gradient(#78644d,#342a33);border-color:#edc787;text-align:center;color:#fff0c9;font-weight:bold;letter-spacing:1px}
 #rotate{background:#0a1222;color:#e5c990;font-size:18px}
 @media(max-height:470px){#status{width:185px}#quest{top:82px;max-width:180px}#move{width:100px;height:100px}#knob{width:42px;height:42px}#actions{grid-template-columns:repeat(3,47px);gap:5px}.control{width:47px;height:47px}.control.primary{width:57px;height:57px}#location{font-size:10px}}
+
+
+/* Phase 2: thumb reachability, narrow-landscape HUD and safe area panels. */
+#hud button{touch-action:manipulation;-webkit-touch-callout:none}
+#hud button:focus-visible,.choice:focus-visible,.menuBtn:focus-visible,.tab:focus-visible{
+ outline:2px solid #ffe2a1;outline-offset:3px;
+}
+#move{touch-action:none}
+#pause #buildInfo{
+ padding:8px 11px;margin:9px 0 12px;
+ border:1px solid #9e814e;background:#0b182bcc;
+ border-radius:4px;color:#f1e4c7;font:12px/1.5 system-ui,sans-serif
+}
+#buildVersion{font-weight:700;color:#fce2a3;letter-spacing:.5px}
+#dialog,#inventory,#pause,#start{
+ max-height:calc(100vh - 16px);
+ max-height:calc(100dvh - max(8px,env(safe-area-inset-top)) - max(8px,env(safe-area-inset-bottom)));
+ -webkit-overflow-scrolling:touch;
+}
+#inventoryBody{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+@media (orientation:landscape) and (max-width:800px){
+ #location{
+  min-width:0;max-width:calc(100vw - 418px);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:10px;letter-spacing:1px;padding:7px 8px 8px
+ }
+ #hint{max-width:48%;font-size:11px}
+ #dialog,#pause,#inventory{max-width:calc(100vw - 16px)}
+}
+@media (orientation:landscape) and (max-height:360px){
+ #quest{max-width:172px;font-size:10px}
+ #actions{bottom:max(10px,env(safe-area-inset-bottom))}
+ #move{bottom:max(10px,env(safe-area-inset-bottom))}
+}

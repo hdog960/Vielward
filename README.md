@@ -1,3 +1,19 @@
+# Veilward v1.2.2 — Hollowreach polish sprint: Phase 2
+
+**Actual playable-game improvements (iPhone controls + Home Screen reliability):**
+- Lock joystick control to one pointer; other thumb can freely press action buttons. Release on pointerup/cancel/lostpointercapture, blur, pause, inventory, dialogue, and app background.
+- Trigger touch actions on press, suppress followup synthetic duplicate click, keep mouse/keyboard clicks.
+- Choose nearest interactable by physical distance (slightly de-prioritize portal/hound) to favor the NPC being approached.
+- Autosave when the app backgrounds or navigates. Restart on service-worker update only once per version and check for updates on load, resume, and focus.
+- Fix offline Home Screen reloads with versioned launch URLs; keep HTML/JS network-first and assets offline-cached.
+- Surface live running **v1.2.2** in Journey Menu, improve narrow-landscape safe area/HUD fit and modal scrolling.
+- Protected the approved Wanderer sprite atlas, Warden Hal art, all hero animation selection, player physics/combat tick, inventory/quest data, and `veilward-hollowreach-v01` save key.
+- **Synthetic QA passed** (touch 10, targeting 6, SW activation/offline); device-level iPhone testing is pending. Phase 3 not started.
+
+**Full checklist:** [tests/phase2_mobile_qa.md](./tests/phase2_mobile_qa.md). **Next:** Phase 3 — traversal & environment cohesion, only after user says continue.
+
+---
+
 # Veilward v1.2.1 — Hollowreach polish sprint: Phase 1
 
 **Implemented and tested (simulated Canvas):**

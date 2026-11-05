@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v0.8: responsive direction-aware movement animation and collision. */
+/* VEILWARD — Hollowreach v1.2.2: mobile controls, action reliability, PWA updates. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -10,6 +10,7 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
+const APP_VERSION="1.2.2";
 const SAVE="veilward-hollowreach-v01";
 const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:3,sceneVersion:5,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
 let pendingTravel=null;
@@ -31,6 +32,10 @@ function setHint(s){hint=s;$("hint").textContent=s;$("hint").style.display=s?"bl
 function save(silent=false){try{p.lastSave=Date.now();localStorage.setItem(SAVE,JSON.stringify(p));if(!silent)notify("Journey saved at Hollowreach")}catch(e){if(!silent)notify("Saving is unavailable in this browser")}}
 function load(){try{let v=JSON.parse(localStorage.getItem(SAVE));if(v&&v.zone&&C[v.zone])p={...JSON.parse(JSON.stringify(DEFAULT)),...v,skills:{...DEFAULT.skills,...(v.skills||{})}}}catch(e){}}
 function reset(){localStorage.removeItem(SAVE);p=JSON.parse(JSON.stringify(DEFAULT));setup();closeAll();notify("A new journey begins")}
+function clearJoystick(){
+ joy={x:0,y:0,pid:null};
+ const knob=$("knob");if(knob)knob.style.transform="";
+}
 function newEnemy(x,y,type,zone){return{x,y,homeX:x,homeY:y,type,zone,hp:type==="bandit"?70:type==="wraith"?95:40,max:type==="bandit"?70:type==="wraith"?95:40,atk:0,wind:0,stun:0,dead:false,dir:1,step:0,loot:false}}
 function setup(){
 enemies={village:[],wilds:[
@@ -281,9 +286,13 @@ function nearest(){
  // Physical pick-ups have shorter radii so they cannot be collected from afar.
  const reach={forge:185,inn:140,hunter:133,guard:135,hermit:145,hound:100,
               portal:100,board:112,herb:75,scar:150,chest:90};
+ // Prefer the character genuinely standing closest to the player.
+ // Portal/hound penalties avoid stealing nearby dialogue and quest targets.
+ const priority={portal:24,hound:12,board:5};
  list=list.map(n=>({...n,reach:reach[n.interaction]||100,dist:dist(n,p)}))
           .filter(n=>n.dist<=n.reach)
-          .sort((a,b)=>(a.dist/a.reach)-(b.dist/b.reach));
+          .sort((a,b)=>(a.dist+(priority[a.interaction]||0))-
+                       (b.dist+(priority[b.interaction]||0)));
  return list[0]||null
 }
 function interact(){if(modal||!active)return;let target=nearest();if(!target){notify("No one nearby to interact with");return}if(target.interaction==="portal"){changeZone(target.to,target.tx,target.ty);return}
@@ -299,9 +308,9 @@ if(target.interaction==="hound"){showDialog("Ash the Village Hound","The gray ho
 if(target.interaction==="hermit"){showDialog("The Green Hermit","The land remembers what the sky has forgotten. Seek the glowing stones at the old altar. They know your name.",[{text:"I will investigate",action:closeAll}]);return}
 }
 function shop(title){showDialog(title,"Joren offers a keenly balanced blade, forged here in Hollowreach.",[{text:"Buy Tempered Sword (65 gold)",action:()=>{if(p.gold<65){notify("Not enough gold");closeAll();return}p.gold-=65;p.weapon="Tempered Steel Sword";notify("Equipped: Tempered Steel Sword");save(true);closeAll()}},{text:"Leave the forge",action:closeAll}])}
-function showDialog(title,body,choices){modal=true;$("dialogTitle").textContent=title;$("dialogText").textContent=body;const root=$("choices");root.innerHTML="";for(let ch of choices){let b=document.createElement("button");b.className="choice";b.textContent=ch.text;b.onclick=ch.action;root.appendChild(b)}$("dialog").style.display="block"}
+function showDialog(title,body,choices){clearJoystick();modal=true;$("dialogTitle").textContent=title;$("dialogText").textContent=body;const root=$("choices");root.innerHTML="";for(let ch of choices){let b=document.createElement("button");b.className="choice";b.textContent=ch.text;b.onclick=ch.action;root.appendChild(b)}$("dialog").style.display="block"}
 function closeAll(){modal=false;for(let id of ["dialog","pause","inventory"])$(id).style.display="none"}
-function openInv(tab="pack"){if(!active)return;closeAll();modal=true;invTab=tab;$("inventory").style.display="block";renderInventory()}
+function openInv(tab="pack"){if(!active)return;clearJoystick();closeAll();modal=true;invTab=tab;$("inventory").style.display="block";renderInventory()}
 function renderInventory(){document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("selected",t.dataset.tab===invTab));let s="",b=$("inventoryBody");
 if(invTab==="pack"){s='<p style="font-size:12px;color:#c1ba9d">Gold: '+p.gold+' ✦ &nbsp; • &nbsp; Equipped: '+p.weapon+'</p>';
 for(let [n,info] of [[p.weapon,"Equipped · Weapon"],[p.armor,"Equipped · Armor"],["Healing Potion × "+p.potions,"Restores 60 Health"],["Blueleaf Sprig × "+p.herbs,"Alchemical Herb"],...(p.supplies?[["Stolen Caravan Supplies","Quest item"]]:[])])s+='<div class="item"><b>'+n+'</b><span>'+info+'</span></div>';
@@ -311,12 +320,46 @@ for(let [n,val]of Object.entries(p.skills))s+='<div class="item"><b>'+n[0].toUpp
 s+='<div class="item"><b>Level '+p.lv+'</b><span>Health '+p.hpMax+' · Magicka '+p.mpMax+'</span></div>'}
 if(invTab==="journal"){s='<h3 style="color:#dfc086">'+$("questTitle").textContent+'</h3><p>'+$("questText").textContent+'</p><p>Rumors: bandits in the forest, a missing hunter, a violet glow near ancient ruins.</p><p>Enemies defeated: '+p.kills+'</p>'}
 if(invTab==="map"){s='<p>Hollowreach Province — your explored locations</p><div style="width:100%;height:145px;position:relative;border:2px solid #79654b;background:radial-gradient(circle at 45% 45%,#869c8a 0,#425e57 65%,#213a42 100%);overflow:hidden"><div style="position:absolute;left:9%;top:24%;font-size:13px">🏠 Hollowreach</div><div style="position:absolute;left:47%;top:55%;font-size:13px">🌲 Greenwood</div><div style="position:absolute;left:75%;top:13%;font-size:13px">◈ Cave</div><div style="position:absolute;left:58%;top:77%;font-size:11px;color:#ecd7a4">✦ You are in '+p.zone+'</div></div><p style="font-size:11px">Travel east from the village to reach Greenwood. Find the cave in the northeast forest.</p>'}b.innerHTML=s}
-function bind(){const move=$("move"),knob=$("knob");const upd=e=>{let b=move.getBoundingClientRect(),dx=e.clientX-(b.left+b.width/2),dy=e.clientY-(b.top+b.height/2),m=Math.hypot(dx,dy),rad=b.width*.33;joy.x=clamp(dx/rad,-1,1);joy.y=clamp(dy/rad,-1,1);if(m>rad){joy.x=dx/m;joy.y=dy/m}knob.style.transform="translate("+joy.x*rad+"px,"+joy.y*rad+"px)"};
-move.addEventListener("pointerdown",e=>{e.preventDefault();joy.pid=e.pointerId;move.setPointerCapture(e.pointerId);upd(e)});
-move.addEventListener("pointermove",e=>{if(joy.pid===e.pointerId)upd(e)});
-function off(e){if(joy.pid===e.pointerId){joy={x:0,y:0,pid:null};knob.style.transform=""}}
-move.addEventListener("pointerup",off);move.addEventListener("pointercancel",off);
-[["attackBtn",attack],["spellBtn",spell],["dodgeBtn",dodge],["interactBtn",interact],["potionBtn",potion],["bagBtn",()=>openInv()],["mapBtn",()=>openInv("map")],["pauseBtn",()=>{modal=true;$("pause").style.display="block"}],["closeDialog",closeAll],["closeInventory",closeAll],["closePause",closeAll],["resumeBtn",closeAll],["saveBtn",()=>save()],["resetBtn",()=>{if(confirm("Erase the journey on this device and begin again?"))reset()}],["beginBtn",()=>{
+function bind(){
+ const move=$("move"),knob=$("knob");
+ const upd=e=>{
+  const b=move.getBoundingClientRect();
+  const dx=e.clientX-(b.left+b.width/2),dy=e.clientY-(b.top+b.height/2);
+  const m=Math.hypot(dx,dy),rad=b.width*.33;
+  joy.x=m>rad?dx/m:dx/rad;
+  joy.y=m>rad?dy/m:dy/rad;
+  knob.style.transform="translate("+joy.x*rad+"px,"+joy.y*rad+"px)";
+ };
+ move.addEventListener("pointerdown",e=>{
+  if(!active||modal||joy.pid!==null)return;
+  e.preventDefault();
+  joy.pid=e.pointerId;
+  try{move.setPointerCapture(e.pointerId)}catch(error){}
+  upd(e);
+ },{passive:false});
+ move.addEventListener("pointermove",e=>{
+  if(joy.pid!==e.pointerId)return;
+  e.preventDefault();upd(e);
+ },{passive:false});
+ function releasePointer(e){if(joy.pid===e.pointerId)clearJoystick();}
+ move.addEventListener("pointerup",releasePointer);
+ move.addEventListener("pointercancel",releasePointer);
+ move.addEventListener("lostpointercapture",releasePointer);
+ // Touch actions are immediate, with the corresponding click consumed once.
+ function bindActionButton(id,fn){
+  const button=$(id);
+  let lastTouch=-1e9;
+  button.addEventListener("pointerdown",e=>{
+   if(e.pointerType==="mouse")return;
+   e.preventDefault();lastTouch=performance.now();fn();
+  },{passive:false});
+  button.addEventListener("click",e=>{
+   e.preventDefault();
+   if(performance.now()-lastTouch<650)return;
+   fn();
+  });
+ }
+[["attackBtn",attack],["spellBtn",spell],["dodgeBtn",dodge],["interactBtn",interact],["potionBtn",potion],["bagBtn",()=>openInv()],["mapBtn",()=>openInv("map")],["pauseBtn",()=>{clearJoystick();modal=true;$("pause").style.display="block"}],["closeDialog",closeAll],["closeInventory",closeAll],["closePause",closeAll],["resumeBtn",closeAll],["saveBtn",()=>save()],["resetBtn",()=>{if(confirm("Erase the journey on this device and begin again?"))reset()}],["beginBtn",()=>{
   if(window.VeilwardArt&&!window.VeilwardArt.sceneReady(p.zone)){
    const failed=window.VeilwardArt.sceneError(p.zone);
    $("beginBtn").textContent=failed?"RETRY LOADING THE WORLD":"LOADING HOLLOWREACH…";
@@ -324,11 +367,17 @@ move.addEventListener("pointerup",off);move.addEventListener("pointercancel",off
    return;
   }
   active=true;$("start").style.display="none";notify("Welcome to Hollowreach")
- }]].forEach(([id,fn])=>{$(id).addEventListener("click",e=>{e.preventDefault();fn()})});
+ }]].forEach(([id,fn])=>bindActionButton(id,fn));
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{invTab=t.dataset.tab;renderInventory()}));
 addEventListener("keydown",e=>{if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.repeat)return;if(e.code==="Escape"){closeAll();return}if(!active||modal)return;if(e.code==="Space"||e.code==="KeyJ")attack();if(e.code==="KeyQ"||e.code==="KeyK")spell();if(e.code==="KeyE"||e.code==="KeyF")interact();if(e.code==="ShiftLeft"||e.code==="ShiftRight")dodge();if(e.code==="KeyI"||e.code==="Tab")openInv();if(e.code==="KeyH")potion()});
-addEventListener("keyup",e=>{keys[e.code]=false});addEventListener("blur",()=>{keys={};joy={x:0,y:0,pid:null};knob.style.transform=""});addEventListener("pagehide",()=>save(true));
-document.addEventListener("touchmove",e=>{if(!e.target.closest("#inventory,#dialog,#pause"))e.preventDefault()},{passive:false});
+addEventListener("keyup",e=>{keys[e.code]=false});addEventListener("blur",()=>{keys={};clearJoystick()});
+ addEventListener("pagehide",()=>{clearJoystick();save(true)});
+ document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden"){keys={};clearJoystick();save(true)}
+ });
+document.addEventListener("touchmove",e=>{
+  if(!e.target.closest("#inventory,#dialog,#pause,#start"))e.preventDefault();
+ },{passive:false});
 }
 function tick(dt){
 if(!active||modal)return;
@@ -453,35 +502,50 @@ if(!terrainCache[p.zone])generate(p.zone);
 $("location").textContent=C[p.zone].label;
 refreshStartStatus();
 requestAnimationFrame(frame);
-// Keep the iOS Home Screen installation current, not just Safari.
+if($("buildVersion"))$("buildVersion").textContent="v"+APP_VERSION;
+// Installed iPhone app and Safari both check for updates on boot and resume.
 if("serviceWorker" in navigator){
- const BUILD="1.2.1";
- let checking=false,refreshing=false;
- async function checkGameUpdates(){
-  if(checking)return;
-  checking=true;
+ const BUILD=APP_VERSION;
+ let updating=false,reloading=false;
+ function reloadUpdatedClient(version){
+  const next=version||BUILD;
+  if(reloading||(next===BUILD&&new URL(location.href).searchParams.get("vwbuild")===BUILD))return;
   try{
-   const registration=await navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"});
+   const key="veilward-reloaded-"+next;
+   if(sessionStorage.getItem(key)==="1")return;
+   sessionStorage.setItem(key,"1");
+  }catch(error){}
+  clearJoystick();save(true);
+  reloading=true;
+  const url=new URL(location.href);
+  url.searchParams.set("vwbuild",next);
+  location.replace(url.toString());
+ }
+ async function checkGameUpdates(){
+  if(updating)return;
+  updating=true;
+  try{
+   const registration=await navigator.serviceWorker.register("./sw.js",{
+    updateViaCache:"none"
+   });
    await registration.update();
    if(registration.waiting)registration.waiting.postMessage({type:"SKIP_WAITING"});
-  }catch(err){console.warn("Veilward update check failed",err)}
-  finally{checking=false}
+  }catch(error){console.warn("Veilward update check failed",error)}
+  finally{updating=false}
  }
  navigator.serviceWorker.addEventListener("controllerchange",()=>{
-  if(refreshing)return;
-  refreshing=true;
-  try{
-   const key="veilward-worker-reloaded";
-   if(sessionStorage.getItem(key)!==BUILD){
-    sessionStorage.setItem(key,BUILD);
-    location.reload();
-   }
-  }catch(error){location.reload()}
+  reloadUpdatedClient(BUILD);
+ });
+ navigator.serviceWorker.addEventListener("message",event=>{
+  if(event.data?.type==="VEILWARD_BUILD_UPDATED"&&event.data.build!==BUILD)
+   reloadUpdatedClient(event.data.build);
  });
  window.addEventListener("load",checkGameUpdates);
- window.addEventListener("pageshow",event=>{if(event.persisted)checkGameUpdates()});
+ window.addEventListener("pageshow",checkGameUpdates);
+ window.addEventListener("focus",checkGameUpdates);
  document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="visible")checkGameUpdates();
+  if(document.visibilityState==="visible")checkGameUpdates()
  });
 }
+
 })();
