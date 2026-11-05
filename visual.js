@@ -1,11 +1,11 @@
-/* VEILWARD — NPC FOOT ANCHORS AND LABEL POSITIONS v1.2.2
+/* VEILWARD — GROUNDED TRAVEL LANDMARKS v1.2.3
  * A unified four-pose, eight-facing, 32-frame authored hero atlas.
  * Shared physical proportions, full-body foot anchor, consistent armor/scarf/sword.
  * Combat effects remain enabled; new direction-specific attack/cast sprites are future work.
  */
 (function(){
 "use strict";
-const ROOT="./assets/",ART="19";
+const ROOT="./assets/",ART="20";
 const files={village:"village_v06_clear.jpg",wilds:"wilds_clean.jpg",cave:"cave_clean.jpg",forge:"forge.jpg"};
 const scene=Object.create(null);
 let npcAtlas=null,heroAtlas=null,adultFrontAtlas=null,wardenSprite=null;
@@ -256,9 +256,36 @@ function glows(ctx,zone,time){
  }
  ctx.restore();
 }
+
+function routeGlows(ctx,zone,time){
+ // Tiny, ground-level guidance integrated with the painted scenery.
+ // These are intentionally SOFT environmental glows, not icon art or
+ // artificial floating arrows obscuring the golden reference images.
+ if(!sceneReady(zone))return;
+ const landmarks={
+  village:[[1070,1090,228,188,125]],
+  wilds:[[540,1068,160,190,121],[1700,745,207,187,125]],
+  cave:[[344,786,173,143,210]]
+ };
+ const points=landmarks[zone]||[];
+ if(!points.length)return;
+ ctx.save();
+ for(let i=0;i<points.length;i++){
+  const [x,y,r,g,b]=points[i],pulse=.89+.11*Math.sin(time*1.8+i*2.3);
+  const radius=44*pulse;
+  const gradient=ctx.createRadialGradient(x,y-5,2,x,y-5,radius);
+  gradient.addColorStop(0,"rgba("+r+","+g+","+b+",.14)");
+  gradient.addColorStop(.52,"rgba("+r+","+g+","+b+",.055)");
+  gradient.addColorStop(1,"rgba("+r+","+g+","+b+",0)");
+  ctx.fillStyle=gradient;
+  ctx.fillRect(x-radius,y-5-radius,2*radius,2*radius);
+ }
+ ctx.restore();
+}
+
 function blocked(zone,x,y){return x<65||y<70||x>1815||y>1160}
 window.VeilwardArt={
- background,actor,glows,blocked,sceneReady,sceneError,retryScene,
+ background,actor,glows,routeGlows,blocked,sceneReady,sceneError,retryScene,
  directionRow,sequence,approvedSequence,actorTopOffset,
  actorMetrics:kind=>({...actorCellMetrics[kind]||FALLBACK_METRICS}),
  sheetDimensions:()=>({...HERO}),
@@ -266,6 +293,6 @@ window.VeilwardArt={
  adultFrontLoaded:()=>!!(adultFrontAtlas?.complete&&adultFrontAtlas.naturalWidth===336),
  ready:()=>!!(scene.village&&heroAtlas&&npcAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
  spritesReady:()=>!!(heroAtlas&&heroAtlas.complete&&heroAtlas.naturalWidth),
- version:"1.2.2"
+ version:"1.2.3"
 };
 })();

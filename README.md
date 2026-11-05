@@ -1,3 +1,19 @@
+# Veilward v1.2.3 — Hollowreach polish sprint: Phase 3
+
+**Playable-world changes pushed to GitHub:**
+- Reopened the **upper Smuggler's Hollow shrine** by correcting the overly broad stone-pylon collider. Cave arrival, stolen supplies, both cave exits and the shrine now share the same walkable network; no new walk-through-void shortcut was added.
+- Moved cave → Greenwood return spawn to `1520,720` and Greenwood → village return spawn to `960,925`, avoiding instant re-entry into the portal while keeping painted ground underfoot.
+- Added a short post-travel portal cooldown, queued destination-image loading (no overlapping requests), and a safe joystick reset on travel.
+- Unified save-spawn safety with the actual player radius (8 units) and added gentle floor-level route/arrival lighting that stays behind character sprites.
+- All scene JPGs and **both approved hero/NPC sprite assets are unchanged**. Village, forest and cave game images remain their authored painted backgrounds.
+- Bumped navigation/visual/game and service-worker cache to `v1.2.3`; no save-key migration or quest reset.
+
+**Verification:** All three zone collision regions connected; all 15 listed destination/objective anchors walkable and graph-connected; seven 8-radius `projectMotion` route replays including the formerly inaccessible shrine passed without stuck steps. Rendered glow initialization smoke tests passed. Real iPhone playtest pending; bridge-rail occlusion and hand-drawn foreground depth should still be visually reviewed on the device, not falsely declared perfect.
+
+[Detailed Phase 3 traversal QA](./tests/phase3_traversal_qa.md). Next on user's command: Phase 4 — combat feel/fairness. Phase 4 not started.
+
+---
+
 # Veilward v1.2.2 — Hollowreach polish sprint: Phase 2
 
 **Actual playable-game improvements (iPhone controls + Home Screen reliability):**

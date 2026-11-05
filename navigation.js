@@ -1,4 +1,4 @@
-/* VEILWARD: Hollowreach scene navigation v0.3.
+/* VEILWARD: Hollowreach scene navigation v0.6.
  * The illustration is scenery, NOT traversable geometry. Authored playable
  * ground polygons at native scene reference resolution 900x584; internally
  * converted to world coordinates (1850x1200).
@@ -99,8 +99,10 @@ const zones={
   solids:[
    // Cliff faces and open chasms.
    [[0,201],[215,211],[297,331],[252,365],[0,315]],
-   // Tall carved stone pylon.
-   [[730,102],[790,91],[804,272],[741,265]]
+   // Pillar's raised stone base ends at the top of the treaded stairs.
+   // The old polygon extended through the stair landing and completely
+   // severed the upper Worldscar shrine from the lower cave path.
+   [[730,102],[790,91],[795,211],[740,224]]
   ],
   starts:[[775,741],[344,786],[888,689]]
  }
@@ -134,7 +136,7 @@ function canWalk(zone,x,y,radius=8){
  return true;
 }
 function safePoint(zone,x,y){
- if(canWalk(zone,x,y,6))return{x,y};
+ if(canWalk(zone,x,y,8))return{x,y};
  const z=zones[zone];if(!z)return{x:900,y:625};
  let best=null,d=Infinity;
  // Always relocate from an old save or obstruction to the closest safe
@@ -142,14 +144,14 @@ function safePoint(zone,x,y){
  for(let r=15;r<=500;r+=15){
   for(let k=0;k<32;k++){
    const a=2*Math.PI*k/32,nx=x+Math.cos(a)*r,ny=y+Math.sin(a)*r;
-   if(canWalk(zone,nx,ny,6)){const dd=(nx-x)**2+(ny-y)**2;if(dd<d){best={x:nx,y:ny};d=dd}}
+   if(canWalk(zone,nx,ny,8)){const dd=(nx-x)**2+(ny-y)**2;if(dd<d){best={x:nx,y:ny};d=dd}}
   }
   if(best)return best;
  }
- for(const [sx,sy]of z.starts){if(canWalk(zone,sx,sy,6))return{x:sx,y:sy}}
+ for(const [sx,sy]of z.starts){if(canWalk(zone,sx,sy,8))return{x:sx,y:sy}}
  // Last-resort search the center of valid ground in the whole map.
  for(let yy=150;yy<1150;yy+=15)for(let xx=150;xx<1800;xx+=15)
-  if(canWalk(zone,xx,yy,4))return{x:xx,y:yy};
+  if(canWalk(zone,xx,yy,8))return{x:xx,y:yy};
  return {x:900,y:625};
 }
 function projectMotion(zone,x,y,dx,dy,radius=8){
@@ -168,5 +170,5 @@ function drawDebug(ctx,zone){const z=zones[zone];if(!z)return;ctx.save();ctx.sca
  for(const [list,col] of [[z.ground,'#37ed5a44'],[z.solids,'#fb244a99']]){
   for(const a of list){ctx.beginPath();ctx.moveTo(...a[0]);for(const pt of a.slice(1))ctx.lineTo(...pt);ctx.closePath();ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#ffeeaa';ctx.lineWidth=.9;ctx.stroke()}
  }ctx.restore()}
-window.VeilwardNav={canWalk,safePoint,projectMotion,drawDebug,zones,version:'0.5.0'};
+window.VeilwardNav={canWalk,safePoint,projectMotion,drawDebug,zones,version:'0.6.0'};
 })();

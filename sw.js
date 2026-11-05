@@ -1,17 +1,17 @@
-/* VEILWARD 1.2.2 — mobile app update reliability on Home Screen and Safari.
+/* VEILWARD 1.2.3 — connected travel routes and cave shrine access on Home Screen and Safari.
    Use network-first for HTML/scripts, and preserve offline assets. */
-const BUILD="1.2.2";
-const CACHE="veilward-hollowreach-v122-mobile-reliability";
+const BUILD="1.2.3";
+const CACHE="veilward-hollowreach-v123-cross-biome-travel";
 const FILES=[
- "./","./index.html","./game.js?v=14","./navigation.js?v=7",
- "./visual.js?v=29","./visual.css?v=8","./manifest.webmanifest?v=122","./icon.svg",
- "./assets/village_v06_clear.jpg?art=19","./assets/wilds_clean.jpg?art=19",
- "./assets/cave_clean.jpg?art=19","./assets/forge.jpg?art=19",
- "./assets/actors_v07.png?art=19",
- "./assets/warden_hal_v13.png?art=19",
- "./assets/hero_full_8way_v10.png?art=19",
- "./assets/hero_approved_8way_v12.webp?art=19",
- "./assets/hero_front_adult_v11.png?art=19"
+ "./","./index.html","./game.js?v=15","./navigation.js?v=8",
+ "./visual.js?v=30","./visual.css?v=8","./manifest.webmanifest?v=123","./icon.svg",
+ "./assets/village_v06_clear.jpg?art=20","./assets/wilds_clean.jpg?art=20",
+ "./assets/cave_clean.jpg?art=20","./assets/forge.jpg?art=20",
+ "./assets/actors_v07.png?art=20",
+ "./assets/warden_hal_v13.png?art=20",
+ "./assets/hero_full_8way_v10.png?art=20",
+ "./assets/hero_approved_8way_v12.webp?art=20",
+ "./assets/hero_front_adult_v11.png?art=20"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{

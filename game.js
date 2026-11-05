@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v1.2.2: mobile controls, action reliability, PWA updates. */
+/* VEILWARD — Hollowreach v1.2.3: traversable world routes and seamless biome arrivals. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -10,10 +10,10 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
-const APP_VERSION="1.2.2";
+const APP_VERSION="1.2.3";
 const SAVE="veilward-hollowreach-v01";
 const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:3,sceneVersion:5,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
-let pendingTravel=null;
+let pendingTravel=null,travelCooldown=0,arrivalPulse=0;
 let p=JSON.parse(JSON.stringify(DEFAULT)),enemies={village:[],wilds:[],cave:[],forge:[]},npc=[],objects=[],worldTime=0,invTab="pack",attacks=[],autosaveClock=0;
 function rand(seed){let x=Math.sin(seed*127.1+78.233)*43758.5453;return x-Math.floor(x)}
 function rng(n){return rand(n*1.931+0.321)}
@@ -56,12 +56,12 @@ objects=[
  // characters: every named character now has its own live rendering and dialog.
  {zone:"village",type:"portal",x:1070,y:1090,to:"wilds",tx:735,ty:991,label:"Greenwood Trail"},
  {zone:"village",type:"board",x:774,y:568,label:"Trail Noticepost"},
- {zone:"wilds",type:"portal",x:540,y:1068,to:"village",tx:1070,ty:990,label:"Frostbridge Outpost"},
+ {zone:"wilds",type:"portal",x:540,y:1068,to:"village",tx:960,ty:925,label:"Frostbridge Outpost"},
  {zone:"wilds",type:"portal",x:1700,y:745,to:"cave",tx:775,ty:741,label:"Smuggler's Cave"},
  {zone:"wilds",type:"herb",x:400,y:760,label:"Blueleaf Sprig"},
  {zone:"wilds",type:"herb",x:1190,y:714,label:"Blueleaf Sprig"},
  {zone:"wilds",type:"scar",x:1480,y:420,label:"Shimmering Worldscar"},
- {zone:"cave",type:"portal",x:344,y:786,to:"wilds",tx:1644,ty:737,label:"Greenwood Trail"},
+ {zone:"cave",type:"portal",x:344,y:786,to:"wilds",tx:1520,ty:720,label:"Greenwood Trail"},
  {zone:"cave",type:"chest",x:888,y:689,label:"Bandit Supplies"}
 ];
 if(p.herbs)objects.filter(o=>o.type==="herb").slice(0,p.herbs).forEach(o=>o.taken=true);
@@ -252,22 +252,28 @@ function safePosition(zone,x,y){
  return window.VeilwardNav?.safePoint(zone,x,y)||{x,y};
 }
 function changeZone(z,tx,ty){
+ if(!C[z])return;
+ // Queue one travel when an illustrated world image has not loaded yet.
  if(window.VeilwardArt&&!window.VeilwardArt.sceneReady(z)){
-   pendingTravel={z,tx,ty};
-   notify("Loading "+(C[z]?.label||z)+"...");
-   if(window.VeilwardArt.sceneError(z))window.VeilwardArt.retryScene(z);
-   return;
+  if(pendingTravel?.z===z)return;
+  pendingTravel={z,tx,ty};
+  notify("Loading "+C[z].label+"...");
+  if(window.VeilwardArt.sceneError(z))window.VeilwardArt.retryScene(z);
+  return;
  }
  pendingTravel=null;
  const safe=safePosition(z,tx,ty);
  p.zone=z;p.x=safe.x;p.y=safe.y;p.dodgeTime=0;p.dodgeV=0;p.invuln=1;
- joy.x=0;joy.y=0;p.navVersion=3;
+ // Combined with safer spawns, avoids double tap returning immediately.
+ travelCooldown=1.2;arrivalPulse=.95;
+ clearJoystick();
+ p.navVersion=3;
  particles=[];projectiles=[];effects=[];
  cam.x=clamp(p.x-viewWidth()/2,0,Math.max(0,WORLD.w-viewWidth()));
  cam.y=clamp(p.y-viewHeight()/2,0,Math.max(0,WORLD.h-viewHeight()));
  if(!terrainCache[z])generate(z);
  $("location").textContent=C[z].label;
- notify("Discovered: "+C[z].label);save(true)
+ notify("Arrived: "+C[z].label);save(true)
 }
 function updateUI(){
 $("hp").style.width=clamp(p.hp/p.hpMax*100,0,100)+"%";$("mp").style.width=clamp(p.mp/p.mpMax*100,0,100)+"%";$("st").style.width=clamp(p.st/100*100,0,100)+"%";$("level").textContent="LV "+p.lv;
@@ -295,7 +301,7 @@ function nearest(){
                        (b.dist+(priority[b.interaction]||0)));
  return list[0]||null
 }
-function interact(){if(modal||!active)return;let target=nearest();if(!target){notify("No one nearby to interact with");return}if(target.interaction==="portal"){changeZone(target.to,target.tx,target.ty);return}
+function interact(){if(modal||!active)return;let target=nearest();if(!target){notify("No one nearby to interact with");return}if(target.interaction==="portal"){if(travelCooldown>0||pendingTravel)return;changeZone(target.to,target.tx,target.ty);return}
 if(target.interaction==="herb"){objects.find(o=>o.zone===target.zone&&o.x===target.x&&o.y===target.y).taken=true;p.herbs++;giveXP(13,"survival");notify("Gathered Blueleaf Sprig");save(true);return}
 if(target.interaction==="chest"){objects.find(o=>o.type==="chest").taken=true;p.supplies=true;p.gold+=30;if(p.quest<=2)p.quest=3;notify("Recovered stolen supplies · +30 gold");updateUI();save(true);return}
 if(target.interaction==="scar"){showDialog("The Worldscar","A crystalline fracture hums with impossible light. For a moment you see another sky, behind this one.",[{text:"Touch the fracture",action:()=>{p.mp=p.mpMax;giveXP(35,"sorcery");if(p.quest===4)p.quest=5;save(true);closeAll();notify("Veilcraft awakened · Magicka restored")}},{text:"Leave the anomaly undisturbed",action:closeAll}]);return}
@@ -381,6 +387,8 @@ document.addEventListener("touchmove",e=>{
 }
 function tick(dt){
 if(!active||modal)return;
+travelCooldown=Math.max(0,travelCooldown-dt);
+arrivalPulse=Math.max(0,arrivalPulse-dt);
 worldTime+=dt;night=(Math.sin(worldTime*.018-.6)+1)/2;
 p.attackCd=Math.max(0,(p.attackCd||0)-dt);p.spellCd=Math.max(0,(p.spellCd||0)-dt);p.dodgeCd=Math.max(0,(p.dodgeCd||0)-dt);p.invuln=Math.max(0,(p.invuln||0)-dt);p.attackV=Math.max(0,(p.attackV||0)-dt);
 p.st=Math.min(100,p.st+dt*18);p.mp=Math.min(p.mpMax,p.mp+dt*1.1);
@@ -422,6 +430,17 @@ const targetX=clamp(p.x-viewW*.5,0,Math.max(0,WORLD.w-viewW)),targetY=clamp(p.y-
 g.save();g.scale(WORLD_ZOOM,WORLD_ZOOM);g.translate(-Math.floor(cam.x)+(Math.random()-.5)*shake,-Math.floor(cam.y)+(Math.random()-.5)*shake);
 g.drawImage(terrainCache[p.zone],0,0);
 window.VeilwardArt?.glows(g,p.zone,worldTime);
+window.VeilwardArt?.routeGlows?.(g,p.zone,worldTime);
+// Soft arrival cue is drawn at the feet, blending into painted terrain.
+if(arrivalPulse>0){
+ const alpha=Math.min(.13,arrivalPulse*.13);
+ const rgb=p.zone==="village"?"238,207,150":p.zone==="wilds"?"146,201,154":"167,141,238";
+ const halo=g.createRadialGradient(p.x,p.y-4,4,p.x,p.y-4,86);
+ halo.addColorStop(0,"rgba("+rgb+","+alpha+")");
+ halo.addColorStop(1,"rgba("+rgb+",0)");
+ g.fillStyle=halo;g.fillRect(p.x-86,p.y-90,172,172);
+}
+
 if(typeof location!=="undefined"&&location.search.includes("debugNav"))window.VeilwardNav?.drawDebug(g,p.zone);
 
 let visible=decorCache[p.zone].filter(o=>o.x>cam.x-250&&o.x<cam.x+viewW+250&&o.y>cam.y-250&&o.y<cam.y+viewH+250);

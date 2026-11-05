@@ -24,14 +24,14 @@
 - **Acceptance:** New build can be identified in the app; no observed code-level update loop; saves persist; directional movement and actions work in simulated or available device tests. Real device confirmation remains user-owned.
 
 ### Phase 3 — Traversal and cross-biome environmental coherence (30-minute target)
-**Status: NOT STARTED — wait for next explicit continuation**
+**Status: IMPLEMENTED — automated route and collision QA passed; iPhone sign-off pending**
 - Walk through the current village → Greenwood → Smuggler's Hollow navigation/transition code and backtracking.
 - Fix unsafe spawn points, stuck spots, invisible barriers, portal targeting/range, confusing exits and conspicuous image-to-collision disagreements.
 - Refine visibly inconsistent snow/forest/cave visual density, layering and landmarks with small, **implemented** art improvements (not screenshot-only mockups).
 - **Acceptance:** Reach and return from all three zones, with understandable travel points, no known progression-blocking collision, and coherent scene framing.
 
 ### Phase 4 — Combat responsiveness and fairness (25-minute target)
-**Status: NOT STARTED**
+**Status: NOT STARTED — wait for next explicit continuation**
 - Polish existing sword hits, player direction handling, attack range feedback, hit reaction, spell/dodge activation, stamina/mana readability and enemy HP.
 - Inspect current wolves/bandits/wraiths for premature off-screen attacks, unclear telegraphs, unreachable targets and damage timing.
 - Keep this a **polish pass on working systems**; do not falsely claim the separate later Gate 2 systems (bow, shield, 3 spells, elite enemies) are complete.
@@ -90,3 +90,14 @@ This two-hour roadmap is a **focused improvement sprint**, not a claim that the 
 - **Tests passed:** 10 synthetic input/pointer scenarios; 6 interaction-priority scenarios; simulated service-worker activation (single navigation, stale-cache cleanup) and offline versioned URL recovery; source consistency and syntax assertions. No iPhone/browser-device test claimed.
 - **Protected:** approved Wanderer asset, Warden Hal asset, hero rendering branch, physics/combat tick and save key unchanged.
 - **STOP HERE. Phase 3 is not started until creator's next message.**
+
+
+## Phase 3 implementation record (November 4, 2026)
+- **Fully reconnected Smuggler's Hollow:** fixed a cliff/pylon collision footprint that blocked the painted stairway to the upper shrine, turning the isolated platform into a reachable section of the cave rather than allowing collision through the artwork. The cave now has one traversable region.
+- **Safe travel returns:** the Greenwood → Frostbridge return now lands at (960,925), not within the village exit's 100-unit interaction radius; cave → Greenwood return lands at (1520,720), not directly on top of the cave entrance. All four round-trip spawn/exit separations exceed 100 world units and each spawn is on valid, connected ground.
+- **Reliable transitions:** 1.2-second portal cooldown prevents repeated touch inputs from returning the player to the previous zone; a single delayed travel is retained while the destination image loads. The joystick resets on successful travel; existing saves persist.
+- **Collision consistency:** migrated `safePoint` search to the same 8-world-unit collision radius used by player movement, including fallback start points. Kept painted bridge floors and chasm borders impassable except at designed paths.
+- **Painted-scene wayfinding:** added very subdued floor-level landmark glows near the four area exits (1 village, 2 Greenwood, 1 cave) and a short fade-out arrival glow drawn *behind* the actors. No player or NPC character art changed; high-detail painted environments are preserved.
+- **Automated QA:** sampled 3 navigation graphs and found exactly one walkable component per zone. Verified 18 key anchors (NPCs, entrances, quest objectives, upper shrine) accessible. Replayed 7 routes via `projectMotion` totaling 421 discrete grid steps with no stalls/escapes; passed route-glow render smoke checks (1/2/1/0 across village/wilds/cave/forge). Actual iPhone playtest and screenshot approval remain pending.
+- **Updated build/cache:** v1.2.3; `game.js?v=15`, `navigation.js?v=8`, `visual.js?v=30`, `art=20`; canonical `veilward-hollowreach-v01` save key preserved.
+- **STOP HERE** for user review; Phase 4 is not started.
