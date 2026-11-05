@@ -1,3 +1,20 @@
+# Veilward v1.2.6 — Phase 5: Closed introductory quest and complete sprint regression
+
+**Playable update implemented on GitHub:**
+- Joren's missing supplies can be recovered only after accepting the quest and defeating at least one raider in the cave. The chest gives +30 gold once; Joren's hand-in gives +80 gold once and removes the quest item. The Worldscar follow-up completes at quest stage 5, even if attuned early.
+- Persisted **collection flags separately from item counts**: Blueleaf nodes remain harvested after trading them to Mira, the stolen-supplies chest remains empty after delivery, defeated cave bandits stay defeated after relaunch while surviving raiders remain alive, and the Worldscar cannot grant repeated XP.
+- Save migration preserves older playthroughs, including players already holding/delivering supplies; normal quest, level, weapons, gold and herb inventory survive the upgrade. Reset starts a genuinely fresh playable state with all world pickups restored.
+- Improved Journal status, guarded-chest instructions, Joren dialogue, finished quest feedback, and shop duplicate purchase prevention.
+- Versioned Home Screen app update \`v1.2.6\` and new \`quest.js\` loaded before game code; existing player/Warden art assets, winter/forest/cave backgrounds, original save key and combat logic untouched.
+- **Verified in automated simulated QA:** [Phase 5 test suite](./tests/phase5_quest.test.js) 92 assertions. Reran [Phase 3 map traversal](./tests/phase3_scene_geometry.test.js) 1,319 assertions and [Phase 4 combat](./tests/phase4_combat.test.js) 100 assertions. All **1,511** code-level assertions passed. Actual iPhone/screenshot acceptance is still pending.
+- Test all three suites with \`npm test\` (no runtime dependencies).
+
+**Sprint summary:** All five planned implementation phases are complete, but **Gate 1 art approval and real iPhone playtest are NOT complete**. Further development awaits the creator's evaluation, not automatic Phase 6.
+
+[Detailed Phase 5 regression and iPhone checklist](./tests/phase5_quest_qa.md)
+
+---
+
 # Veilward v1.2.5 — Phase 4: Responsive, readable combat
 
 **New playable-game combat improvements:**

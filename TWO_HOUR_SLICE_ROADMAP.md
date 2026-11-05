@@ -38,7 +38,7 @@
 - **Acceptance:** Existing encounters offer readable warnings, consistent damage and responsive controls with no obvious unfair instant hits or missing action feedback.
 
 ### Phase 5 — Introductory quest closure and regression QA (20-minute target)
-**Status: NOT STARTED — STOP until user's next continuation**
+**Status: IMPLEMENTED v1.2.6 — 92 full game-session checks and earlier phase regressions passed; iPhone acceptance pending**
 - Test the actual route from meeting Joren, exploring Greenwood and the bandit cave, retrieving supplies, returning the items and earning rewards.
 - Fix observed quest state, NPC dialogue, inventory, loot/reward and save/reload defects; check progression after returning from a zone.
 - Run syntax and relevant automated/simulated regression checks for all changed files. Verify assets referenced by service worker and HTML; report device-specific items honestly.
@@ -134,3 +134,20 @@ This two-hour roadmap is a **focused improvement sprint**, not a claim that the 
 - Executable `node tests/phase4_combat.test.js` passed **99 assertions** including facing, blockers, hit timing, interruptions, cooldowns, orb collision, player animation guard, script ordering, mobile cache coherency, and enemy spawns. This is a Node/synthetic verification **not an iPhone animation sign-off**.
 - Build `v1.2.5`, `combat.js?v=1`, `game.js?v=17`, `navigation.js?v=10`, `visual.js?v=32`, `visual.css?v=9`, `?art=22`, worker cache `veilward-hollowreach-v125-combat-fairness`.
 - **Stop at Phase 4**. Phase 5 remains untouched until the creator's next “continue development” instruction.
+
+
+## Phase 5 completion record (November 5, 2026)
+
+**Implemented in the actual playable game, not only in plans:**
+- Created \`quest.js\` to track **permanent world pickup** and quest milestones separately from consumable inventory counts. Save migration preserves legacy current saves through the original \`veilward-hollowreach-v01\` key, including quest 3 hand-in saves and already-delivered quest 4+ saves.
+- Joren: existing quest stages 0→1→2→3→4→5 now form a closed, repeat-safe progression. Starting a quest happens once; Greenwood arrival activates the cave objective; at least one actual cave bandit must be defeated before the crate may be recovered; a crate grants +30 gold and XP only once; returning the physical supplies rewards +80 gold and XP exactly once. If a player attuned the Worldscar early, the quest synchronizes directly to stage 5 on hand-in.
+- Cave enemy kills persist by stable source ID across saves, removing respawn-on-reload gold farming and ensuring a defeated raider stays defeated if the app closes before the crate pickup. Only individually defeated cave bandits stay defeated on current saves; older completed saves retain their former cleared-cave behavior.
+- Blueleaf: two individually identified patches persist as harvested even when herbs are later consumed/traded. Mira's herb-for-potion trade no longer reopens spent harvesting spots after reload.
+- Worldscar: first attunement restores magicka, grants XP and advances the follow-up. Repeated interaction shows a quiet fracture without free XP.
+- Shop: already purchased tempered sword cannot be bought and charged again.
+- Improved Journal with live status for recovered/delivered supplies, raider defeated, 0–2 harvested Blueleaf, Worldscar attunement and gold; reset now restores all world pickups, game location, quest state and saves together.
+- Updated JS/PWA/cache references to build \`v1.2.6\`: \`quest.js?v=1\`, \`combat.js?v=2\`, \`game.js?v=18\`, \`navigation.js?v=11\`, \`visual.js?v=33\`, \`visual.css?v=10\`, \`manifest.webmanifest?v=126\`, \`?art=23\`. The approved Wanderer, Warden Hal, world JPG assets and all movement/physics/collision geometry are unchanged.
+- Permanent runnable suite \`tests/phase5_quest.test.js\` replays real \`game.js\` dialogue and progression logic using mocked browser UI and real JSON saves across simulated app restarts; **92 assertions passed**. Prior suites retested on the v1.2.6 release: **1,319 Phase 3 collision/path assertions**, **100 Phase 4 combat assertions**. Total **1,511 passing assertions**. This verifies code logic and simulated navigation, not physical iPhone rendering, audio or touch behavior.
+- Added an npm convenience test command and a regression workflow for every future push/PR.
+
+**No further phase follows automatically.** The five-phase **development sprint is implemented in code**, but the creator's **real device visual approval**, foreground rail/roof occlusion, cross-biome consistency, interaction readability, interior implementation and remaining longer-term canonical art/RPG gates are explicitly **NOT signed off**. Await the creator's feedback and evaluation before setting another roadmap.

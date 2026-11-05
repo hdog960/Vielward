@@ -93,7 +93,7 @@ for(const enemy of [
 ]){
  ok(nav.canWalk(enemy[0],enemy[1],enemy[2],7),"placed enemies are on actual playable floor");
 }
-ok(contents.game.includes('const APP_VERSION="1.2.5";'),"game version advanced");
+ok(/const APP_VERSION="1\.2\.[5-9]";/.test(contents.game),"Phase 4 combat still integrated");
 ok(contents.game.includes('const SAVE="veilward-hollowreach-v01";'),"original save key preserved");
 ok(contents.game.includes("combat.enemyStep(e,p,dt,window.VeilwardNav)"),"live loop uses combat timing");
 ok(contents.game.includes("combat.swordCanHit(p,e,window.VeilwardNav)"),"live sword uses facing/LOS");
@@ -106,9 +106,9 @@ ok(contents.game.includes('id,cost,cooling'),"action affordance state wired");
 ok(contents.game.includes('else if(e.renderType==="player"){drawHero(g,e.x,e.y,0,e.step||0,"#637f96",false,"human",e.attackV||0)}'),"protected Wanderer renderer unchanged");
 ok(contents.visual.includes('load("hero","hero_approved_8way_v12.webp"'),"approved hero asset unchanged");
 ok(contents.visual.includes('load("warden","warden_hal_v13.png"'),"approved Warden Hal asset unchanged");
-ok(contents.html.indexOf("combat.js?v=1")<contents.html.indexOf("game.js?v=17"),"combat script loaded before game");
-for(const asset of ["combat.js?v=1","game.js?v=17","navigation.js?v=10","visual.js?v=32","visual.css?v=9","manifest.webmanifest?v=125"]){
+ok(contents.html.indexOf("combat.js?v=2")<contents.html.indexOf("game.js?v=18"),"combat script loaded before game");
+for(const asset of ["combat.js?v=2","quest.js?v=1","game.js?v=18","navigation.js?v=11","visual.js?v=33","visual.css?v=10","manifest.webmanifest?v=126"]){
  ok(contents.html.includes(asset)&&contents.worker.includes(asset),"PWA/HTML version aligned: "+asset);
 }
-ok(contents.worker.includes('veilward-hollowreach-v125-combat-fairness'),"new mobile cache version");
+ok(contents.worker.includes('veilward-hollowreach-v126-quest-closure'),"new mobile cache version");
 console.log("Veilward Phase 4 PASS:",assertions,"combat assertions, enemy spawn checks and PWA/asset integrity");

@@ -1,0 +1,10 @@
+{
+  "name": "veilward-hollowreach",
+  "version": "1.2.6",
+  "private": true,
+  "description": "Static iPhone action-RPG vertical slice (no runtime packages)",
+  "scripts": {
+    "test": "node tests/phase3_scene_geometry.test.js && node tests/phase4_combat.test.js && node tests/phase5_quest.test.js",
+    "check": "node --check game.js && node --check quest.js && node --check combat.js && node --check navigation.js && node --check visual.js && node --check sw.js"
+  }
+}

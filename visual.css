@@ -83,3 +83,9 @@
   transform:scale(.95);
  }
 }
+
+
+/* Phase 5: Journal milestone rows remain readable on landscape iPhones. */
+#inventoryBody .item{min-width:0;overflow-wrap:anywhere}
+#inventoryBody .item span{max-width:60%;text-align:right}
+#inventoryBody h3{margin-top:8px;margin-bottom:8px;line-height:1.25}

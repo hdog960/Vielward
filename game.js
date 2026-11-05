@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v1.2.5: fair combat and readable enemy attacks. */
+/* VEILWARD — Hollowreach v1.2.6: reliable quest completion and permanent rewards. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -10,9 +10,10 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
-const APP_VERSION="1.2.5";
+const APP_VERSION="1.2.6";
 const SAVE="veilward-hollowreach-v01";
-const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:4,sceneVersion:6,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
+const Q=window.VeilwardQuest;
+const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:4,sceneVersion:6,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,herbHarvested:[],defeatedEnemies:[],suppliesRecovered:false,suppliesDelivered:false,caveBanditCleared:false,scarAttuned:false,questVersion:1,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
 let pendingTravel=null,travelCooldown=0,arrivalPulse=0,lastCombatNotice=-100;
 let p=JSON.parse(JSON.stringify(DEFAULT)),enemies={village:[],wilds:[],cave:[],forge:[]},npc=[],objects=[],worldTime=0,invTab="pack",attacks=[],autosaveClock=0;
 function rand(seed){let x=Math.sin(seed*127.1+78.233)*43758.5453;return x-Math.floor(x)}
@@ -31,7 +32,16 @@ function notify(s){$("toast").textContent=s;$("toast").style.display="block";toa
 function setHint(s){hint=s;$("hint").textContent=s;$("hint").style.display=s?"block":"none"}
 function save(silent=false){try{p.lastSave=Date.now();localStorage.setItem(SAVE,JSON.stringify(p));if(!silent)notify("Journey saved at Hollowreach")}catch(e){if(!silent)notify("Saving is unavailable in this browser")}}
 function load(){try{let v=JSON.parse(localStorage.getItem(SAVE));if(v&&v.zone&&C[v.zone])p={...JSON.parse(JSON.stringify(DEFAULT)),...v,skills:{...DEFAULT.skills,...(v.skills||{})}}}catch(e){}}
-function reset(){localStorage.removeItem(SAVE);p=JSON.parse(JSON.stringify(DEFAULT));setup();closeAll();notify("A new journey begins")}
+function reset(){
+ localStorage.removeItem(SAVE);p=Q.migrate(JSON.parse(JSON.stringify(DEFAULT)));
+ pendingTravel=null;travelCooldown=0;arrivalPulse=0;clearJoystick();
+ projectiles=[];particles=[];effects=[];enemies={village:[],wilds:[],cave:[],forge:[]};
+ setup();closeAll();
+ cam.x=clamp(p.x-viewWidth()/2,0,Math.max(0,WORLD.w-viewWidth()));
+ cam.y=clamp(p.y-viewHeight()/2,0,Math.max(0,WORLD.h-viewHeight()));
+ $("location").textContent=C[p.zone].label;
+ save(true);notify("A new journey begins in Hollowreach")
+}
 function clearJoystick(){
  joy={x:0,y:0,pid:null};
  const knob=$("knob");if(knob)knob.style.transform="";
@@ -58,15 +68,15 @@ objects=[
  {zone:"village",type:"board",x:845,y:600,label:"Trail Noticepost"},
  {zone:"wilds",type:"portal",x:540,y:1068,to:"village",tx:1030,ty:675,label:"Frostbridge Outpost"},
  {zone:"wilds",type:"portal",x:1700,y:745,to:"cave",tx:775,ty:741,label:"Smuggler's Cave"},
- {zone:"wilds",type:"herb",x:500,y:920,label:"Blueleaf Sprig"},
- {zone:"wilds",type:"herb",x:1190,y:714,label:"Blueleaf Sprig"},
+ {zone:"wilds",type:"herb",id:"blueleaf-west",x:500,y:920,label:"Blueleaf Sprig"},
+ {zone:"wilds",type:"herb",id:"blueleaf-east",x:1190,y:714,label:"Blueleaf Sprig"},
  {zone:"wilds",type:"scar",x:1480,y:420,label:"Shimmering Worldscar"},
  {zone:"cave",type:"portal",x:170,y:795,to:"wilds",tx:1520,ty:720,label:"Greenwood Trail"},
  {zone:"cave",type:"chest",x:888,y:689,label:"Bandit Supplies"}
 ];
-if(p.herbs)objects.filter(o=>o.type==="herb").slice(0,p.herbs).forEach(o=>o.taken=true);
-if(p.supplies)objects.find(o=>o.type==="chest").taken=true;
-if(p.zone==="cave"&&p.quest>=3)enemies.cave.forEach(e=>{if(e.type==="bandit")e.dead=true});
+// Restored progress is not inferred from items currently carried. A traded
+// herb or handed-in quest crate must never respawn on later app launches.
+Q.sync(p,objects,enemies);
 updateUI()
 }
 function generate(zone){
@@ -314,7 +324,11 @@ $("hp").style.width=clamp(p.hp/p.hpMax*100,0,100)+"%";$("mp").style.width=clamp(
    button.classList.toggle("combat-cooling",!!cooling);
   });
 const q=[["A Cold Welcome","Speak with Joren the village blacksmith."],["The Missing Supplies","Follow the eastern trail into Greenwood."],["The Missing Supplies","Defeat the bandit raider and find Joren's stolen supplies."],["The Missing Supplies","Return the supplies to Joren in Hollowreach."],["A Whisper in the Stone","Investigate the glowing Worldscar in Greenwood."],["The Frontier Awaits","Explore Hollowreach, recover herbs, and uncover the cave's secret."]];
-const qq=q[clamp(p.quest,0,q.length-1)];$("questTitle").textContent=qq[0];$("questText").textContent=qq[1]}
+const qq=q[clamp(p.quest,0,q.length-1)];
+ $("questTitle").textContent=qq[0];
+ $("questText").textContent=p.quest===2&&p.caveBanditCleared?
+  "The cave raider is defeated. Recover Joren's stolen supplies.":qq[1]
+}
 function giveXP(n,skill){p.xp+=n;if(skill)p.skills[skill]=(p.skills[skill]||1)+.06;while(p.xp>=p.lv*70){p.xp-=p.lv*70;p.lv++;p.hpMax+=10;p.mpMax+=5;p.hp=p.hpMax;p.mp=p.mpMax;notify("LEVEL "+p.lv+" — your legend grows")}updateUI()}
 function attack(){
  if(modal||!active||p.attackCd>0)return;
@@ -355,7 +369,17 @@ function dodge(){
  updateUI()
 }
 function potion(){if(modal||p.potions<=0||p.hp>=p.hpMax)return;p.potions--;p.hp=Math.min(p.hpMax,p.hp+60);notify("Restored 60 health");updateUI();save(true)}
-function killEnemy(e){e.dead=true;p.gold+=e.type==="bandit"?14:5;p.kills++;giveXP(e.type==="bandit"?28:14,"blade");effects.push({x:e.x,y:e.y,t:.6,type:"burst"});notify("Enemy defeated · Gold found");if(p.quest===2&&e.type==="bandit"){notify("The bandits have been scattered. Search their cave!")}save(true)}
+function killEnemy(e){
+ if(e.dead)return;
+ e.dead=true;Q.recordDefeat(p,e);
+ p.gold+=e.type==="bandit"?14:5;p.kills++;
+ giveXP(e.type==="bandit"?28:14,"blade");
+ effects.push({x:e.x,y:e.y,t:.6,type:"burst"});
+ if(p.quest===2&&e.type==="bandit"&&e.zone==="cave")
+  notify("Cave raider defeated · Retrieve the stolen supplies");
+ else notify("Enemy defeated · Gold found");
+ updateUI();save(true)
+}
 function nearest(){
  let list=[...npc.filter(n=>n.zone===p.zone).map(n=>({...n,interaction:n.role})),
            ...objects.filter(o=>o.zone===p.zone&&!o.taken).map(o=>({...o,interaction:o.type}))];
@@ -373,29 +397,118 @@ function nearest(){
  return list[0]||null
 }
 function interact(){if(modal||!active)return;let target=nearest();if(!target){notify("No one nearby to interact with");return}if(target.interaction==="portal"){if(travelCooldown>0||pendingTravel)return;changeZone(target.to,target.tx,target.ty);return}
-if(target.interaction==="herb"){objects.find(o=>o.zone===target.zone&&o.x===target.x&&o.y===target.y).taken=true;p.herbs++;giveXP(13,"survival");notify("Gathered Blueleaf Sprig");save(true);return}
-if(target.interaction==="chest"){objects.find(o=>o.type==="chest").taken=true;p.supplies=true;p.gold+=30;if(p.quest<=2)p.quest=3;notify("Recovered stolen supplies · +30 gold");updateUI();save(true);return}
-if(target.interaction==="scar"){showDialog("The Worldscar","A crystalline fracture hums with impossible light. For a moment you see another sky, behind this one.",[{text:"Touch the fracture",action:()=>{p.mp=p.mpMax;giveXP(35,"sorcery");if(p.quest===4)p.quest=5;save(true);closeAll();notify("Veilcraft awakened · Magicka restored")}},{text:"Leave the anomaly undisturbed",action:closeAll}]);return}
+if(target.interaction==="herb"){
+ const item=objects.find(o=>o.zone===target.zone&&o.id===target.id);
+ if(!item||!Q.harvest(p,item.id)){notify("Already gathered this blueleaf");return}
+ item.taken=true;giveXP(13,"survival");updateUI();
+ notify("Gathered Blueleaf Sprig");save(true);return
+}
+if(target.interaction==="chest"){
+ const state=Q.chestState(p);
+ if(state==="unassigned"){notify("Joren's seal is on the crate. Speak to him first.");return}
+ if(state==="guarded"){notify("Defeat a raider inside the cave before collecting the supplies");return}
+ if(state==="opened"){notify("These supplies have already been recovered");return}
+ if(!Q.takeSupplies(p))return;
+ const chest=objects.find(o=>o.type==="chest");
+ if(chest)chest.taken=true;
+ giveXP(20,"survival");updateUI();save(true);
+ notify("Recovered Joren's supplies · +30 gold");
+ return
+}
+if(target.interaction==="scar"){
+ const already=p.scarAttuned;
+ showDialog("The Worldscar",already?
+  "The fracture is quiet now. Its strange resonance has already awakened within you.":
+  "A crystalline fracture hums with impossible light. For a moment you see another sky, behind this one.",
+  already?[{text:"Step away",action:closeAll}]:[
+   {text:"Touch the fracture",action:()=>{
+    if(Q.attune(p)){giveXP(35,"sorcery");save(true);closeAll();notify("Veilcraft awakened · Magicka restored")}
+    else closeAll();
+   }},
+   {text:"Leave the anomaly undisturbed",action:closeAll}
+  ]);return
+}
 if(target.interaction==="board"){showDialog("Frostbridge Trail Notices","WANTED: Raiders along the eastern road. Also needed: medicinal blueleaf for the inn.",[{text:"Read the notice",action:()=>{notify("Roadward bounty recorded in your journal");closeAll()}},{text:"Step away",action:closeAll}]);return}
-if(target.interaction==="forge"){if(p.quest===0){p.quest=p.supplies?3:1;updateUI();save(true)}showDialog("Joren the Blacksmith",p.quest===3?"By the Skybreak — you found the missing caravan supplies!":p.quest>=4?"Those ruins still trouble me. Follow the violet light in Greenwood and tell me what you discover.":p.quest===1?"My stock has been taken east, toward the forest. Follow the road past the old bridge.":"Raiders took my tools and ore. Would you help an old smith?",p.quest===3?[{text:"Return the supplies (+80 gold)",action:()=>{p.quest=4;p.supplies=false;p.gold+=80;giveXP(75,"survival");save(true);closeAll();notify("Quest complete: The Missing Supplies")}} ,{text:"Keep the supplies for now",action:closeAll}]:[{text:"Show me your wares",action:()=>shop("Joren's Forge")},{text:"I'll investigate",action:closeAll}]);return}
-if(target.interaction==="inn"){showDialog("Mira the Innkeeper",p.herbs>=2?"Those blueleaf sprigs would make excellent medicine. The village is grateful.":"If you're headed beyond the bridge, take care. The forest hasn't been right since the last storm.",[{text:p.herbs>=2?"Trade 2 Blueleaf for a healing potion":"Buy a healing potion (20 gold)",action:()=>{if(p.herbs>=2){p.herbs-=2;p.potions++;notify("Traded blueleaf for a potion")}else if(p.gold>=20){p.gold-=20;p.potions++;notify("Purchased a healing potion")}else notify("Not enough gold");save(true);closeAll()}},{text:"Rest by the hearth (restore health)",action:()=>{p.hp=p.hpMax;p.mp=p.mpMax;save(true);closeAll();notify("Rested at Frostbridge campfire")}},{text:"Goodbye",action:closeAll}]);return}
+if(target.interaction==="forge"){
+ if(Q.begin(p)){updateUI();save(true)}
+ const ready=p.quest===3&&p.supplies;
+ const speech=ready?
+  "By the Skybreak — you found my stolen caravan supplies! You have my thanks.":
+  p.quest>=5?"The supplies are restored, and the strange light is quiet. Hollowreach owes you a debt.":
+  p.quest===4?"You found the missing supplies. The violet light near Greenwood's old stones may reveal more.":
+  p.quest===1?"My stock was stolen east toward Greenwood. Follow the trail past the bridge.":
+  p.quest===2?"Find the bandits' cave. Drive back at least one raider and recover my missing crate.":
+  "Raiders took my tools and ore. Would you help an old smith?";
+ const choices=ready?[
+  {text:"Return the supplies (+80 gold)",action:()=>{
+   if(Q.handIn(p)){
+    giveXP(75,"survival");updateUI();save(true);closeAll();
+    notify("Quest complete: The Missing Supplies · +80 gold");
+   }else{closeAll();notify("The supplies were already delivered")}
+  }},
+  {text:"Keep the supplies for now",action:closeAll}
+ ]:[
+  {text:"Show me your wares",action:()=>shop("Joren's Forge")},
+  {text:"I'll investigate",action:closeAll}
+ ];
+ showDialog("Joren the Blacksmith",speech,choices);return
+}
+if(target.interaction==="inn"){
+ showDialog("Mira the Innkeeper",p.herbs>=2?
+  "Those two blueleaf sprigs would make excellent medicine. I'll trade you a fresh potion.":
+  "If you're headed beyond the bridge, take care. The forest hasn't been right since the storm.",
+  [{text:p.herbs>=2?"Trade 2 Blueleaf for a healing potion":"Buy a healing potion (20 gold)",action:()=>{
+   if(Q.herbTrade(p))notify("Traded 2 blueleaf sprigs for a potion");
+   else if(p.gold>=20){p.gold-=20;p.potions++;notify("Purchased a healing potion")}
+   else notify("Not enough gold");
+   updateUI();save(true);closeAll()
+  }},
+  {text:"Rest by the hearth (restore health)",action:()=>{
+   p.hp=p.hpMax;p.mp=p.mpMax;updateUI();save(true);closeAll();
+   notify("Rested at Frostbridge campfire")
+  }},
+  {text:"Goodbye",action:closeAll}]);return
+}
 if(target.interaction==="hunter"){showDialog("Eldric the Hunter","I lost a friend near the old stones in Greenwood. If you find tracks or clues, bring back word.",[{text:"Tell me about the forest",action:()=>showDialog("Eldric the Hunter","Wolves haunt the eastern groves. There's a strange light near the ruined altar, and a cave the guards won't enter.",[{text:"Thank you",action:closeAll}])},{text:"Farewell",action:closeAll}]);return}
 if(target.interaction==="guard"){showDialog("Warden Hal","Hollowreach is peaceful enough — unless you travel beyond the eastern trail. Keep that blade ready.",[{text:"Where should I explore?",action:()=>showDialog("Warden Hal","The bridge leads east to Greenwood, and a broken tower guards the northern heights. Old stories speak of a fissure in the sky.",[{text:"Understood",action:closeAll}])},{text:"Take care",action:closeAll}]);return}
 if(target.interaction==="hound"){showDialog("Ash the Village Hound","The gray hound wags his tail curiously.",[{text:"Pet Ash",action:()=>{closeAll();notify("Ash seems pleased.")}},{text:"Continue",action:closeAll}]);return}
 if(target.interaction==="hermit"){showDialog("The Green Hermit","The land remembers what the sky has forgotten. Seek the glowing stones at the old altar. They know your name.",[{text:"I will investigate",action:closeAll}]);return}
 }
-function shop(title){showDialog(title,"Joren offers a keenly balanced blade, forged here in Hollowreach.",[{text:"Buy Tempered Sword (65 gold)",action:()=>{if(p.gold<65){notify("Not enough gold");closeAll();return}p.gold-=65;p.weapon="Tempered Steel Sword";notify("Equipped: Tempered Steel Sword");save(true);closeAll()}},{text:"Leave the forge",action:closeAll}])}
+function shop(title){
+ showDialog(title,Q.hasSword(p)?
+  "That tempered blade should serve you well in the wilds.":
+  "Joren offers a keenly balanced blade, forged here in Hollowreach.",
+  [
+   {text:Q.hasSword(p)?"Tempered Sword equipped":"Buy Tempered Sword (65 gold)",
+    action:()=>{
+     if(Q.buySword(p)){save(true);closeAll();notify("Equipped: Tempered Steel Sword")}
+     else{closeAll();notify(Q.hasSword(p)?"You already own this sword":"Not enough gold")}
+    }},
+   {text:"Leave the forge",action:closeAll}
+  ])
+}
 function showDialog(title,body,choices){clearJoystick();modal=true;$("dialogTitle").textContent=title;$("dialogText").textContent=body;const root=$("choices");root.innerHTML="";for(let ch of choices){let b=document.createElement("button");b.className="choice";b.textContent=ch.text;b.onclick=ch.action;root.appendChild(b)}$("dialog").style.display="block"}
 function closeAll(){modal=false;for(let id of ["dialog","pause","inventory"])$(id).style.display="none"}
 function openInv(tab="pack"){if(!active)return;clearJoystick();closeAll();modal=true;invTab=tab;$("inventory").style.display="block";renderInventory()}
 function renderInventory(){document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("selected",t.dataset.tab===invTab));let s="",b=$("inventoryBody");
 if(invTab==="pack"){s='<p style="font-size:12px;color:#c1ba9d">Gold: '+p.gold+' ✦ &nbsp; • &nbsp; Equipped: '+p.weapon+'</p>';
-for(let [n,info] of [[p.weapon,"Equipped · Weapon"],[p.armor,"Equipped · Armor"],["Healing Potion × "+p.potions,"Restores 60 Health"],["Blueleaf Sprig × "+p.herbs,"Alchemical Herb"],...(p.supplies?[["Stolen Caravan Supplies","Quest item"]]:[])])s+='<div class="item"><b>'+n+'</b><span>'+info+'</span></div>';
+for(let [n,info] of [[p.weapon,"Equipped · Weapon"],[p.armor,"Equipped · Armor"],["Healing Potion × "+p.potions,"Restores 60 Health"],["Blueleaf Sprig × "+p.herbs,"Alchemical Herb"],...(p.supplies?[["Stolen Caravan Supplies","Return these to Joren"]]:[])])s+='<div class="item"><b>'+n+'</b><span>'+info+'</span></div>';
 s+='<p style="font-size:12px">Equipment and gathered resources persist automatically.</p>'}
 if(invTab==="skills"){s='<p>Skills improve through use. '+p.xp+' / '+(p.lv*70)+' experience to your next level.</p>';
 for(let [n,val]of Object.entries(p.skills))s+='<div class="item"><b>'+n[0].toUpperCase()+n.slice(1)+'</b><span>Rank '+Math.floor(val)+'</span></div>';
 s+='<div class="item"><b>Level '+p.lv+'</b><span>Health '+p.hpMax+' · Magicka '+p.mpMax+'</span></div>'}
-if(invTab==="journal"){s='<h3 style="color:#dfc086">'+$("questTitle").textContent+'</h3><p>'+$("questText").textContent+'</p><p>Rumors: bandits in the forest, a missing hunter, a violet glow near ancient ruins.</p><p>Enemies defeated: '+p.kills+'</p>'}
+if(invTab==="journal"){
+ const progress=Q.summary(p);
+ s='<h3 style="color:#dfc086">'+$("questTitle").textContent+'</h3>';
+ s+='<p>'+$("questText").textContent+'</p>';
+ s+='<div class="item"><b>Caravan supplies</b><span>'+
+  (progress.suppliesDelivered?"Delivered to Joren":progress.suppliesRecovered?"In your pack":progress.caveBanditCleared?"Cave raider defeated":"Not yet recovered")+'</span></div>';
+ s+='<div class="item"><b>Blueleaf herbs</b><span>'+
+  progress.herbsInBag+' in pack · '+progress.herbsHarvested+'/2 found</span></div>';
+ s+='<div class="item"><b>Worldscar</b><span>'+
+  (progress.scarAttuned?"Attuned":"Not yet attuned")+'</span></div>';
+ s+='<p>Enemies defeated: '+p.kills+' · Gold: '+p.gold+'</p>'
+}
 if(invTab==="map"){s='<p>Hollowreach Province — your explored locations</p><div style="width:100%;height:145px;position:relative;border:2px solid #79654b;background:radial-gradient(circle at 45% 45%,#869c8a 0,#425e57 65%,#213a42 100%);overflow:hidden"><div style="position:absolute;left:9%;top:24%;font-size:13px">🏠 Hollowreach</div><div style="position:absolute;left:47%;top:55%;font-size:13px">🌲 Greenwood</div><div style="position:absolute;left:75%;top:13%;font-size:13px">◈ Cave</div><div style="position:absolute;left:58%;top:77%;font-size:11px;color:#ecd7a4">✦ You are in '+p.zone+'</div></div><p style="font-size:11px">Travel east from the village to reach Greenwood. Find the cave in the northeast forest.</p>'}b.innerHTML=s}
 function bind(){
  const move=$("move"),knob=$("knob");
@@ -510,7 +623,7 @@ projectiles=projectiles.filter(b=>b.age<1.4);
 effects.forEach(f=>f.t-=dt);effects=effects.filter(f=>f.t>0);particles.forEach(f=>{f.t-=dt;f.y-=dt*24});particles=particles.filter(f=>f.t>0);
 const t=nearest();setHint(t?(t.interaction==="portal"?"✋ Travel to "+t.label:"✋ "+(t.label||t.name||"Interact")):"");
 // Area travel is explicit: show a prompt and wait for player to tap Talk / press E. No accidental portal loops.
-if(p.quest===1&&p.zone==="wilds"){p.quest=p.supplies?3:2;updateUI();notify("New objective: Recover the missing supplies")}
+if(p.zone==="wilds"&&Q.enterForest(p)){updateUI();save(true);notify("New objective: Defeat the cave raider and recover supplies")}
 if(p.quest===4&&p.zone==="wilds"){p.quest=4;updateUI()}
 autosaveClock+=dt;if(autosaveClock>20){autosaveClock=0;save(true)}
 updateUI()
@@ -574,6 +687,7 @@ shake*=.78;if(shake<.2)shake=0;if(toastTime>0){toastTime-=.016;if(toastTime<=0)$
 }
 function frame(now){let dt=Math.min(.055,(now-last)/1000||.016);last=now;tick(dt);render();requestAnimationFrame(frame)}
 load();
+Q.migrate(p);
 if(!p.artVersion){p.zone="village";p.x=925;p.y=620;p.artVersion=2;}
 if(p.zone==="forge"){p.zone="village";p.x=925;p.y=620;p.navVersion=4;}
 if(p.sceneVersion!==6){

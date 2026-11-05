@@ -1,17 +1,17 @@
-/* VEILWARD 1.2.5 — readable and fair enemy combat on Home Screen and Safari.
+/* VEILWARD 1.2.6 — completed Hollowreach introductory quest and persistent rewards on Home Screen and Safari.
    Use network-first for HTML/scripts, and preserve offline assets. */
-const BUILD="1.2.5";
-const CACHE="veilward-hollowreach-v125-combat-fairness";
+const BUILD="1.2.6";
+const CACHE="veilward-hollowreach-v126-quest-closure";
 const FILES=[
- "./","./index.html","./combat.js?v=1","./game.js?v=17","./navigation.js?v=10",
- "./visual.js?v=32","./visual.css?v=9","./manifest.webmanifest?v=125","./icon.svg",
- "./assets/village_v06_clear.jpg?art=22","./assets/wilds_clean.jpg?art=22",
- "./assets/cave_clean.jpg?art=22","./assets/forge.jpg?art=22",
- "./assets/actors_v07.png?art=22",
- "./assets/warden_hal_v13.png?art=22",
- "./assets/hero_full_8way_v10.png?art=22",
- "./assets/hero_approved_8way_v12.webp?art=22",
- "./assets/hero_front_adult_v11.png?art=22"
+ "./","./index.html","./combat.js?v=2","./quest.js?v=1","./game.js?v=18","./navigation.js?v=11",
+ "./visual.js?v=33","./visual.css?v=10","./manifest.webmanifest?v=126","./icon.svg",
+ "./assets/village_v06_clear.jpg?art=23","./assets/wilds_clean.jpg?art=23",
+ "./assets/cave_clean.jpg?art=23","./assets/forge.jpg?art=23",
+ "./assets/actors_v07.png?art=23",
+ "./assets/warden_hal_v13.png?art=23",
+ "./assets/hero_full_8way_v10.png?art=23",
+ "./assets/hero_approved_8way_v12.webp?art=23",
+ "./assets/hero_front_adult_v11.png?art=23"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{
