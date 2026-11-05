@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v1.2.4: photo-matched collision and quest routes. */
+/* VEILWARD — Hollowreach v1.2.5: fair combat and readable enemy attacks. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -10,10 +10,10 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
-const APP_VERSION="1.2.4";
+const APP_VERSION="1.2.5";
 const SAVE="veilward-hollowreach-v01";
 const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:4,sceneVersion:6,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
-let pendingTravel=null,travelCooldown=0,arrivalPulse=0;
+let pendingTravel=null,travelCooldown=0,arrivalPulse=0,lastCombatNotice=-100;
 let p=JSON.parse(JSON.stringify(DEFAULT)),enemies={village:[],wilds:[],cave:[],forge:[]},npc=[],objects=[],worldTime=0,invTab="pack",attacks=[],autosaveClock=0;
 function rand(seed){let x=Math.sin(seed*127.1+78.233)*43758.5453;return x-Math.floor(x)}
 function rng(n){return rand(n*1.931+0.321)}
@@ -244,7 +244,32 @@ function drawFocusedNpcName(c,e){
  c.restore();
 }
 
-function drawHealth(c,e){if(e.hp>=e.max)return;rect(c,e.x-22,e.y-64,44,6,"#18232a");rect(c,e.x-21,e.y-63,42*e.hp/e.max,4,e.type==="wraith"?"#9e80ce":"#cb6657")}
+function drawHealth(c,e){
+ if(e.hp>=e.max&&dist(e,p)>255&&e.wind<=0)return;
+ const top=window.VeilwardArt?.actorTopOffset?.(e.type)||112;
+ const y=Math.round(e.y-top-14),x=Math.round(e.x-29);
+ rect(c,x,y,58,9,"#111a2ae8");
+ rect(c,x+2,y+2,54*clamp(e.hp/e.max,0,1),5,e.type==="wraith"?"#9b88dc":e.type==="bandit"?"#e39c71":"#bfda8c");
+ c.strokeStyle="#bda77c";c.lineWidth=1;c.strokeRect(x+.5,y+.5,57,8);
+}
+function drawEnemyTelegraph(c,e){
+ if(!e.wind||e.stun>0||e.dead||!e.aim)return;
+ const r=window.VeilwardCombat?.RULES[e.type];if(!r)return;
+ const angle=Math.atan2(e.aim.y,e.aim.x);
+ const phase=1-clamp(e.wind/r.wind,0,1);
+ const tint=e.type==="wraith"?"159,130,232":e.type==="bandit"?"232,139,102":"235,182,111";
+ c.save();c.beginPath();c.moveTo(e.x,e.y-5);
+ c.arc(e.x,e.y-5,r.range,angle-Math.acos(r.arc),angle+Math.acos(r.arc));
+ c.closePath();c.fillStyle="rgba("+tint+","+(0.08+.11*phase)+")";c.fill();
+ c.strokeStyle="rgba("+tint+","+(0.45+.45*phase)+")";c.lineWidth=2.5;
+ c.beginPath();c.arc(e.x,e.y-5,r.range,angle-Math.acos(r.arc),angle+Math.acos(r.arc));c.stroke();
+ c.strokeStyle="rgba("+tint+",.76)";c.lineWidth=1.6;
+ c.beginPath();c.arc(e.x,e.y-5,8+(1-phase)*(r.range-13),0,2*Math.PI);c.stroke();
+ c.restore();
+}
+function combatNotice(message){
+ if(worldTime-lastCombatNotice>1.1){lastCombatNotice=worldTime;notify(message)}
+}
 function occupied(x,y,zone=p.zone){
  return window.VeilwardNav ? !window.VeilwardNav.canWalk(zone,x,y,8) : (window.VeilwardArt?.blocked(zone,x,y)??false);
 }
@@ -276,13 +301,59 @@ function changeZone(z,tx,ty){
  notify("Arrived: "+C[z].label);save(true)
 }
 function updateUI(){
-$("hp").style.width=clamp(p.hp/p.hpMax*100,0,100)+"%";$("mp").style.width=clamp(p.mp/p.mpMax*100,0,100)+"%";$("st").style.width=clamp(p.st/100*100,0,100)+"%";$("level").textContent="LV "+p.lv;
+$("hp").style.width=clamp(p.hp/p.hpMax*100,0,100)+"%";$("mp").style.width=clamp(p.mp/p.mpMax*100,0,100)+"%";$("st").style.width=clamp(p.st,0,100)+"%";$("level").textContent="LV "+p.lv;
+ // Live ability affordability and cooldowns: players can read at a glance
+ // whether Strike, Spell, or Dodge will work before they tap.
+ $("mp").classList.toggle("resource-low",p.mp<16);
+ $("st").classList.toggle("resource-low",p.st<24);
+ [["attackBtn",p.st<12,p.attackCd>0],["spellBtn",p.mp<16,p.spellCd>0],
+  ["dodgeBtn",p.st<24,p.dodgeCd>0],["potionBtn",p.potions<=0||p.hp>=p.hpMax,false]]
+  .forEach(([id,cost,cooling])=>{
+   const button=$(id);
+   button.classList.toggle("combat-unavailable",!!cost);
+   button.classList.toggle("combat-cooling",!!cooling);
+  });
 const q=[["A Cold Welcome","Speak with Joren the village blacksmith."],["The Missing Supplies","Follow the eastern trail into Greenwood."],["The Missing Supplies","Defeat the bandit raider and find Joren's stolen supplies."],["The Missing Supplies","Return the supplies to Joren in Hollowreach."],["A Whisper in the Stone","Investigate the glowing Worldscar in Greenwood."],["The Frontier Awaits","Explore Hollowreach, recover herbs, and uncover the cave's secret."]];
 const qq=q[clamp(p.quest,0,q.length-1)];$("questTitle").textContent=qq[0];$("questText").textContent=qq[1]}
 function giveXP(n,skill){p.xp+=n;if(skill)p.skills[skill]=(p.skills[skill]||1)+.06;while(p.xp>=p.lv*70){p.xp-=p.lv*70;p.lv++;p.hpMax+=10;p.mpMax+=5;p.hp=p.hpMax;p.mp=p.mpMax;notify("LEVEL "+p.lv+" — your legend grows")}updateUI()}
-function attack(){if(modal||!active||p.attackCd>0||p.st<12)return;p.attackCd=.42;p.attackV=.18;p.st-=12;p.skills.blade+=.015;let face=p.facing||{x:1,y:0};effects.push({x:p.x+face.x*30,y:p.y-22+face.y*30,t:.22,type:"slash",angle:Math.atan2(face.y,face.x)});for(let e of enemies[p.zone]){if(e.dead)continue;let dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy);if(d<82&&(dx*face.x+dy*face.y)>-8){e.hp-=22+p.lv*3+(p.weapon==="Tempered Steel Sword"?13:0);e.stun=.27;particles.push({x:e.x,y:e.y-35,t:.65,text:"−"+(22+p.lv*3),color:"#ffe8b1"});if(e.hp<=0)killEnemy(e)}}updateUI()}
-function spell(){if(modal||!active||p.mp<16||p.spellCd>0)return;p.castV=.32;p.mp-=16;p.spellCd=.64;p.skills.sorcery+=.03;let d=p.facing||{x:1,y:0};let nearby=enemies[p.zone].filter(e=>!e.dead&&dist(e,p)<330).sort((a,b)=>dist(a,p)-dist(b,p))[0];if(nearby){let dx=nearby.x-p.x,dy=nearby.y-p.y,l=Math.hypot(dx,dy)||1;d={x:dx/l,y:dy/l}}projectiles.push({x:p.x,y:p.y-26,vx:d.x*360,vy:d.y*360,age:0});updateUI()}
-function dodge(){if(modal||!active||p.st<24||p.dodgeCd>0)return;p.dodgeV=.29;p.st-=24;p.dodgeCd=.7;p.invuln=.33;let d=Math.hypot(joy.x,joy.y)>0.1?joy:p.facing||{x:1,y:0};p.dvx=d.x*350;p.dvy=d.y*350;p.dodgeTime=.18;updateUI()}
+function attack(){
+ if(modal||!active||p.attackCd>0)return;
+ const combat=window.VeilwardCombat;
+ if(p.st<combat.MELEE.stamina){combatNotice("Not enough stamina to strike");return}
+ p.attackCd=.42;p.attackV=.18;p.st-=combat.MELEE.stamina;p.skills.blade+=.015;
+ const face=combat.unit(p.facing?.x??0,p.facing?.y??1);
+ effects.push({x:p.x+face.x*46,y:p.y-26+face.y*36,t:.22,type:"slash",angle:Math.atan2(face.y,face.x)});
+ const damage=22+p.lv*3+(p.weapon==="Tempered Steel Sword"?13:0);
+ for(const e of enemies[p.zone]){
+  if(!combat.swordCanHit(p,e,window.VeilwardNav))continue;
+  e.hp=Math.max(0,e.hp-damage);
+  combat.stagger(e,.32);
+  particles.push({x:e.x,y:e.y-39,t:.68,text:"−"+damage,color:"#ffe8b1"});
+  if(e.hp<=0)killEnemy(e);
+ }
+ updateUI()
+}
+function spell(){
+ if(modal||!active||p.spellCd>0)return;
+ const combat=window.VeilwardCombat;
+ if(p.mp<combat.SPELL.mana){combatNotice("Need 16 magicka to cast");return}
+ p.castV=.32;p.mp-=combat.SPELL.mana;p.spellCd=.64;p.skills.sorcery+=.03;
+ const target=combat.chooseSpellTarget(p,enemies[p.zone],window.VeilwardNav);
+ const d=target?combat.unit(target.x-p.x,target.y-p.y):
+  combat.unit(p.facing?.x??0,p.facing?.y??1);
+ projectiles.push({x:p.x,y:p.y-26,vx:d.x*combat.SPELL.speed,
+  vy:d.y*combat.SPELL.speed,age:0,blocked:false});
+ updateUI()
+}
+function dodge(){
+ if(modal||!active||p.dodgeCd>0)return;
+ if(p.st<24){combatNotice("Need 24 stamina to dodge");return}
+ p.dodgeV=.29;p.st-=24;p.dodgeCd=.7;p.invuln=.34;
+ const input=Math.hypot(joy.x,joy.y)>.1?joy:(p.facing||{x:0,y:1});
+ const d=window.VeilwardCombat.unit(input.x,input.y);
+ p.dvx=d.x*350;p.dvy=d.y*350;p.dodgeTime=.18;
+ updateUI()
+}
 function potion(){if(modal||p.potions<=0||p.hp>=p.hpMax)return;p.potions--;p.hp=Math.min(p.hpMax,p.hp+60);notify("Restored 60 health");updateUI();save(true)}
 function killEnemy(e){e.dead=true;p.gold+=e.type==="bandit"?14:5;p.kills++;giveXP(e.type==="bandit"?28:14,"blade");effects.push({x:e.x,y:e.y,t:.6,type:"burst"});notify("Enemy defeated · Gold found");if(p.quest===2&&e.type==="bandit"){notify("The bandits have been scattered. Search their cave!")}save(true)}
 function nearest(){
@@ -405,14 +476,37 @@ else{const nx=clamp(p.x+ax*speed*dt,35,WORLD.w-35),ny=clamp(p.y+ay*speed*dt,72,W
 const travelled=Math.hypot(p.x-previousX,p.y-previousY);
 p.moving=travelled>.3;
 if(p.moving)p.step=((p.step||0)+travelled*Math.PI*2/68)%(Math.PI*200);
-for(let e of enemies[p.zone]){if(e.dead)continue;
-e.stun=Math.max(0,e.stun-dt);e.atk=Math.max(0,e.atk-dt);const d=dist(e,p);
-if(d<340&&e.stun<=0){let dx=(p.x-e.x)/(d||1),dy=(p.y-e.y)/(d||1);if(d>(e.type==="wraith"?42:39)){let speed=e.type==="wolf"?92:e.type==="wraith"?63:73;const target=window.VeilwardNav?.projectMotion(p.zone,e.x,e.y,dx*speed*dt,dy*speed*dt,7);
-if(target&&target.x!==e.x||target&&target.y!==e.y){e.x=target.x;e.y=target.y;e.step+=dt}
-else if(!target){let nx=e.x+dx*speed*dt,ny=e.y+dy*speed*dt;if(!occupied(nx,ny)){e.x=nx;e.y=ny;e.step+=dt}}}}
-if(d<56&&e.atk<=0&&e.wind<=0){e.wind=.55;e.atk=1.65}
-if(e.wind>0){e.wind-=dt;if(e.wind<=0&&d<67&&p.invuln<=0){p.hp=Math.max(0,p.hp-(e.type==="wraith"?22:12));p.invuln=.5;shake=7;particles.push({x:p.x,y:p.y-55,t:.7,text:"−"+(e.type==="wraith"?22:12),color:"#f0a19f"});if(p.hp<=0){p.hp=p.hpMax;p.mp=p.mpMax;p.gold=Math.max(0,p.gold-12);changeZone("village",900,625);notify("You awaken in Hollowreach · −12 gold");save(true)}}}} 
-for(let b of projectiles){b.x+=b.vx*dt;b.y+=b.vy*dt;b.age+=dt;for(let e of enemies[p.zone])if(!e.dead&&Math.hypot(e.x-b.x,e.y-25-b.y)<35){e.hp-=35+p.lv*3;e.stun=.45;b.age=10;particles.push({x:e.x,y:e.y-35,t:.7,text:"−"+(35+p.lv*3),color:"#83dcff"});if(e.hp<=0)killEnemy(e);break}}projectiles=projectiles.filter(b=>b.age<1.4);
+const combat=window.VeilwardCombat;
+for(const e of enemies[p.zone]){
+ if(e.dead)continue;
+ const action=combat.enemyStep(e,p,dt,window.VeilwardNav);
+ if(action.damage>0&&p.invuln<=0){
+  p.hp=Math.max(0,p.hp-action.damage);
+  p.invuln=.58;shake=6;
+  particles.push({x:p.x,y:p.y-55,t:.72,text:"−"+action.damage,color:"#f0a19f"});
+  if(p.hp<=0){
+   p.hp=p.hpMax;p.mp=p.mpMax;p.gold=Math.max(0,p.gold-12);
+   changeZone("village",925,620);
+   notify("You awaken in Hollowreach · −12 gold");save(true);
+   break;
+  }
+ }
+}
+for(const b of projectiles){
+ if(!combat.projectileStep(b,dt,window.VeilwardNav,p.zone)){
+  if(b.blocked)effects.push({x:b.x,y:b.y,t:.2,type:"burst"});
+  continue;
+ }
+ for(const e of enemies[p.zone]){
+  if(e.dead||Math.hypot(e.x-b.x,e.y-25-b.y)>=32)continue;
+  const damage=35+p.lv*3;
+  e.hp=Math.max(0,e.hp-damage);combat.stagger(e,.48);b.age=10;
+  particles.push({x:e.x,y:e.y-38,t:.7,text:"−"+damage,color:"#83dcff"});
+  if(e.hp<=0)killEnemy(e);
+  break;
+ }
+}
+projectiles=projectiles.filter(b=>b.age<1.4);
 effects.forEach(f=>f.t-=dt);effects=effects.filter(f=>f.t>0);particles.forEach(f=>{f.t-=dt;f.y-=dt*24});particles=particles.filter(f=>f.t>0);
 const t=nearest();setHint(t?(t.interaction==="portal"?"✋ Travel to "+t.label:"✋ "+(t.label||t.name||"Interact")):"");
 // Area travel is explicit: show a prompt and wait for player to tap Talk / press E. No accidental portal loops.
@@ -431,6 +525,7 @@ g.save();g.scale(WORLD_ZOOM,WORLD_ZOOM);g.translate(-Math.floor(cam.x)+(Math.ran
 g.drawImage(terrainCache[p.zone],0,0);
 window.VeilwardArt?.glows(g,p.zone,worldTime);
 window.VeilwardArt?.routeGlows?.(g,p.zone,worldTime);
+ for(const e of enemies[p.zone])if(e.wind>0&&!e.dead)drawEnemyTelegraph(g,e);
 // Soft arrival cue is drawn at the feet, blending into painted terrain.
 if(arrivalPulse>0){
  const alpha=Math.min(.13,arrivalPulse*.13);
@@ -450,7 +545,7 @@ ents.sort((a,b)=>a.y-b.y);
 for(let e of ents){if(e.renderType==="prop")drawProp(g,e,night);else if(e.renderType==="npc"){
   drawHero(g,e.x,e.y,0,worldTime*.25,e.color,false,"npc_"+e.role);
  }
- else if(e.renderType==="enemy"){drawHero(g,e.x,e.y,0,e.step,"",true,e.type,e.wind>0?.25:0);drawHealth(g,e);if(e.wind>0){g.strokeStyle="#e8996f";g.lineWidth=2;g.beginPath();g.arc(e.x,e.y-14,27,0,Math.PI*2);g.stroke()}}
+ else if(e.renderType==="enemy"){drawHero(g,e.x,e.y,0,e.step,"",true,e.type,0);drawHealth(g,e)}
 else if(e.renderType==="player"){drawHero(g,e.x,e.y,0,e.step||0,"#637f96",false,"human",e.attackV||0)}
 else if(e.renderType==="object"){if(e.type==="scar"){for(let k=0;k<5;k++){let xx=e.x+(k-2)*17,yy=e.y-14-Math.abs(2-k)*13;poly(g,[[xx-9,yy],[xx,yy-40-5*Math.sin(worldTime*2+k)],[xx+9,yy],[xx,yy+4]],k%2?"#7b7aca":"#62bdca");rect(g,xx-2,yy-26,3,13,"#d6e7ff")}}
 if(e.type==="herb"){for(let k=0;k<5;k++){stroke(g,[[e.x,e.y],[e.x+(k-2)*6,e.y-15-rng(k)*12]],2,"#549c91");circle(g,e.x+(k-2)*5,e.y-21-rng(k)*8,3,"#8ad9d0")}}

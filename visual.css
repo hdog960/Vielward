@@ -65,3 +65,21 @@
  #actions{bottom:max(10px,env(safe-area-inset-bottom))}
  #move{bottom:max(10px,env(safe-area-inset-bottom))}
 }
+
+
+/* Phase 4 — resource readability. Never disable the buttons: taps should
+   still give a specific out-of-resource message or simply respect cooldown. */
+#actions .control.combat-unavailable {
+ filter:saturate(.52);
+ box-shadow:inset 0 0 0 2px rgba(208,102,102,.44);
+}
+#actions .control.combat-cooling {
+ filter:saturate(.7);
+ box-shadow:inset 0 0 0 2px rgba(160,194,213,.27);
+}
+#status .bar>i.resource-low {filter:saturate(.8) brightness(1.16)}
+@media (prefers-reduced-motion:no-preference) {
+ #actions .control:not(.combat-cooling):not(.combat-unavailable):active {
+  transform:scale(.95);
+ }
+}

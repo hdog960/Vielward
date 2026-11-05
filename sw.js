@@ -1,17 +1,17 @@
-/* VEILWARD 1.2.4 — photo-traced paths and screenshot regression coverage on Home Screen and Safari.
+/* VEILWARD 1.2.5 — readable and fair enemy combat on Home Screen and Safari.
    Use network-first for HTML/scripts, and preserve offline assets. */
-const BUILD="1.2.4";
-const CACHE="veilward-hollowreach-v124-painted-ground-geometry";
+const BUILD="1.2.5";
+const CACHE="veilward-hollowreach-v125-combat-fairness";
 const FILES=[
- "./","./index.html","./game.js?v=16","./navigation.js?v=9",
- "./visual.js?v=31","./visual.css?v=8","./manifest.webmanifest?v=124","./icon.svg",
- "./assets/village_v06_clear.jpg?art=21","./assets/wilds_clean.jpg?art=21",
- "./assets/cave_clean.jpg?art=21","./assets/forge.jpg?art=21",
- "./assets/actors_v07.png?art=21",
- "./assets/warden_hal_v13.png?art=21",
- "./assets/hero_full_8way_v10.png?art=21",
- "./assets/hero_approved_8way_v12.webp?art=21",
- "./assets/hero_front_adult_v11.png?art=21"
+ "./","./index.html","./combat.js?v=1","./game.js?v=17","./navigation.js?v=10",
+ "./visual.js?v=32","./visual.css?v=9","./manifest.webmanifest?v=125","./icon.svg",
+ "./assets/village_v06_clear.jpg?art=22","./assets/wilds_clean.jpg?art=22",
+ "./assets/cave_clean.jpg?art=22","./assets/forge.jpg?art=22",
+ "./assets/actors_v07.png?art=22",
+ "./assets/warden_hal_v13.png?art=22",
+ "./assets/hero_full_8way_v10.png?art=22",
+ "./assets/hero_approved_8way_v12.webp?art=22",
+ "./assets/hero_front_adult_v11.png?art=22"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{

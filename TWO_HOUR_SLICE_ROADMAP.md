@@ -31,14 +31,14 @@
 - **Acceptance:** Reach and return from all three zones, with understandable travel points, no known progression-blocking collision, and coherent scene framing.
 
 ### Phase 4 — Combat responsiveness and fairness (25-minute target)
-**Status: NOT STARTED — wait for next explicit continuation**
+**Status: IMPLEMENTED v1.2.5 — 99 automated combat checks passed; iPhone playtest pending**
 - Polish existing sword hits, player direction handling, attack range feedback, hit reaction, spell/dodge activation, stamina/mana readability and enemy HP.
 - Inspect current wolves/bandits/wraiths for premature off-screen attacks, unclear telegraphs, unreachable targets and damage timing.
 - Keep this a **polish pass on working systems**; do not falsely claim the separate later Gate 2 systems (bow, shield, 3 spells, elite enemies) are complete.
 - **Acceptance:** Existing encounters offer readable warnings, consistent damage and responsive controls with no obvious unfair instant hits or missing action feedback.
 
 ### Phase 5 — Introductory quest closure and regression QA (20-minute target)
-**Status: NOT STARTED**
+**Status: NOT STARTED — STOP until user's next continuation**
 - Test the actual route from meeting Joren, exploring Greenwood and the bandit cave, retrieving supplies, returning the items and earning rewards.
 - Fix observed quest state, NPC dialogue, inventory, loot/reward and save/reload defects; check progression after returning from a zone.
 - Run syntax and relevant automated/simulated regression checks for all changed files. Verify assets referenced by service worker and HTML; report device-specific items honestly.
@@ -123,3 +123,14 @@ This two-hour roadmap is a **focused improvement sprint**, not a claim that the 
 **Permanent automated QA:** `tests/phase3_scene_geometry.test.js` tests the native map image point fixtures (including all four screenshots), verifies disallowed screenshot positions and safe old-save relocation, checks the three zones' mesh connectivity, and replays **10 routes / 612 actual projectMotion movement segments**. **1,319 assertions passed** in a simulated runtime against the committed source. A visual iPhone playtest remains REQUIRED; no unsupported "10/10" claim is made.
 
 **Only Phase 3 has been repeated. Phase 4 is still NOT STARTED; stop for user retest.**
+
+
+## Phase 4 implementation record (November 5, 2026)
+- Added `combat.js`, a dedicated pure combat rules module separate from approved character art and world geometry. Sword hits now require the target to be **in front** of the player's actual facing, inside 88 world units, and on an unobstructed line of travel. Corrected an important zero-component facing bug so east/west attacks are not mistakenly treated as diagonal.
+- Magic now targets only live foes within 330 world units and within the forward ~70° half-angle **without aiming through solid scenery**; untargeted casts still travel in the current facing direction. Projectiles stop at walls/terrain rather than flying over the landscape's painted chasms.
+- Wolves, bandits, and wraiths have individual explicit attack ranges, windup warnings, fixed-aim attack cones, damage, pursuit speeds, and cooldowns. Striking/damaging an enemy interrupts its active warning, and stepping away/sideways or dodging can make an attack miss. Aggro does not engage through nav blockers.
+- Added restrained **ground-level wedge telegraphs with shrinking windup rings**, moving enemy HP bars above their true sprite heads, visible resource/cooldown cues and specific out-of-resource notices. Corrected sword damage floaters to display real equipped-weapon bonus. Normalized diagonal dodge velocity, retained the dash's invulnerability window.
+- Seven existing enemy spawns verified physically walkable in the newly corrected photo-traced Phase 3 navigation. Hero/Warden source assets, approved Wanderer rendering and movement frame logic, encounter/quest data and save key are preserved.
+- Executable `node tests/phase4_combat.test.js` passed **99 assertions** including facing, blockers, hit timing, interruptions, cooldowns, orb collision, player animation guard, script ordering, mobile cache coherency, and enemy spawns. This is a Node/synthetic verification **not an iPhone animation sign-off**.
+- Build `v1.2.5`, `combat.js?v=1`, `game.js?v=17`, `navigation.js?v=10`, `visual.js?v=32`, `visual.css?v=9`, `?art=22`, worker cache `veilward-hollowreach-v125-combat-fairness`.
+- **Stop at Phase 4**. Phase 5 remains untouched until the creator's next “continue development” instruction.

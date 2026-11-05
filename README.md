@@ -1,3 +1,19 @@
+# Veilward v1.2.5 — Phase 4: Responsive, readable combat
+
+**New playable-game combat improvements:**
+- Dedicated `combat.js` rule engine implementing a properly aimed 88-unit forward sword cone. The old sword could hit enemies behind/beside the player and through scenery; it now respects the exact eight-direction Wanderer facing and actual painted terrain collisions.
+- Spell aim selects only visible nearby foes inside a forward ~70° half-angle; a closer enemy at 90° no longer redirects the spell sideways. Fireballs stop on wall/cliff boundaries instead of sailing through rocks.
+- All three active foes (wolves, bandits, wraiths) now give readable, differently timed **ground wedge windup warnings** and use distinct attack damage/range/cooldown profiles. Telegraph aim freezes at warning start, so sidestepping/dodging can avoid hits. Sword and spell staggers cancel attacks instead of allowing stunned foes to still strike.
+- Enemy health bars are positioned above illustrated heads, not across the bodies; resource bars and ability controls visibly indicate low stamina, low mana and cooldowns. Touch action behavior from Phase 2 is preserved.
+- Accurate sword damage numbers include equipment bonuses; diagonal dodges travel at normalized speed.
+- **Protected assets:** approved Wanderer eight-direction sprite, Warden Hal's original independent image, all zone art. Original save key `veilward-hollowreach-v01` and quest state remain intact.
+- **Verified in simulated Node QA:** [tests/phase4_combat.test.js](./tests/phase4_combat.test.js), 99 assertions passed. Real physical iPhone combat appearance/feel is not yet verified.
+- Updated game/visual/UI/source and installed-app worker to `v1.2.5` with versioned assets. **Phase 5 remains NOT STARTED.**
+
+Detailed acceptance instructions: [tests/phase4_combat_qa.md](./tests/phase4_combat_qa.md).
+
+---
+
 # Veilward v1.2.4 — Phase 3 completely rebuilt against actual screenshot evidence
 
 The v1.2.3 world-traversal pass failed visual acceptance. Its connected-region tests did not ensure that walkable polygons coincided with the actual scenery. The Wanderer was shown on **river water**, a **shrine fence**, a **bridge railing**, and a **cave lantern post**. These were real environment/collision bugs.
