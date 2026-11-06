@@ -1,3 +1,15 @@
+# VEILWARD v1.3.4 — VISUAL RECOVERY R1 (ART ACCEPTANCE PENDING)
+
+The creator accepted the 12-region geometry/travel layout but explicitly rejected the Phase 9 appearance (0% visual acceptance). The latest playable build replaces part of the over-simplified 32px noise/pipe-road/empty-shape terrain renderer with world-coordinate clustered ground, narrower natural trails, visually richer climate-dependent tree/rock structures, a real footprint-anchored three-quarter cottage and 13 source-grounded landmark compositions, and a zoomed closer atlas with landmark-framed region previews. This is an **initial actual code/art change**; it is not yet a complete high-fidelity match to the approved reference JPGs.
+
+**Review the changed game:** [Open Veilward](https://hdog960.github.io/Vielward/) → Journey Menu → **Review Visual Recovery R1 (Phase 9)** → **Review World Map & All 12 In-Game Regions**. Confirm v1.3.4; compare Hollowreach, Greenwood, Coldpine and Frostbridge in the world and by walking rather than trusting a mock concept. The other eight biomes retain map continuity.
+
+**[R1 engineering handoff, remaining R2–R4 art tasks and truthful limitations](./docs/overworld/VISUAL_RECOVERY_R1.md)** · [Actual environment painter](./world_illustration.js) · [R1 source/regression verification](./tests/visual_recovery_r1.test.js).
+
+**Phase 10 BLOCKED pending explicit creator acceptance.** Original adventures, progress storage, routes, bridge collision and original asset images are preserved.
+
+---
+
 # VEILWARD v1.3.3 — Phase 9 Review Build · FULL OVERWORLD APPEARANCE APPROVAL REQUIRED
 
 **Phase 9 implementation:** Source-built 12-region visual atlas and a whole-world map with all 65 physical routes and seven crossings, rendered from the **actual playable world** (not conceptual illustrations). Every region has a true 160×160 terrain-art screenshot and a tap-to-visit source anchor. Graph/land-water/crossing/road collision checks, seasonal foliage, real outdoor geography and original gameplay preserved.

@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.2",TAU=Math.PI*2;
+const VERSION="1.3.4",TAU=Math.PI*2;
 function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
 function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295}
 function rgb(hex){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
@@ -66,8 +66,10 @@ function create(model,options={}){
    window.VeilwardFootprint.create(model,geometry,options.footprint,{climate}):null;
  const routeArt=geometry&&window.VeilwardRoutes?
    window.VeilwardRoutes.create(model,geometry,{climate}):null;
+ const illustration=geometry&&footprint&&climate&&window.VeilwardIllustration?
+   window.VeilwardIllustration.create(model,geometry,{footprint,climate}):null;
  const art=options.terrainArt||(geometry&&window.VeilwardTerrainArt?
-   window.VeilwardTerrainArt.create(model,geometry,{canvasFactory:factory,footprint,climate,routeArt}):null);
+   window.VeilwardTerrainArt.create(model,geometry,{canvasFactory:factory,footprint,climate,routeArt,illustration}):null);
  const points=Object.fromEntries(model.nodes.map(n=>[n.id,n]));
  const edges=model.edges.map(e=>({
   ...e,polyline:[points[e.from].point,...(e.via||[]),points[e.to].point]
@@ -274,9 +276,10 @@ function create(model,options={}){
   geometry:geometry?.stats()??null,
   footprint:footprint?.stats()??null,
   routeNetwork:routeArt?.stats()??null,
+  illustration:illustration?.stats()??null,
   climate:climate?.sample(player.x,player.y)??null,
   terrainArt:art?.diagnostics?.()??null}}
- return{version:VERSION,model,geometry,footprint,climate,routeArt,art,player,camera,size,width,height,move,render,renderDebug,renderForeground,jumpToNode,
+ return{version:VERSION,model,geometry,footprint,climate,routeArt,illustration,art,player,camera,size,width,height,move,render,renderDebug,renderForeground,jumpToNode,
   warm,cells,blocked,nearbyInteraction,regionName,stats,clearCache:()=>cache.clear(),
   tile:(col,row)=>cache.get(chunkId(col,row))||null}
 }

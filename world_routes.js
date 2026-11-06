@@ -4,12 +4,12 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.2",TAU=Math.PI*2;
+const VERSION="1.3.4",TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const palettes={
- alpine:{rim:"#6e7888",bed:"#b0b8ba",center:"#d1d7d4",shade:"#6a737d",detail:"#f2eee2"},
+ alpine:{rim:"#687c8a",bed:"#adafa8",center:"#d7d6c7",shade:"#62758a",detail:"#f0e8d4"},
  melt:{rim:"#59665d",bed:"#9c9b85",center:"#b5aea0",shade:"#65655a",detail:"#cbd2b8"},
- woodland:{rim:"#4c5c4d",bed:"#8d866d",center:"#ab9d82",shade:"#5f6256",detail:"#c8b694"},
+ woodland:{rim:"#4c6252",bed:"#8b8169",center:"#ae9a76",shade:"#576c58",detail:"#e0ce9e"},
  wetland:{rim:"#3e5b5b",bed:"#849483",center:"#b1ada0",shade:"#536e68",detail:"#c9d4b9"},
  upland:{rim:"#55566b",bed:"#8e8b98",center:"#b3aabb",shade:"#4a5262",detail:"#d6cad3"}
 };
@@ -82,14 +82,17 @@ function create(model,geometry,options={}){
   const wide=e.kind==="street"||e.kind==="road"||e.kind==="old-road",stair=e.kind==="stairs"||e.slope==="stairs",steep=e.kind==="switchback"||e.slope==="switchback";
   // Road shoulders and the actual tread share geometry, so the road cannot
   // visually promise a shortcut that physical collision contradicts.
-  strokePath(ctx,e.path,colors.shade,e.halfWidth*2+13);
-  strokePath(ctx,e.path,colors.rim,e.halfWidth*2+3);
-  strokePath(ctx,e.path,colors.bed,e.halfWidth*2-20);
-  strokePath(ctx,e.path,colors.center,e.halfWidth*(wide?.95:.60));
+  // The earlier full-width round strokes looked like elevated concrete pipes.
+  // Paint a slightly narrower worn earthen tread INSIDE the unchanged
+  // traversable corridor, leaving softly broken shoulders and side greenery.
+  strokePath(ctx,e.path,"rgba(39,47,57,.24)",e.halfWidth*1.76+17);
+  strokePath(ctx,e.path,colors.rim,e.halfWidth*1.54+7);
+  strokePath(ctx,e.path,colors.bed,e.halfWidth*1.37);
+  strokePath(ctx,e.path,colors.center,e.halfWidth*(wide?.66:.43));
   for(const [a,b,prior,len] of e.parts){
    if(!len||!closeTo(bounds,a,b,120))continue;
    const dx=(b[0]-a[0])/len,dy=(b[1]-a[1])/len,nx=-dy,ny=dx;
-   const spacing=stair?45:steep?62:wide?88:110;
+   const spacing=stair?45:steep?62:wide?64:82;
    for(let k=spacing*.5;k<len;k+=spacing){
     const x=a[0]+dx*k,y=a[1]+dy*k;
     if(x<bounds[0]-120||x>bounds[2]+120||y<bounds[1]-120||y>bounds[3]+120)continue;
@@ -102,8 +105,18 @@ function create(model,geometry,options={}){
       [x+nx*width*.88-dx*4,y+ny*width*.88-dy*4],colors.detail,stair?4:3)
     }else{
      const side=h>.5?1:-1,offset=e.halfWidth*(.25+h*.45),px=x+nx*offset*side,py=y+ny*offset*side;
+     // Short irregular gravel pockets, tufts and rain-worn ruts, not
+     // uniform dashed vector strokes.
      ctx.fillStyle=h>.65?colors.detail:colors.shade;
-     ctx.fillRect(Math.round(px),Math.round(py),8+(h*7|0),3+(h*3|0));
+     ctx.fillRect(Math.round(px),Math.round(py),9+(h*11|0),3+(h*3|0));
+     if(h>.24){
+      ctx.fillStyle=h>.61?"rgba(216,208,175,.5)":"rgba(58,93,73,.37)";
+      ctx.fillRect(Math.round(px+4-nx*13),Math.round(py-6-ny*13),21,5)
+     }
+     if(h>.67){
+      ctx.fillStyle="rgba(44,78,65,.36)";
+      for(let tt=0;tt<3;tt++)ctx.fillRect(Math.round(px+tt*8+nx*12),Math.round(py-8-tt*4+ny*12),3,14)
+     }
      if(wide&&h>.40){
       ctx.fillStyle="rgba(54,62,61,.24)";
       ctx.fillRect(Math.round(x+nx*e.halfWidth*.22),Math.round(y+ny*e.halfWidth*.22),14,3)
@@ -130,8 +143,8 @@ function create(model,geometry,options={}){
  function deck(ctx,e,bounds){
   const style=deckTypes[e.deck]||deckTypes.wooden;
   if(!style)throw Error("Unknown crossing deck "+e.id);
-  strokePath(ctx,e.path,style.dark,e.halfWidth*2+14);
-  strokePath(ctx,e.path,style.bed,e.halfWidth*2-8);
+  strokePath(ctx,e.path,style.dark,e.halfWidth*1.78+11);
+  strokePath(ctx,e.path,style.bed,e.halfWidth*1.63-5);
   const full=e.total;
   for(const [a,b,prior,len] of e.parts){
    if(!len||!closeTo(bounds,a,b,170))continue;

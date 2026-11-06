@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.3";
+const VERSION="1.3.4";
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const REGION_NOTES={
  hollowreach:"Snowbound village • the western starting hub",
@@ -37,6 +37,15 @@ function create(model,stream,options={}){
   throw Error("Full-world atlas requires the real 12-region streaming world");
  const unit=model.worldDesign.worldUnitScale,world=model.worldDesign.worldBounds,
   geometry=stream.geometry,footprint=stream.footprint,climate=stream.climate,art=stream.art;
+ // Curate the actual camera toward a landmark rather than blindly centring
+ // on the closest empty road junction. These are original in-world nodes,
+ // never hand-painted mock views.
+ const REVIEW_ANCHORS={
+  hollowreach:"joren",northwatch:"northwatch_plaza",coldpine:"colp_lodge",
+  frost_river:"bridge_w",thawline:"thaw_camp",greenwood:"greenwood_hearth",
+  greenwood_falls:"falls_overlook",mossmere:"island",heatherwood:"market",
+  old_crown:"oldroad_tower",smugglers:"cave_mouth",worldscar:"worldscar_ring"
+ };
  const nodeById=Object.fromEntries(model.nodes.map(n=>[n.id,n]));
  for(let i=1;i<MAIN_SLICE.length;i++){
   if(!model.edges.some(e=>(e.from===MAIN_SLICE[i-1]&&e.to===MAIN_SLICE[i])||
@@ -51,7 +60,9 @@ function create(model,stream,options={}){
    if(dist<min){near=n;min=dist}
   }
   if(!near)throw Error("Region missing playable anchor "+r.id);
-  return {id:r.id,name:r.name,biome:r.biome,anchor:near.id,
+  const focus=REVIEW_ANCHORS[r.id]||near.id;
+  if(nodeById[focus]?.region!==r.id)throw Error("Review focus must lie in source region "+r.id);
+  return {id:r.id,name:r.name,biome:r.biome,anchor:focus,
    center:[...r.center],notes:REGION_NOTES[r.id]||r.biome};
  });
  function caption(id){
@@ -134,7 +145,7 @@ function create(model,stream,options={}){
  }
  function paintRegion(canvas,id,opts={}){
   const r=caption(id),anchor=safeAnchor(id);
-  const pixels=opts.pixels||192,span=opts.span||1900;
+  const pixels=opts.pixels||192,span=opts.span||1250;
   canvas.width=pixels;canvas.height=pixels;
   const ctx=canvas.getContext("2d",{alpha:false});
   if(!ctx)throw Error("Terrain review thumbnail canvas unavailable");

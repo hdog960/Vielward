@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.1",TAU=2*Math.PI;
+const VERSION="1.3.4",TAU=2*Math.PI;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 function hash(x,y,seed){let n=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(seed|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296}
 function inside(x,y,poly){let yes=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){
@@ -36,8 +36,11 @@ function create(model,geo,source,options={}){
  const regions=new Map(source.regions.map(r=>[r.id,r]));
  const centers=model.regions.map(r=>({...r,opts:regions.get(r.id),x:r.center[0]*scale,y:r.center[1]*scale,worldPolygon:r.influencePolygon.map(p=>p.map(v=>v*scale))}));
  const hubs=source.hubs.map(h=>({...h,x:nodes[h.anchor].point[0]*scale,y:nodes[h.anchor].point[1]*scale,r:h.radius*scale}));
- const clearings=[...source.clearings.map(c=>({x:nodes[c.anchor].point[0]*scale,y:nodes[c.anchor].point[1]*scale,r:c.r*scale})),
-   ...hubs.map(h=>({x:h.x,y:h.y,r:h.r}))];
+ // Restore scenery density: the old 600-1200-unit empty circles around
+ // landmarks erased almost all visible trees. Retain small safe foot clearings;
+ // all natural props still avoid genuine paths, water and authored buildings.
+ const clearings=[...source.clearings.map(c=>({x:nodes[c.anchor].point[0]*scale,y:nodes[c.anchor].point[1]*scale,r:Math.min(c.r*scale,315)})),
+   ...hubs.map(h=>({x:h.x,y:h.y,r:Math.min(h.r*.34,355)}))];
  const staticSolids=geo.solids;
  const cachedFields=new Map(),MAX_CACHE=6000;
  let evaluations=0;

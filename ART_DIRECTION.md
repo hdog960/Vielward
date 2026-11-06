@@ -27,3 +27,8 @@ Gate 1 must include in-game captures: winter village day/night, green forest tra
 
 ## Current build
 v0.1 has procedural graphics **strictly as a functional foundation**. It has not passed the art requirement. Prioritize replacing them with authored consistent pixel assets before adding broad game content.
+
+
+## Visual failure and corrected development constraint (v1.3.4)
+
+On 2026-11-06 the creator rejected the full v1.3.3 overworld look at **0% acceptance**, while approving the physical layout/roads. The 32×32 material atlas and generic strokes/trees **did not** meet this contract. The R1 `world_illustration.js` source-anchored Canvas painter and scene-frame repair are an **incremental recovery, not the approved final art direction**. High-quality environmental texture atlas creation, full 3/4 architecture, landscape lighting and exhaustive real-iPhone comparison are still mandatory. No further main-roadmap phase can begin before creator visual signoff. For details see `docs/overworld/VISUAL_RECOVERY_R1.md`.

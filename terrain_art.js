@@ -1,4 +1,4 @@
-/* VEILWARD v1.3.2 — Phase 8: source-aligned 65-route road, stair and crossing networks.
+/* VEILWARD v1.3.4 — Visual recovery R1: low-noise clustered ground and collision-anchored illustrated scene artwork.
  * 16 source materials × 4 variants, 32×32 native source pixels per cell.
  * No network fetch, image generation at runtime or giant full-world bitmap.
  * Base, shore, road, stairs, props, contact shadow and foliage all use
@@ -7,7 +7,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.2",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
+const VERSION="1.3.4",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
 const PALETTES={
  snow:{base:"#acbcd0",dark:"#788da9",light:"#e4eced",mid:"#bfcdd9",spark:"#f6f5e8",motif:"drift"},
  frost:{base:"#8fa3b8",dark:"#627590",light:"#cedadd",mid:"#adbbc9",spark:"#e9ece8",motif:"shale"},
@@ -34,13 +34,13 @@ function drawMotif(ctx,ox,oy,material,variant){
  rgbaPixel(ctx,ox,oy,TILE,TILE,p.base);
  // Source motifs are deliberately hand composed at pixel scale, not
  // rasterized vector circles or stretched reference scenes.
- for(let i=0;i<25;i++){
+ for(let i=0;i<7;i++){
   const px=ox+Math.floor(hash(i,step,11)*30),py=oy+Math.floor(hash(i,step,37)*30);
   const w=2+Math.floor(hash(i,step,19)*6),h=1+Math.floor(hash(i,step,49)*3);
   rgbaPixel(ctx,px,py,w,h,i%4===0?p.light:i%3===0?p.dark:p.mid)
  }
  const motif=p.motif;
- for(let j=0;j<8;j++){
+ for(let j=0;j<5;j++){
   const x=ox+2+Math.floor(hash(j,variant+MATERIALS.indexOf(material)*9,17)*26);
   const y=oy+2+Math.floor(hash(j,variant+MATERIALS.indexOf(material)*9,33)*26);
   if(motif==="drift"){
@@ -94,6 +94,7 @@ function create(model,geometry,options={}){
  const footprint=options.footprint||null;
   const climate=options.climate||null;
  const routeArt=options.routeArt||null;
+ const illustration=options.illustration||null;
  const surfaces=geometry.surfaces,roads=geometry.roads,solids=geometry.solids;
  const water=model.waterways.map(w=>({...w,
   line:(w.centerline||[]).map(([x,y])=>[x*unit,y*unit]),
@@ -337,7 +338,10 @@ function create(model,geometry,options={}){
    const pts=s.polygon||(s.shape==="segment"?[s.a,s.b]:[[s.cx,s.cy]]);
    if(!inBounds(pts,bounds,600))continue;
    const x=s.cx,y=s.cy,r=s.radius;
-   if(s.material==="tree-trunk"||s.material==="pine-trunk"){tree(ctx,s);continue}
+   if(s.material==="tree-trunk"||s.material==="pine-trunk"){
+    if(illustration?.drawStatic(ctx,s))continue;
+    tree(ctx,s);continue
+   }
    if(s.shape==="circle"){
     oval(ctx,x+12,y+12,r*1.1,r*.43,"rgba(29,39,54,.36)");
     const c=s.material==="lantern-post"?"#655346":s.material==="ruin-column"?"#6f6879":"#73757d";
@@ -386,13 +390,16 @@ function create(model,geometry,options={}){
   drawBase(ctx,bounds);
   if(footprint)footprint.draws(ctx,bounds);
   drawSurfaces(ctx,bounds);
+  if(illustration)illustration.drawGround(ctx,bounds);
   if(routeArt)routeArt.draw(ctx,bounds);else drawRoads(ctx,bounds);
-  if(footprint)footprint.drawScenery(ctx,bounds);
+  if(illustration)illustration.drawFeatures(ctx,bounds);
+  else if(footprint)footprint.drawScenery(ctx,bounds);
   drawProps(ctx,bounds);
   ctx.restore()
  }
  function paintForeground(ctx,player){
-  if(footprint)footprint.drawForeground(ctx,player);
+  if(illustration)illustration.drawForeground(ctx,player);
+  else if(footprint)footprint.drawForeground(ctx,player);
   // Painter's order: only trees physically *in front* of the player's boots
   // gain a translucent crown overlap. Roots and shadows remain on terrain.
   for(const s of solids){
@@ -406,8 +413,8 @@ function create(model,geometry,options={}){
  }
  function diagnostics(){return{version:VERSION,atlasWidth:atlas.width,atlasHeight:atlas.height,
   materials:MATERIALS.length,variants:VARIANTS,sourceTilePixels:TILE,worldCellSize:WORLD_CELL,
-  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,usesAuthoritativeSolids:true}}
- return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,paintChunk,paintForeground,
+  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,illustrationEnabled:!!illustration,usesAuthoritativeSolids:true}}
+ return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,illustration,paintChunk,paintForeground,
   materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,diagnostics}
 }
 window.VeilwardTerrainArt={version:VERSION,create,palettes:PALETTES,materials:MATERIALS,

@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.1",CELL=96;
+const VERSION="1.3.4",CELL=96;
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const PROFILES=Object.freeze({
  hollowreach:{snow:.96,wet:.24,pine:.76,forest:.18,meadow:0,wetland:0,rock:.18,arcane:0,canyon:0,road:0},
@@ -76,7 +76,11 @@ function create(model){
  function groundMaterial(x,y){
   const c=sample(x,y);
   const gx=Math.floor(x/CELL),gy=Math.floor(y/CELL);
-  const n=hash(gx,gy,82),patch=noise(x/2300,y/2200,44);
+  // VISUAL RECOVERY: sample broad, low-frequency frost/vegetation fields rather
+  // than independent random material for every 96-unit ground tile.
+  // Reproducible in world coordinates and free of chunk checkerboards.
+  const n=clamp(noise(x/2450,y/2280,82)*.74+noise(x/1150,y/1090,55)*.26);
+  const patch=noise(x/3500,y/3100,44);
   // Worldscar remains a cold, high-elevation magic outcrop, even in the east.
   if(c.arcane>.48&&n<.88-c.snow*.18)return "arcane";
   if(c.canyon>.55&&n<.72)return "cliff";

@@ -117,6 +117,14 @@ This is a **physical geography proposal**, not a claim that these areas already 
 **Work:** Build all major roads, footpaths, side branches, crossings, switchbacks and stairs across the complete outdoor map. Every road ends in a landmark, junction, believable barrier, scenic overlook or intentional discovery. Give the river island a visible bridge, ford or deliberate transport interaction. Make stairs and bridge decks traversable where the art promises they are.  
 **Exit gate:** Every planned endpoint has at least one proven reachable route; crossing to islands requires a physical, understandable action; no invisible detour to walk left along an apparently open path.
 
+## CREATOR VISUAL REJECTION AFTER PHASE 9 — RECOVERY IN PROGRESS (v1.3.4)
+
+The creator explicitly approved the **physical world layout/connectivity** and rejected the **entire scene look (0% visual acceptance)** in the v1.3.3 region atlas. The procedural random 32px terrain, broad flat stroke roads, missing 3/4 silhouette architecture, tiny/empty foliage and arbitrary blank regional clearings do not match the approved snowy-village and Greenwood artwork. **This overrides any previous completion phrasing about Phase 9 appearance.** Phase 9 is functionally complete but the **mandatory appearance gate FAILED**. The next development is an art-recovery series **inside Phase 9**, not Phase 10.
+
+**R1 SOURCE PATCH: v1.3.4** — New source-anchored `world_illustration.js` layer for shaded six-tier firs, multi-layer forest trees, faceted stone, three-quarter gabled cottage and landmark detail; wider continuous snow/moss clumps, reduced noisy atlas pixels, narrower worn roads, actual physically backed woodland near landmarks and 1250-world-unit landmark-framed atlas. Details: [Visual Recovery R1](./docs/overworld/VISUAL_RECOVERY_R1.md). **R1 is not visually accepted; no user approval yet.**
+
+**R2–R4 STILL REQUIRED:** genuinely authored location-specific environmental detail; full artist-consistent authored world tile/sprite atlases and correct 3/4 scene depth; real on-iPhone quality comparison and creator explicit acceptance. Preserve roads/bridges/collision/saves and approved hero/Warden throughout.
+
 #### Phase 9 — Whole-world navigability survey; choose the test slice
 **Status: REVIEW BUILD v1.3.3 IMPLEMENTED — 12-region true runtime terrain atlas, real-world overview with all 65 source roads and seven crossing sites, full-world sampled walkability, shoreline/paint/physics survey, and explicit creator acceptance gate. PHASE 10 LOCKED UNTIL CREATOR APPROVAL.**
 **Source:** [Actual runtime atlas](./world_review.js) · [Phase 9 handoff, walkability, future slice and stop conditions](./docs/overworld/PHASE9_HANDOFF.md) · [12-region appearance index](./docs/overworld/PHASE9_REGION_ATLAS.md) · [Phase 9 regression](./tests/overworld_phase9_review.test.js) · [Creator QA matrix](./docs/overworld/PHASE9_QA.md).
