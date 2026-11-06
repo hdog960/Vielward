@@ -118,6 +118,14 @@ function create(model,geo,source,options={}){
   // road, footbridge, ford, landmark threshold or water shoreline.
   if(geo.nearRoad(x,y,()=>true,r+100))return done(null);
   if(geo.waterAt(x,y,r+30)||geo.obstacle(x,y,r+45))return done(null);
+  // Preserve the former decorative groundcover contract: a collidable young
+  // tree may never spawn on a visible non-solid flowerbed or reed tuft.
+  // Use deterministic real mature-feature coordinates, not visual guesses.
+  const fx=Math.floor(x/span),fy=Math.floor(y/span);
+  for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){
+   const old=fieldCell(fx+ox,fy+oy);
+   if(old&&Math.hypot(x-old.x,y-old.y)<r+old.radius+45)return done(null)
+  }
   for(const cl of clearings)
    if(Math.hypot(x-cl.x,y-cl.y)<Math.min(cl.r,130)+r+35)return done(null);
   const choice=hash(gx,gy,seed+161);
