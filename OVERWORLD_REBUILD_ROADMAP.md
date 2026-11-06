@@ -104,6 +104,9 @@ This is a **physical geography proposal**, not a claim that these areas already 
 **Exit gate:** All planned outdoor regions exist in a unified world, are reachable through world-space movement or clearly intentional obstacles, and have a route to/from Hollowreach.
 
 #### Phase 7 — Gradual climate, vegetation and biome transitions
+**Status: IMPLEMENTED v1.3.1 — twelve continuous biome profiles, snow/exposure/altitude, physical riverbank moisture, Worldscar alpine exception, seasonal vegetation, pixel-cluster snowmelt transitions and global chunk-independent painting. Phase 8 NOT STARTED.**
+**Source:** [Live climate engine](./world_climate.js) · [Phase 7 technical handoff](./docs/overworld/PHASE7_HANDOFF.md) · [Phase 7 QA](./docs/overworld/PHASE7_QA.md) · [Regression suite](./tests/overworld_phase7_climate.test.js).
+**Playable:** Journey Menu → Explore Climate-Blended Overworld (Phase 7); the 12-stop survey remains. This is real climate artwork inside the optional preview, not final creator-approved illustrated scene quality.
 **Work:** Blend mountain winter through evergreen lower slopes, patchy melt, wet forest and temperate meadows. Use elevation, slope exposure, water, and weather to justify where snow and greenery appear. Hand-refine chunk boundaries, lighting and foliage. No "walk into bush → lush climate" teleport.  
 **Exit gate:** The Hollowreach-to-Greenwood trek visibly and logically changes climate over distance; no abrupt JPG/world swap, severe palette edge, cut-off flower sheet or mismatched texture scale.
 

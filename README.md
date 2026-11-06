@@ -1,3 +1,18 @@
+# Veilward v1.3.1 — Phase 7: Climate-Blended Continuous World
+
+**Real playable update:** A global climate sampler now connects snowy Hollowreach and Northwatch through exposed pine slopes, patchy snowmelt, damp moss and temperate Greenwood. The Mossmere shore gets moisture gradients, and high eastern Worldscar retains a frost-capable rock canopy. Existing authored pixel material families, detailed tile-level patches, and deterministic regional trees/flowers/rocks all read this common climate data; roads, terrain collision, and the original quest remain intact.
+
+**iPhone test:** [Play Veilward](https://hdog960.github.io/Vielward/) → **Journey Menu → Explore Climate-Blended Overworld (Phase 7)**. Walk along roads across Thawline or use **Visit Next Region** to inspect all twelve anchor locations. The terrain overlay still shows real collision. Return to Hollowreach to recover the unchanged saved adventure.
+
+- [Climate and regional weather profiles](./world_climate.js)
+- [Phase 7 handoff, playtest and next-phase notes](./docs/overworld/PHASE7_HANDOFF.md)
+- [Phase 7 source and creator visual acceptance matrix](./docs/overworld/PHASE7_QA.md)
+- [Climate regression suite](./tests/overworld_phase7_climate.test.js)
+
+**Phase 7 complete in source, awaiting on-device art assessment.** Phase 8 will finish detailed physical roads, bridges, stairs and island access; Phase 9 will survey and present the complete outdoor environment. **Hard stop after Phase 9 for your explicit overworld appearance approval before Phase 10.**
+
+---
+
 # Veilward v1.3.0 — Phase 6: Twelve-Region Outdoor Landmass
 
 **Real playable update:** The continuous outdoor preview now uses a **single 29-point physical landmass outline** and authored environment composition across **all 12 approved regions**. It retains **65 connected roads and 7 physical crossings**, adds **13 landmark environments, 35 deliberately clear travel/hub areas**, and places region-specific trees, rocks, cairns, flowers, reeds and ruins using deterministic world coordinates. The same natural object source is used for its visible shape and collision.

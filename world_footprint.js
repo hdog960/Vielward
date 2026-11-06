@@ -1,11 +1,11 @@
-/* VEILWARD 1.3.0 — full outdoor terrain footprint (Phase 6).
+/* VEILWARD 1.3.1 — climate-driven regional forest, snowline and grounded scenery.
  * A physically traversable 12-region landmass and reproducible region scenery.
  * All natural blockers are rendered from the very same positions/footprint as
  * their boot-level collision. No NPC/player art is touched or copied.
  */
 (function(){
 "use strict";
-const VERSION="1.3.0",TAU=2*Math.PI;
+const VERSION="1.3.1",TAU=2*Math.PI;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 function hash(x,y,seed){let n=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(seed|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296}
 function inside(x,y,poly){let yes=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){
@@ -26,8 +26,9 @@ function validate(model,geo,source){
  for(const r of source.regions)if(!model.regions.some(x=>x.id===r.id))throw Error("Unknown footprint biome "+r.id);
  return source
 }
-function create(model,geo,source){
+function create(model,geo,source,options={}){
  validate(model,geo,source);
+ const climate=options.climate||null;
  const scale=model.worldDesign.worldUnitScale,seed=source.fieldSampling.seed;
  const span=source.fieldSampling.cellSizeWorld;
  const poly=source.landOutline.map(p=>p.map(v=>v*scale));
@@ -68,13 +69,25 @@ function create(model,geo,source){
   const reg=regionAt(x,y),opts=reg.opts;
   if(!opts||hash(gx,gy,seed+7)>opts.density)return remember(key,null);
   let kind=opts.features[Math.floor(hash(gy,gx,seed+17)*opts.features.length)];
+  const weather=climate?climate.sample(x,y):null;
+  if(weather){
+   const choice=hash(gx,gy,seed+73);
+   // Swap within identical physical families; no new obstruction types.
+   if(kind==="pine"||kind==="oak"){
+    kind=choice<clamp(weather.pine*.68+weather.snow*.35,.06,.96)?"pine":"oak";
+   }else if(kind==="snowstone"||kind==="boulder"){
+    kind=choice<clamp(weather.snow*.92,.03,.97)?"snowstone":"boulder";
+   }else if(kind==="scrub"||kind==="flowerbed"){
+    kind=choice<clamp(weather.snow*.93+(1-weather.snow)*.16,.05,.97)?"scrub":"flowerbed";
+   }
+  }
   const solid=source.fieldSampling.solidKinds.includes(kind);
   const radius=solid?(45+hash(gx,gy,seed+29)*51):35+hash(gx,gy,seed+29)*35;
   // Real route corridors and named clearings always win over scenery.
   for(const c of clearings)if(Math.hypot(x-c.x,y-c.y)<c.r+radius+90)return remember(key,null);
   if(geo.nearRoad(x,y,()=>true,radius+source.fieldSampling.avoidRouteBufferWorld))return remember(key,null);
   if(geo.waterAt(x,y,radius+25)||geo.obstacle(x,y,radius+source.fieldSampling.avoidExistingPropsWorld))return remember(key,null);
-  const obj={id:"field_"+gx+"_"+gy,x,y,kind,radius,solid,biome:reg.id,variant:hash(gx,gy,seed+40)};
+  const obj={id:"field_"+gx+"_"+gy,x,y,kind,radius,solid,biome:reg.id,variant:hash(gx,gy,seed+40),...(weather?{snow:weather.snow,moisture:weather.wet}:{})};
   return remember(key,obj)
  }
  function cells(bounds,pad=120){
@@ -105,12 +118,14 @@ function create(model,geo,source){
  }
  function field(ctx,f){
   const {x,y,radius:r,kind,variant:v}=f;
+  const snow=typeof f.snow==="number"?f.snow:(kind==="pine"?.9:.06);
+  const wet=typeof f.moisture==="number"?f.moisture:.42;
   if(kind==="flowerbed"||kind==="scrub"||kind==="reeds"){
    ellipse(ctx,x,y+7,r*.85,r*.22,"rgba(35,56,59,.2)");
    for(let i=0;i<9;i++){
     const xx=x+(hash(i,v*100|0,1)-.5)*r*1.3,yy=y+(hash(i,v*100|0,2)-.5)*r*.7;
-    fill(ctx,xx,yy-13,4,15,kind==="reeds"?"#64816d":"#597754");
-    fill(ctx,xx-2,yy-13,5,4,kind==="flowerbed"?(i%3?"#ddd8bb":"#bfa1c5"):"#97a684")
+    fill(ctx,xx,yy-13,4,15,kind==="reeds"?(snow>.55?"#8c9390":"#64816d"):snow>.65?"#768781":"#597754");
+    fill(ctx,xx-2,yy-13,5,4,kind==="flowerbed"?(i%3?"#ddd8bb":"#bfa1c5"):snow>.55?"#d1d5c9":wet>.65?"#8bab90":"#97a684")
    }
    return
   }
@@ -120,11 +135,11 @@ function create(model,geo,source){
    for(let i=3;i>=0;i--){
     const width=r*(kind==="pine"?1.35-i*.17:1.1-i*.08),
      yy=y-r*(kind==="pine"?1.28:1.15)+i*r*.23;
-    ellipse(ctx,x,yy,width,r*.38,kind==="pine"?(i%2?"#39545f":"#49656c"):(i%2?"#4b6b53":"#62805d"));
+    ellipse(ctx,x,yy,width,r*.38,kind==="pine"?(snow>.44?(i%2?"#39545f":"#49656c"):(i%2?"#365f53":"#547665")):(snow>.45?(i%2?"#677872":"#75877b"):(i%2?"#4b6b53":"#62805d")));
     for(let q=0;q<7;q++){
      const xx=x-width*.72+q*width*.2;
      fill(ctx,xx,yy-r*.18+(q%3)*r*.1,Math.max(4,r*.14),Math.max(3,r*.052),
-      kind==="pine"?(q%2?"#90a5a9":"#b8c4c6"):(q%2?"#89a477":"#b0bb83"))
+      kind==="pine"?(snow>hash(q,Math.floor(v*100),i+42)?(q%2?"#90a5a9":"#d1d8d6"):(q%2?"#6a907a":"#8ea78a")):(snow>.5?"#bbc4bd":(q%2?"#89a477":"#b0bb83")))
     }
    }
   }else if(kind==="fallenlog"){
@@ -259,7 +274,7 @@ function create(model,geo,source){
    if(!["pine","oak"].includes(o.kind)||o.y<=player.y||Math.abs(o.x-player.x)>o.radius*1.2||o.y-player.y>o.radius*1.55)continue;
    ctx.save();ctx.globalAlpha=.37;
    ellipse(ctx,o.x,o.y-o.radius*.9,o.radius*.8,o.radius*.45,
-    o.kind==="pine"?"#4b6571":"#537454");ctx.restore()
+    o.kind==="pine"?(o.snow>.43?"#4b6571":"#4d7664"):"#537454");ctx.restore()
   }
  }
  function debug(ctx,bounds){
@@ -272,9 +287,9 @@ function create(model,geo,source){
  }
  function stats(){
   return{version:VERSION,regions:regions.size,majorHubs:hubs.length,routeClearings:clearings.length,
-   sourceFieldCell:span,outlinePoints:poly.length,cachedFields:cachedFields.size,maximumCachedFields:MAX_CACHE,landmassCollision:true};
+   sourceFieldCell:span,outlinePoints:poly.length,cachedFields:cachedFields.size,maximumCachedFields:MAX_CACHE,landmassCollision:true,climateEnabled:!!climate};
  }
- return{version:VERSION,source,onLand,regionAt,fieldCell,cells,blocked,safePoint,draws,drawScenery,drawForeground,debug,stats,
+ return{version:VERSION,source,climate,onLand,regionAt,fieldCell,cells,blocked,safePoint,draws,drawScenery,drawForeground,debug,stats,
   featureAt:(x,y)=>fieldCell(Math.floor(x/span),Math.floor(y/span))}
 }
 window.VeilwardFootprint={version:VERSION,validate,create,inside};

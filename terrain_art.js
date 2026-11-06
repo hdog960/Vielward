@@ -1,4 +1,4 @@
-/* VEILWARD v1.3.0 — Phase 6: source-authored 12-region landmass and contextual scenery.
+/* VEILWARD v1.3.1 — Phase 7: gradual snow/grass/moss ecological terrain transitions.
  * 16 source materials × 4 variants, 32×32 native source pixels per cell.
  * No network fetch, image generation at runtime or giant full-world bitmap.
  * Base, shore, road, stairs, props, contact shadow and foliage all use
@@ -7,7 +7,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.0",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
+const VERSION="1.3.1",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
 const PALETTES={
  snow:{base:"#acbcd0",dark:"#788da9",light:"#e4eced",mid:"#bfcdd9",spark:"#f6f5e8",motif:"drift"},
  frost:{base:"#8fa3b8",dark:"#627590",light:"#cedadd",mid:"#adbbc9",spark:"#e9ece8",motif:"shale"},
@@ -92,6 +92,7 @@ function create(model,geometry,options={}){
  const factory=options.canvasFactory||(()=>document.createElement("canvas"));
  const atlas=makeAtlas(factory),unit=model.worldDesign.worldUnitScale;
  const footprint=options.footprint||null;
+  const climate=options.climate||null;
  const surfaces=geometry.surfaces,roads=geometry.roads,solids=geometry.solids;
  const water=model.waterways.map(w=>({...w,
   line:(w.centerline||[]).map(([x,y])=>[x*unit,y*unit]),
@@ -137,7 +138,7 @@ function create(model,geometry,options={}){
  }
  function materialAt(x,y){
   const w=waterAt(x,y);
-  return w||mixMaterial(x,y)
+  return w||(climate?climate.groundMaterial(x,y):mixMaterial(x,y))
  }
  function tileVariant(gx,gy){return Math.floor(hash(gx,gy,45)*VARIANTS)}
  function atlasRect(name,variant){
@@ -159,11 +160,37 @@ function create(model,geometry,options={}){
   return {gx:Math.floor(worldX/WORLD_CELL),gy:Math.floor(worldY/WORLD_CELL),
    material:materialAt(worldX,worldY),variant:tileVariant(Math.floor(worldX/WORLD_CELL),Math.floor(worldY/WORLD_CELL))}
  }
+ function climateDetails(ctx,c,material){
+  if(!climate||["river","lake","cliff","arcane","stone","road","timber"].includes(material))return;
+  const sample=climate.sample(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5);
+  // Snowflecks, wet moss and plants repeat consistently across chunk edges.
+  // Small pixel clusters break the large 96-unit material checkerboard.
+  for(let i=0;i<8;i++){
+   const n=hash(c.gx*17+i,c.gy*13-i,129);
+   const px=c.x+7+Math.floor(hash(c.gx,c.gy+i,101)*76);
+   const py=c.y+8+Math.floor(hash(c.gx+i,c.gy,97)*75);
+   if(sample.snow>.08&&n<sample.snow*.83){
+    ctx.fillStyle=sample.snow>.62?"rgba(226,233,230,.75)":"rgba(211,224,224,.52)";
+    ctx.fillRect(px,py,12+(i%3)*5,3+(i%2)*3);
+    ctx.fillStyle="rgba(121,147,157,.35)";
+    ctx.fillRect(px+4,py+4,7+(i%2)*4,2)
+   }else if(sample.wet>.48&&n<sample.wet*.88){
+    ctx.fillStyle=sample.wet>.73?"rgba(49,90,96,.30)":"rgba(75,102,84,.24)";
+    ctx.fillRect(px,py,17+(i%3)*3,4);
+    ctx.fillStyle="rgba(165,183,152,.36)";
+    ctx.fillRect(px+6,py-3,3,6)
+   }else if(sample.snow<.55){
+    ctx.fillStyle=sample.meadow>.5?"rgba(202,193,144,.42)":"rgba(102,143,104,.29)";
+    ctx.fillRect(px,py,4+(i%4)*2,8)
+   }
+  }
+ }
  function drawBase(ctx,bounds){
   const cells=boundsCells(bounds);
   for(const c of cells){
    const material=materialAt(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5);
-   stamp(ctx,material,c.gx,c.gy,c.x,c.y)
+   stamp(ctx,material,c.gx,c.gy,c.x,c.y);
+   climateDetails(ctx,c,material)
   }
   // Rock/ice/river/grass transition edges use the SAME world grid on either
   // side of streaming chunk boundaries; no per-chunk seed or white mattes.
@@ -202,7 +229,16 @@ function create(model,geometry,options={}){
     Math.min(bounds[2],Math.max(...s.polygon.map(p=>p[0]))),
     Math.min(bounds[3],Math.max(...s.polygon.map(p=>p[1])))
    ]);
-   for(const c of cells)stamp(ctx,remap[s.material]||"stone",c.gx,c.gy,c.x,c.y);
+   for(const c of cells){
+    let surface=remap[s.material]||"stone";
+    if(climate&&(s.material==="packed-snow"||s.material==="stone-snow")){
+     const snow=climate.sample(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5).snow;
+     if(s.material==="packed-snow"&&snow<.46)surface=snow>.20?"thaw":"moss";
+     if(s.material==="stone-snow"&&snow<.35)surface="stone";
+    }
+    stamp(ctx,surface,c.gx,c.gy,c.x,c.y);
+    climateDetails(ctx,c,surface)
+   }
    ctx.restore();
   }
  }
@@ -363,8 +399,8 @@ function create(model,geometry,options={}){
  }
  function diagnostics(){return{version:VERSION,atlasWidth:atlas.width,atlasHeight:atlas.height,
   materials:MATERIALS.length,variants:VARIANTS,sourceTilePixels:TILE,worldCellSize:WORLD_CELL,
-  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,usesAuthoritativeSolids:true}}
- return{version:VERSION,atlas,materials:MATERIALS,paintChunk,paintForeground,
+  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,usesAuthoritativeSolids:true}}
+ return{version:VERSION,atlas,materials:MATERIALS,climate,paintChunk,paintForeground,
   materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,diagnostics}
 }
 window.VeilwardTerrainArt={version:VERSION,create,palettes:PALETTES,materials:MATERIALS,
