@@ -1,3 +1,19 @@
+# Veilward v1.2.9 — Phase 5 Playable Pixel-Art Terrain Preview
+
+**Actual game update:** A new 16-material / 64-source-tile pixel-art terrain atlas now renders inside the opt-in seamless outdoor preview, composed from the actual Phase 4 collision/road/elevation data. Snow, snowmelt, forest, grass, stone, river/lake water, cliffs, bridges, tree props, lamp posts and shadowing are no longer solely flat-colored debug surfaces. The approved Wanderer and Warden sprites remain unchanged.
+
+**How to test on iPhone:** Open [Veilward](https://hdog960.github.io/Vielward/) → **Journey Menu → Explore Pixel-Art Terrain (Phase 5 Preview)**. Inside the preview, use **Visit Next Terrain Material** to jump between Hollowreach snow, Thawline, Greenwood forest, Worldscar stone and Mossmere lake. Each stop is a real streaming-world position, but preview travel never alters your original quest/save. **Return to Hollowreach Adventure** when finished.
+
+- [Actual in-game source material atlas and rendering](./terrain_art.js)
+- [16 material signatures, variations and pixel-source manifest](./docs/overworld/TERRAIN_MATERIALS.json)
+- [Pixel-art environment reference and compositing style guide](./docs/overworld/TERRAIN_ART_STYLE_GUIDE.md)
+- [Phase 5 QA and 5-stop screenshot checklist](./docs/overworld/PHASE5_QA.md)
+- [Completed Phase 5 → Phase 6 technical handoff](./docs/overworld/PHASE5_HANDOFF.md)
+
+**Scope note:** This ships a functioning source-art and compositing system; it does not mean the full 12-region world has been painted to the same detail as the original background illustrations. Full location art comes in Phases 6–8, with a strict **creator appearance review after Phase 9 before Phase 10**. No separate art-only deliverable substitutes for patching the actual game.
+
+---
+
 # Veilward v1.2.8 — Phase 4: Real Ground, Collision and Elevation Preview
 
 **Actual game patch deployed to the GitHub source branch.** The playable outdoor preview now loads **co-authored terrain geometry** with one source for visible floors, tree trunks, physical blockers, bridge decks, stair grades, river/chasm/lake hazards and named inspection zones. There are 7 authored floor patches, 30 grounded solids and 11 inspectable locations; 65 roads and 7 planned crossings retain continuous movement.

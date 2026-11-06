@@ -165,12 +165,12 @@ function legacyStageThree(){
  eq(s.q.p.gold,160,"legacy delivery receives exactly one reward");
 }
 mainRoute();earlyScar();legacy();legacyStageThree();
-ok(game.includes('const APP_VERSION="1.2.8"'),"game build bumped");
+ok(game.includes('const APP_VERSION="1.2.9"'),"game build bumped");
 ok(game.includes('const SAVE="veilward-hollowreach-v01"'),"save key retained");
 ok(visual.includes('load("hero","hero_approved_8way_v12.webp"'),"approved hero intact");
 ok(visual.includes('load("warden","warden_hal_v13.png"'),"Warden Hal intact");
-for(const asset of ["quest.js?v=1","combat.js?v=2","world_geometry.js?v=1","world_stream.js?v=2","game.js?v=20",
- "navigation.js?v=11","visual.js?v=33","visual.css?v=12","manifest.webmanifest?v=128"])
+for(const asset of ["quest.js?v=1","combat.js?v=2","world_geometry.js?v=1","terrain_art.js?v=1","world_stream.js?v=3","game.js?v=21",
+ "navigation.js?v=11","visual.js?v=33","visual.css?v=13","manifest.webmanifest?v=129"])
  ok(html.includes(asset)&&worker.includes(asset),"HTML/worker reference "+asset);
-ok(html.indexOf("quest.js?v=1")<html.indexOf("game.js?v=20"),"quest module before gameplay");
+ok(html.indexOf("quest.js?v=1")<html.indexOf("game.js?v=21"),"quest module before gameplay");
 console.log("Veilward Phase 5 PASS:",checks,"game-session quest and save assertions");

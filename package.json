@@ -1,15 +1,16 @@
 {
   "name": "veilward-hollowreach",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "private": true,
   "description": "Static iPhone action-RPG vertical slice (no runtime packages)",
   "scripts": {
-    "test": "node tests/phase3_scene_geometry.test.js && node tests/phase4_combat.test.js && node tests/phase5_quest.test.js && npm run audit:world && npm run audit:topology && npm run audit:streaming && npm run audit:geometry",
-    "check": "node --check game.js && node --check quest.js && node --check combat.js && node --check navigation.js && node --check visual.js && node --check sw.js && node --check world_geometry.js && node --check world_stream.js",
+    "test": "node tests/phase3_scene_geometry.test.js && node tests/phase4_combat.test.js && node tests/phase5_quest.test.js && npm run audit:world && npm run audit:topology && npm run audit:streaming && npm run audit:geometry && npm run audit:art",
+    "check": "node --check game.js && node --check quest.js && node --check combat.js && node --check navigation.js && node --check visual.js && node --check sw.js && node --check world_geometry.js && node --check world_stream.js && node --check terrain_art.js",
     "audit:world": "node tests/overworld_phase1_audit.test.js",
     "audit:topology": "node tests/overworld_phase2_topology.test.js",
     "render:world-map": "node scripts/render_overworld_blueprint.js",
     "audit:streaming": "node tests/overworld_phase3_streaming.test.js",
-    "audit:geometry": "node tests/overworld_phase4_geometry.test.js"
+    "audit:geometry": "node tests/overworld_phase4_geometry.test.js",
+    "audit:art": "node tests/overworld_phase5_art.test.js"
   }
 }

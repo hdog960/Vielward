@@ -87,6 +87,9 @@ This is a **physical geography proposal**, not a claim that these areas already 
 **Exit gate:** Automated route checks verify advertised roads, bridges and staircases; visual blockers match collision; no player can stand on a tree canopy, fence cap, river, cliff face or lantern post.
 
 #### Phase 5 — Approved pixel-art terrain/asset production workflow
+**Status: IMPLEMENTED v1.2.9 — real authored pixel material atlas and 5-region interactive game preview, 16 materials × 4 variations (64 source frames), art drawn from Phase 4 ground/road/solid geometry. Phase 6 NOT STARTED.**
+**Changes:** [actual terrain art module](./terrain_art.js) · [source-to-game material manifest](./docs/overworld/TERRAIN_MATERIALS.json) · [artist/compositing guide](./docs/overworld/TERRAIN_ART_STYLE_GUIDE.md) · [Phase 5 handoff](./docs/overworld/PHASE5_HANDOFF.md) · [QA acceptance notes](./docs/overworld/PHASE5_QA.md) · [source art test](./tests/overworld_phase5_art.test.js).
+**Playable access:** Run v1.2.9 → Journey Menu → **Explore Pixel-Art Terrain (Phase 5 Preview)**; while in the preview, select **Visit Next Terrain Material** to cycle Snow, Thawline, Greenwood, Worldscar, Mossmere. Detailed full-region art still follows in Phases 6–8. **The appearance of the ENTIRE finished overworld must still receive creator approval after Phase 9, before Phase 10.** Do not confuse the Phase 5 source atlas with full world appearance approval.
 **Work:** Establish source atlases and compositing rules for materials, shadow ramps, perspective, transition edges, pixel density, foliage clusters, bridges, water, architecture, prop silhouettes and lighting. Ban clip-art/polygon replacements for ground pickups. Record source-to-game assets, alpha cleanup and consistent authored shadow footprints.  
 **Exit gate:** A small set of snow, thawline, forest, stone and water chunks reads as the **same game** next to approved current imagery; no jarring seams/white matte edges.
 

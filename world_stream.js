@@ -1,11 +1,11 @@
-/* VEILWARD — Phase 4 terrain-authoritative continuous outdoor world streaming.
+/* VEILWARD — Phase 5 authored pixel-art materials over terrain-authoritative streaming.
  * Data-authored macro terrain preview. NOT approved final terrain art or collision.
  * The stable v1.2.6 adventure stays intact; this module owns only its optional
  * streaming preview and is never allowed to mutate the legacy local save.
  */
 (function(){
 "use strict";
-const VERSION="1.2.8",TAU=Math.PI*2;
+const VERSION="1.2.9",TAU=Math.PI*2;
 function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
 function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295}
 function rgb(hex){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
@@ -61,6 +61,8 @@ function create(model,options={}){
  const factory=options.canvasFactory||(()=>document.createElement("canvas"));
  const geometry=options.geometry&&window.VeilwardGeometry?
    window.VeilwardGeometry.create(model,options.geometry):null;
+ const art=options.terrainArt||(geometry&&window.VeilwardTerrainArt?
+   window.VeilwardTerrainArt.create(model,geometry,{canvasFactory:factory}):null);
  const points=Object.fromEntries(model.nodes.map(n=>[n.id,n]));
  const edges=model.edges.map(e=>({
   ...e,polyline:[points[e.from].point,...(e.via||[]),points[e.to].point]
@@ -96,6 +98,10 @@ function create(model,options={}){
   const ctx=c.getContext("2d",{alpha:false});
   if(!ctx)throw Error("Canvas unavailable for streamed outdoor chunk");
   const x0=col*size,y0=row*size;
+  if(art){
+   art.paintChunk(ctx,[x0,y0,x0+size,y0+size],resolution);
+   tilesBuilt++;return c
+  }
   // Sampling on the GLOBAL world grid makes textures meet at chunk edges.
   // This is intentionally data-driven preview terrain, not approved final art.
   const step=30,px=resolution*step/size;
@@ -210,7 +216,8 @@ function create(model,options={}){
   const nearby=cells(camera.x,camera.y,viewW,viewH,size);
   // Paint every visible square immediately. Missing tiles get a *colored*
   // fallback rather than black; nearby tiles stream within a bounded budget.
-  ctx.save();ctx.scale(zoom,zoom);ctx.translate(-Math.floor(camera.x),-Math.floor(camera.y));
+  ctx.save();ctx.imageSmoothingEnabled=false;
+  ctx.scale(zoom,zoom);ctx.translate(-Math.floor(camera.x),-Math.floor(camera.y));
   let missing=[];
   for(const t of visible){
    const key=chunkId(t.col,t.row);
@@ -226,6 +233,19 @@ function create(model,options={}){
   trim(nearby);peakCache=Math.max(peakCache,cache.size);
   visibleTiles=visible.length;renderSerial++;
   return {camera,viewWidth:viewW,viewHeight:viewH,missing:missing.length}
+ }
+ function jumpToNode(id){
+  const node=points[id];if(!node)throw Error("Unknown terrain showcase landmark "+id);
+  const x=node.point[0]*unit,y=node.point[1]*unit;
+  const ground=geometry?geometry.safePoint(x,y):{x,y};
+  player.x=ground.x;player.y=ground.y;player.moving=false;player.step=0;
+  if(geometry)player.groundHeight=geometry.elevationAt(player.x,player.y);
+  cameraReady=false;
+  warm(player.x,player.y,2400,1500);
+  return{node:id,x:player.x,y:player.y}
+ }
+ function renderForeground(ctx,playerPosition=player){
+  if(art)art.paintForeground(ctx,playerPosition)
  }
  function renderDebug(ctx,screenW,screenH,zoom=.78){
   if(!geometry)return;
@@ -244,8 +264,9 @@ function create(model,options={}){
   elevation:geometry?.elevationAt(player.x,player.y)??null,
   material:geometry?.materialAt(player.x,player.y)??null,
   worldWidth:width,worldHeight:height,
-  geometry:geometry?.stats()??null}}
- return{version:VERSION,model,geometry,player,camera,size,width,height,move,render,renderDebug,
+  geometry:geometry?.stats()??null,
+  terrainArt:art?.diagnostics?.()??null}}
+ return{version:VERSION,model,geometry,art,player,camera,size,width,height,move,render,renderDebug,renderForeground,jumpToNode,
   warm,cells,blocked,nearbyInteraction,regionName,stats,clearCache:()=>cache.clear(),
   tile:(col,row)=>cache.get(chunkId(col,row))||null}
 }

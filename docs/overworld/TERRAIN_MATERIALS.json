@@ -1,0 +1,348 @@
+{
+  "schema": "veilward.terrain-materials.v1",
+  "phase": 5,
+  "version": "1.2.9",
+  "source": "terrain_art.js",
+  "sourceMechanism": "A single 256×256 2D Canvas source atlas generated in memory from authored motif functions. No extra image fetch, independent AI image, or binary PNG is required.",
+  "spriteSize": [
+    32,
+    32
+  ],
+  "atlasSize": [
+    256,
+    256
+  ],
+  "materialCount": 16,
+  "variantsPerMaterial": 4,
+  "sourceFrames": 64,
+  "worldSpanPerCell": 96,
+  "sourceCellGrid": {
+    "columns": 8,
+    "rows": 8
+  },
+  "materials": [
+    {
+      "id": "snow",
+      "index": 0,
+      "sourceCells": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "motif": "drift",
+      "colors": {
+        "base": "#acbcd0",
+        "dark": "#788da9",
+        "light": "#e4eced",
+        "mid": "#bfcdd9",
+        "spark": "#f6f5e8",
+        "motif": "drift"
+      }
+    },
+    {
+      "id": "frost",
+      "index": 1,
+      "sourceCells": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "motif": "shale",
+      "colors": {
+        "base": "#8fa3b8",
+        "dark": "#627590",
+        "light": "#cedadd",
+        "mid": "#adbbc9",
+        "spark": "#e9ece8",
+        "motif": "shale"
+      }
+    },
+    {
+      "id": "thaw",
+      "index": 2,
+      "sourceCells": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "motif": "snowgrass",
+      "colors": {
+        "base": "#92a69c",
+        "dark": "#5e8178",
+        "light": "#c7d1c1",
+        "mid": "#a9b9ad",
+        "spark": "#dde7df",
+        "motif": "snowgrass"
+      }
+    },
+    {
+      "id": "forest",
+      "index": 3,
+      "sourceCells": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "motif": "leaf",
+      "colors": {
+        "base": "#5f826e",
+        "dark": "#345b55",
+        "light": "#95aa7d",
+        "mid": "#749677",
+        "spark": "#f0e7ad",
+        "motif": "leaf"
+      }
+    },
+    {
+      "id": "grass",
+      "index": 4,
+      "sourceCells": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "motif": "flower",
+      "colors": {
+        "base": "#829d70",
+        "dark": "#516e58",
+        "light": "#b5bf8c",
+        "mid": "#94ae79",
+        "spark": "#f0e1bb",
+        "motif": "flower"
+      }
+    },
+    {
+      "id": "moss",
+      "index": 5,
+      "sourceCells": [
+        20,
+        21,
+        22,
+        23
+      ],
+      "motif": "moss",
+      "colors": {
+        "base": "#7f967e",
+        "dark": "#485f61",
+        "light": "#b4b99a",
+        "mid": "#9aa997",
+        "spark": "#d8dcc4",
+        "motif": "moss"
+      }
+    },
+    {
+      "id": "road",
+      "index": 6,
+      "sourceCells": [
+        24,
+        25,
+        26,
+        27
+      ],
+      "motif": "pebble",
+      "colors": {
+        "base": "#9b9888",
+        "dark": "#5f6f6b",
+        "light": "#c7bea0",
+        "mid": "#adac9d",
+        "spark": "#d9d5ba",
+        "motif": "pebble"
+      }
+    },
+    {
+      "id": "dirt",
+      "index": 7,
+      "sourceCells": [
+        28,
+        29,
+        30,
+        31
+      ],
+      "motif": "pebble",
+      "colors": {
+        "base": "#a48e76",
+        "dark": "#6c6960",
+        "light": "#c9b69a",
+        "mid": "#b9a48c",
+        "spark": "#e2d1b0",
+        "motif": "pebble"
+      }
+    },
+    {
+      "id": "stone",
+      "index": 8,
+      "sourceCells": [
+        32,
+        33,
+        34,
+        35
+      ],
+      "motif": "slab",
+      "colors": {
+        "base": "#898e9b",
+        "dark": "#53586d",
+        "light": "#bec3c4",
+        "mid": "#a2a5ad",
+        "spark": "#dbd7d0",
+        "motif": "slab"
+      }
+    },
+    {
+      "id": "ruin",
+      "index": 9,
+      "sourceCells": [
+        36,
+        37,
+        38,
+        39
+      ],
+      "motif": "slab",
+      "colors": {
+        "base": "#867d93",
+        "dark": "#4e536b",
+        "light": "#b3adbc",
+        "mid": "#9e97a6",
+        "spark": "#d7cbe0",
+        "motif": "slab"
+      }
+    },
+    {
+      "id": "wetland",
+      "index": 10,
+      "sourceCells": [
+        40,
+        41,
+        42,
+        43
+      ],
+      "motif": "reeds",
+      "colors": {
+        "base": "#667d71",
+        "dark": "#445c63",
+        "light": "#a1ad8c",
+        "mid": "#869b85",
+        "spark": "#c3bc91",
+        "motif": "reeds"
+      }
+    },
+    {
+      "id": "river",
+      "index": 11,
+      "sourceCells": [
+        44,
+        45,
+        46,
+        47
+      ],
+      "motif": "water",
+      "colors": {
+        "base": "#426d90",
+        "dark": "#264b78",
+        "light": "#80afca",
+        "mid": "#568aa7",
+        "spark": "#c3e8dd",
+        "motif": "water"
+      }
+    },
+    {
+      "id": "lake",
+      "index": 12,
+      "sourceCells": [
+        48,
+        49,
+        50,
+        51
+      ],
+      "motif": "water",
+      "colors": {
+        "base": "#345d7c",
+        "dark": "#25445f",
+        "light": "#79a0b4",
+        "mid": "#46748d",
+        "spark": "#c0d6cb",
+        "motif": "water"
+      }
+    },
+    {
+      "id": "cliff",
+      "index": 13,
+      "sourceCells": [
+        52,
+        53,
+        54,
+        55
+      ],
+      "motif": "shale",
+      "colors": {
+        "base": "#5e627e",
+        "dark": "#363e58",
+        "light": "#9493a7",
+        "mid": "#797e93",
+        "spark": "#bdbbcd",
+        "motif": "shale"
+      }
+    },
+    {
+      "id": "arcane",
+      "index": 14,
+      "sourceCells": [
+        56,
+        57,
+        58,
+        59
+      ],
+      "motif": "rune",
+      "colors": {
+        "base": "#796b97",
+        "dark": "#494666",
+        "light": "#b4a2c2",
+        "mid": "#9386aa",
+        "spark": "#dcd0e4",
+        "motif": "rune"
+      }
+    },
+    {
+      "id": "timber",
+      "index": 15,
+      "sourceCells": [
+        60,
+        61,
+        62,
+        63
+      ],
+      "motif": "plank",
+      "colors": {
+        "base": "#856e62",
+        "dark": "#473e47",
+        "light": "#c5a783",
+        "mid": "#a28b70",
+        "spark": "#e5c8a1",
+        "motif": "plank"
+      }
+    }
+  ],
+  "seamRule": "Every tile's global source grid cell and variant seed comes from absolute world position divided by 96 units. The cells overlap 1500-unit streaming boundaries deliberately; never reset material or variant per chunk.",
+  "compositingOrder": [
+    "globally sampled biome pixels",
+    "river/lake water edge/shore highlights",
+    "authored floor polygons clipped to the same geometry",
+    "road/stone stair/bridge and timber crossings",
+    "authored solids/stone cliffs/trees/lamps with ground shadows",
+    "approved Wanderer sprite at exact foot anchor",
+    "selective foreground foliage after Wanderer",
+    "optional player/debug overlay"
+  ],
+  "approvedExternalArtProtected": [
+    "assets/hero_approved_8way_v12.webp",
+    "assets/warden_hal_v13.png",
+    "assets/village_v06_clear.jpg",
+    "assets/wilds_clean.jpg",
+    "assets/cave_clean.jpg"
+  ],
+  "visualApproval": "Not yet requested; complete outdoor appearance review remains after Phase 9 before Phase 10."
+}

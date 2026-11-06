@@ -126,3 +126,13 @@
 #actions.preview-actions #interactBtn{opacity:1;filter:none;border-color:#d4b47f}
 #streamStatus{max-width:min(680px,65vw);font-size:10px}
 @media(max-width:740px){#streamStatus{max-width:52vw;font-size:9px;top:15%}}
+
+
+/* Phase 5: optional terrain-material gallery, only in streaming mode. */
+#materialShowcaseBtn{
+ background:linear-gradient(130deg,#254842,#283344)!important;
+ border-color:#9ab8a5!important;
+ color:#f4e9ca;
+}
+#streamStatus{background:rgba(12,28,42,.91);border-color:#c8b28a}
+@media(max-height:430px){#pause.panel{overflow-y:auto;max-height:93vh;padding-bottom:16px}}
