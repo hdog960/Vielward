@@ -38,7 +38,7 @@ eq(review.version,"1.3.6","in-game art review uses the restored renderer");
 ok(stream.art.diagnostics().illustrationEnabled,"runtime imagery is wired through paintChunk");
 eq(stream.illustration.stats().sourceAnchors,13,"all thirteen original landmarks in scene artist");
 ok(stream.illustration.stats().changesPhysics===false,"visual illustrator does not pretend to create physics");
-ok(S["terrain_art.js"].includes("illustration.drawFeatures(ctx,bounds)")&&
+ok(S["terrain_art.js"].includes("illustration.drawFeatures(ctx,bounds,!!raster?.drawWinterScene)")&&
  S["terrain_art.js"].includes("illustration.drawGround(ctx,bounds)"),"actual chunks paint painterly ground and source-anchored landmarks");
 ok(S["terrain_art.js"].includes("if(illustration?.drawStatic(ctx,s))continue"),
  "original static tree collider uses art from the same coordinates");
