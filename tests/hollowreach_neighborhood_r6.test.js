@@ -49,6 +49,8 @@ for(const file of files)vm.runInNewContext(fs.readFileSync(file,"utf8"),host,{fi
  assert.equal(summary.neighborhoodAtlasReady,true);
  assert.equal(summary.geometryChanged,false);
  assert.equal(summary.fullBackgroundPasted,false);
+ assert.equal(summary.winterDepthSorted,true,"winter scene must use source-foot depth composition");
+ assert.equal(summary.physicalRoadWeathering,true,"snowy lanes must stay on physical travel graph");
  const a=model.nodes.find(n=>n.id==="village"),[x,y]=a.point.map(v=>v*60);
  for(const [kind,r] of [["pine",55],["boulder",48],["scrub",26]]){
   drawings.length=0;
@@ -61,6 +63,27 @@ for(const file of files)vm.runInNewContext(fs.readFileSync(file,"utf8"),host,{fi
  drawings.length=0;game.raster.drawSetpieces(ctx(),[cottage.x-500,cottage.y-500,cottage.x+500,cottage.y+500],[cottage]);
  assert.ok(drawings.some(d=>d[0]?.source?.includes("neighborhood_r6")),
   "cottage forecourt uses real painted timber rail inside house footprint");
+ // The new scene painter must actually draw the WHOLE winter composition
+ // in a shared physically grounded order, not call standalone art previews.
+ drawings.length=0;
+ const scene=[x-900,y-900,x+900,y+900];
+ const layerCount=game.raster.drawWinterScene(ctx(),scene,game.setpieces.objects);
+ assert.ok(layerCount>1,"source-linked winter scene must have multiple depth-sorted layers");
+ assert.ok(drawings.some(d=>d[0]?.source?.includes("neighborhood_r6")),
+  "winter depth pass must use real source-authored cutout sprites");
+ assert.equal(typeof game.raster.drawVillageGround,"function");
+ assert.equal(typeof game.raster.handlesWinterSolid,"function");
+ assert.ok(fs.readFileSync("terrain_art.js","utf8").includes("raster.drawWinterScene(ctx,bounds"),
+  "actual streamed terrain integrates winter depth painter");
+ assert.ok(fs.readFileSync("terrain_art.js","utf8").includes("raster?.handlesWinterSolid?.(s)"),
+  "winter objects must not be painted twice by fallback geometric renderer");
+ assert.ok(fs.readFileSync("world_illustration.js","utf8").includes("skipWinter"),
+  "old illustration must yield to unified winter painter");
+ // Source-defined paths must be rendered as genuine visually-worn trails
+ // without changing the original geometry or adding a fake walkable road.
+ const mainRoad=game.geometry.roads.find(e=>e.from==="village"&&e.to==="bridge_w");
+ assert.ok(mainRoad,"canonical Frostbridge route remains present");
+ assert.equal(game.raster.paintedRoad(ctx(),mainRoad),true);
  // The region map, roads, anchors and all actual physical cross-bank routes
  // must remain EXACTLY the same: decorative pixels cannot bypass geometry.
  assert.equal(game.routeArt.stats().roads,65);
