@@ -7,7 +7,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.12",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
+const VERSION="1.3.13",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
 const PALETTES={
  snow:{base:"#acbcd0",dark:"#788da9",light:"#e4eced",mid:"#bfcdd9",spark:"#f6f5e8",motif:"drift"},
  frost:{base:"#8fa3b8",dark:"#627590",light:"#cedadd",mid:"#adbbc9",spark:"#e9ece8",motif:"shale"},
@@ -338,6 +338,7 @@ function create(model,geometry,options={}){
   const byY=solids.slice().sort((a,b)=>(a.cy??a.a?.[1]??a.polygon?.[0]?.[1]??0)-(b.cy??b.a?.[1]??b.polygon?.[0]?.[1]??0));
   for(const s of byY){
    if(footprint&&s.id==="joren_building")continue; // painted by dedicated full-size cottage architecture from same collision polygon
+   if(raster?.handlesWinterSolid?.(s))continue; // drawn in feet-Y winter scene pass
    const pts=s.polygon||(s.shape==="segment"?[s.a,s.b]:[[s.cx,s.cy]]);
    if(!inBounds(pts,bounds,600))continue;
    const x=s.cx,y=s.cy,r=s.radius;
@@ -397,12 +398,16 @@ function create(model,geometry,options={}){
   if(footprint)footprint.draws(ctx,bounds);
   drawSurfaces(ctx,bounds);
   if(illustration)illustration.drawGround(ctx,bounds);
+  if(raster)raster.drawVillageGround(ctx,bounds);
   if(routeArt)routeArt.draw(ctx,bounds);else drawRoads(ctx,bounds);
-  if(illustration)illustration.drawFeatures(ctx,bounds);
+  if(illustration)illustration.drawFeatures(ctx,bounds,!!raster?.drawWinterScene);
   else if(footprint)footprint.drawScenery(ctx,bounds);
   if(setpieces)setpieces.draw(ctx,bounds,o=>!!raster?.handlesSetpiece(o));
-  if(raster)raster.drawSetpieces(ctx,bounds,setpieces?.objects||[]);
   drawProps(ctx,bounds);
+  // Original illustrated elements share physical Y order, no longer a pile
+  // of "all trees / all cottages / all lanterns" painted over each other.
+  if(raster?.drawWinterScene)raster.drawWinterScene(ctx,bounds,setpieces?.objects||[]);
+  else if(raster)raster.drawSetpieces(ctx,bounds,setpieces?.objects||[]);
   if(raster)raster.drawVillageAtmosphere(ctx,bounds,setpieces?.objects||[]);
   ctx.restore()
  }

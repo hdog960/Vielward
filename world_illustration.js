@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.12",PI=Math.PI;
+const V="1.3.13",PI=Math.PI;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 function hash(a,b,c=0){let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
 function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
@@ -309,13 +309,17 @@ function create(model,geometry,options={}){
    rect(ctx,x-21,yy+34,41,55,"#28353b");rect(ctx,x+61,yy+15,24,22,"#f0bd77")
   }
  }
- function drawFeatures(ctx,bounds){
+ function drawFeatures(ctx,bounds,skipWinter=false){
   // Both sparse mature props and the new collision-backed young woodland
   // share one painter's order and the same physical root coordinates.
   const features=[...footprint.cells(bounds,330),...footprint.groves(bounds,320)]
    .sort((a,b)=>a.y-b.y);
-  for(const f of features)drawFeature(ctx,f);
+  for(const f of features){
+   if(skipWinter&&raster?.covers(f.x,f.y))continue;
+   drawFeature(ctx,f)
+  }
   for(const h of hubs)if(inView(h.x,h.y,bounds,h.r+460)){
+   if(skipWinter&&raster?.covers(h.x,h.y))continue;
    if(raster?.drawHub(ctx,h))continue;
    // The new detailed Coldpine cottage supersedes the old schematic lodge;
    // never paint two mutually incompatible buildings on one footprint.
