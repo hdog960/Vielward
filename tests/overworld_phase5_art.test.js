@@ -54,7 +54,7 @@ eq(info.atlasWidth,256,"8 source atlas columns");
 eq(info.atlasHeight,256,"8 source atlas rows");
 eq(info.materials*info.variants,64,"64 authored source frames");
 eq(info.worldCellSize,96,"global 96-world-unit artwork cells");
-yes(stats.pixelFills>1000,"atlas actually paints thousands of pixel brush stamps");
+yes(stats.pixelFills>150&&stats.pixelFills<950,"atlas paints coherent source motifs without thousands of random speckle marks");
 eq(info.usesAuthoritativeSolids,true,"art from same terrain geometry as physics");
 const ids={
  village:"snow",thaw_camp:"thaw",greenwood_hearth:"forest",
