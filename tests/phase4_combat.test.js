@@ -110,5 +110,5 @@ ok(contents.html.indexOf("combat.js?v=2")<contents.html.indexOf("game.js?v=34"),
 for(const asset of ["world_review.js?v=4","world_routes.js?v=8","world_climate.js?v=4","combat.js?v=2","quest.js?v=1","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=12","world_stream.js?v=13","game.js?v=34","navigation.js?v=11","visual.js?v=33","visual.css?v=15","manifest.webmanifest?v=1313"]){
  ok(contents.html.includes(asset)&&contents.worker.includes(asset),"PWA/HTML version aligned: "+asset);
 }
-ok(contents.worker.includes('veilward-hollowreach-v1312-raster-neighborhood'),"new mobile cache version");
+ok(contents.worker.includes('veilward-hollowreach-v1313-winter-scene-depth'),"new mobile cache version");
 console.log("Veilward Phase 4 PASS:",assertions,"combat assertions, enemy spawn checks and PWA/asset integrity");

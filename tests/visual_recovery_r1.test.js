@@ -92,7 +92,7 @@ for(const name of ["world_climate.js?v=4","world_footprint.js?v=5",
 }
 ok(pack.indexOf("world_illustration.js?v=7")<pack.indexOf("terrain_art.js?v=12")&&
  pack.indexOf("terrain_art.js?v=12")<pack.indexOf("world_stream.js?v=13"),"browser builds illustrator before runtime stream");
-ok(sw.includes("veilward-hollowreach-v1312-raster-neighborhood"),"old iPhone Home Screen visual tiles invalidated");
+ok(sw.includes("veilward-hollowreach-v1313-winter-scene-depth"),"old iPhone Home Screen visual tiles invalidated");
 ok(game.includes('const APP_VERSION="1.3.13";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),
  "old quest/local save key unchanged");
 ok(game.includes("HOLLOWREACH ART RECOVERY")&&game.includes("span:1250"),"gallery labels truthful status and zooms to the art");
