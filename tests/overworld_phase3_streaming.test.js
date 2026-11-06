@@ -108,6 +108,11 @@ function gameSession(){
  const document={getElementById:el,createElement:tag=>el("created-"+tag+"-"+Math.random()),querySelectorAll(){return[]},addEventListener(){},visibilityState:"visible"};
  const localStorage={getItem:k=>memory.has(k)?memory.get(k):null,setItem:(k,v)=>memory.set(k,String(v)),removeItem:k=>memory.delete(k)};
  const ctx={document,localStorage,navigator:{},location:{search:""},innerWidth:1536,innerHeight:708,
+   Image:class PaintingMock{
+    constructor(){this.onload=null;this.naturalWidth=0;this.naturalHeight=0}
+    set src(v){if(!v.includes("village_v06_clear.jpg")&&!v.includes("wilds_clean.jpg"))throw Error("Unapproved source: "+v);
+     this.naturalWidth=900;this.naturalHeight=584;this.onload?.()}
+   },
   console:{warn(){},log(){},error(){}},performance:{now(){return 500}},
   addEventListener(){},requestAnimationFrame(fn){if(fn.name!=="frame")Promise.resolve().then(()=>fn(16))},
   confirm(){return true},setTimeout(){},clearTimeout(){}
@@ -117,7 +122,7 @@ function gameSession(){
  ctx.VeilwardArt={background(){return null},sceneReady(){return true},sceneError(){return false},
   glows(){},routeGlows(){},actor(){return true}};
  const sandbox=vm.createContext(ctx);
- for(const path of ["navigation.js","combat.js","quest.js","world_geometry.js","world_climate.js","world_footprint.js","world_routes.js","world_setpieces.js","world_illustration.js","terrain_art.js","world_stream.js","world_review.js"])vm.runInContext(source[path],sandbox);
+ for(const path of ["navigation.js","combat.js","quest.js","world_geometry.js","world_climate.js","world_footprint.js","world_source_materials.js","world_routes.js","world_setpieces.js","world_illustration.js","terrain_art.js","world_stream.js","world_review.js"])vm.runInContext(source[path],sandbox);
  const injection='\nwindow.__qa={get player(){return p},get preview(){return worldPreview},toggleWorldPreview,tickWorldPreview,renderWorldPreview,save};\n';
  const realGame=game.replace(/\n\}\)\(\);\s*$/,injection+"})();");
  ok(realGame!==game,"actual game function integration instrumented");
@@ -133,7 +138,7 @@ async function integration(){
  await qa.toggleWorldPreview();
  ok(qa.preview.enabled&&!!qa.preview.stream,"preview opens with source geography");
  ok(!!qa.preview.stream.geometry,"real preview receives Phase 4 co-authored collision data");
- ok(!!qa.preview.stream.art,"game preview uses authored pixel-art atlas");
+ ok(!!qa.preview.stream.art&&!!qa.preview.stream.sourceMaterials,"game preview loads actual source-painted material atlas");
  ok(!!qa.preview.stream.footprint,"game preview now uses full outdoor landmass, not an isolated scene");
  ok(!!qa.preview.stream.routeArt,"game preview includes Phase 8 full road-network artwork and physical rail collision");
  ok(!!qa.preview.stream.climate,"Phase 7 world uses shared climate model");
