@@ -71,6 +71,10 @@ This is a **physical geography proposal**, not a claim that these areas already 
 **Exit gate:** Creator can trace a connected walking journey on the master map from Hollowreach to Greenwood and beyond without unexplained transitions or dead-end roads. No unreachable landmark presented as accessible.
 
 #### Phase 3 — Seamless chunked outdoor rendering
+**Status: IMPLEMENTED v1.2.7 — streaming engine integrated into a playable, optional iPhone-accessible preview alongside unchanged main adventure. Terrain art and precise geometry are NOT finished; creator's full-overworld appearance review remains after Phase 9.**
+**Implementation:** [world_stream.js](./world_stream.js) · updated [game.js](./game.js), [index.html](./index.html), [visual.css](./visual.css), [sw.js](./sw.js) · [streaming QA](./tests/overworld_phase3_streaming.test.js) · [Phase 3 technical handoff](./docs/overworld/PHASE3_HANDOFF.md).
+**Preview test:** Launch v1.2.7 → Journey Menu → **Explore Seamless Overworld (Phase 3 Preview)**. This is a real playable stream/camera test with coarse prototype terrain generated from the approved full-world plan, not the finished illustrated world. Pause → **Return to Hollowreach Adventure**. Phase 4 will author honest collision and elevation; Phase 5 will establish final terrain art; Phases 6–9 construct/refine the full terrain.
+**Next:** Phase 4 NOT STARTED; wait for the next creator instruction.
 **Work:** Refactor the current separate 1850×1200 `village` / `wilds` scene model into a stable **global overworld coordinate system**, streamed image/data chunks, culling, prefetching, and shared camera. Retain an independent enterable interior/cave scene system. Preserve the existing app during staged migration.  
 **Exit gate:** The Wanderer can cross multiple adjoining outdoor chunks without a fade, Talk prompt, camera snap, visible black load frame or lost controls; roaming does not exhaust iPhone memory.
 

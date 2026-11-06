@@ -106,9 +106,9 @@ ok(contents.game.includes('id,cost,cooling'),"action affordance state wired");
 ok(contents.game.includes('else if(e.renderType==="player"){drawHero(g,e.x,e.y,0,e.step||0,"#637f96",false,"human",e.attackV||0)}'),"protected Wanderer renderer unchanged");
 ok(contents.visual.includes('load("hero","hero_approved_8way_v12.webp"'),"approved hero asset unchanged");
 ok(contents.visual.includes('load("warden","warden_hal_v13.png"'),"approved Warden Hal asset unchanged");
-ok(contents.html.indexOf("combat.js?v=2")<contents.html.indexOf("game.js?v=18"),"combat script loaded before game");
-for(const asset of ["combat.js?v=2","quest.js?v=1","game.js?v=18","navigation.js?v=11","visual.js?v=33","visual.css?v=10","manifest.webmanifest?v=126"]){
+ok(contents.html.indexOf("combat.js?v=2")<contents.html.indexOf("game.js?v=19"),"combat script loaded before game");
+for(const asset of ["combat.js?v=2","quest.js?v=1","world_stream.js?v=1","game.js?v=19","navigation.js?v=11","visual.js?v=33","visual.css?v=11","manifest.webmanifest?v=127"]){
  ok(contents.html.includes(asset)&&contents.worker.includes(asset),"PWA/HTML version aligned: "+asset);
 }
-ok(contents.worker.includes('veilward-hollowreach-v126-quest-closure'),"new mobile cache version");
+ok(contents.worker.includes('veilward-hollowreach-v127-world-preview'),"new mobile cache version");
 console.log("Veilward Phase 4 PASS:",assertions,"combat assertions, enemy spawn checks and PWA/asset integrity");

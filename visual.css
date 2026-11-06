@@ -89,3 +89,29 @@
 #inventoryBody .item{min-width:0;overflow-wrap:anywhere}
 #inventoryBody .item span{max-width:60%;text-align:right}
 #inventoryBody h3{margin-top:8px;margin-bottom:8px;line-height:1.25}
+
+
+/* Phase 3: explicitly labeled, optional streaming preview.
+ * Keep readable in landscape Safari, and never overlap the touch controls.
+ */
+#streamStatus{
+ position:absolute;left:50%;top:12%;transform:translateX(-50%);
+ width:min(68vw,640px);max-width:calc(100vw - 380px);
+ padding:6px 14px;text-align:center;z-index:8;
+ font:600 11px/1.35 system-ui,sans-serif;letter-spacing:.03em;
+ background:rgba(13,28,40,.9);border:1px solid #d4b37a;
+ border-radius:5px;color:#f4e3ba;pointer-events:none;
+ text-shadow:0 1px 2px #001;
+}
+.previewDisclaimer{
+ color:#c7c1ad;font:12px/1.45 system-ui,sans-serif;
+ margin:5px 5px 12px;
+}
+#worldPreviewBtn{border-color:#c4a46b;background:linear-gradient(140deg,#344456,#1d3243)}
+@media(max-width:750px){
+ #streamStatus{top:14%;max-width:48vw;padding:5px 6px;font-size:9px;}
+ .previewDisclaimer{font-size:11px}
+}
+
+#actions.preview-actions .control{opacity:.64;filter:saturate(.58)}
+#actions.preview-actions #interactBtn{opacity:.85}

@@ -59,3 +59,10 @@ Use `OVERWORLD_REBUILD_ROADMAP.md` as the **current next-development authority**
 Phase 2 produced a full 12-region connected outdoor **DESIGN BLUEPRINT**, not a playable overhaul. Source of truth: `docs/overworld/world_blueprint.json` (48 named anchors, 65 unique physical links, 7 crossings). Creator map: `docs/overworld/MASTER_MAP.svg`, generated deterministically by `scripts/render_overworld_blueprint.js`. Readable geography: `docs/overworld/MASTER_MAP.md`; QA / implementation handoff: `docs/overworld/PHASE2_TOPOLOGY_AUDIT.md` and `docs/overworld/PHASE2_HANDOFF.md`. Run `npm run audit:topology` and `npm test`.
 
 **Phase 3 is NOT STARTED**. Do not begin it until the creator requests another continuation. Preserve v1.2.6 live gameplay until new streaming is stable. Respect the entire world's Phase 9 appearance approval gate: no Phase 10 work without explicit creator approval of the **actual built playable overworld**, not this planning SVG.
+
+
+## Overworld Phase 3 (v1.2.7) — playable streaming engine delivered
+
+The actual game includes `world_stream.js`, a lazy, chunk-cached full-global-coordinate engine driven by `docs/overworld/world_blueprint.json`. It is accessible through **Journey Menu → Explore Seamless Overworld (Phase 3 Preview)** and can be exited to the unmodified active quest/saves via the same menu. **Preview terrain is intentionally PROVISIONAL, not creator-approved art.** Combat, quests, inventory and legacy player position do not mutate during the preview. Current world collision is only a preview mask; Phase 4 will co-author real ground/elevation geometry, Phases 5–9 implement the full art/world, then the creator must approve world appearance before Phase 10. Avoid removing old gameplay during staged migration. Check with `npm run audit:streaming` and `npm test`.
+
+**Phase 4 NOT STARTED**. Await creator's next `Continue development` or specific iPhone feedback (which must be patched immediately as always).

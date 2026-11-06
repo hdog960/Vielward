@@ -1,10 +1,10 @@
-/* VEILWARD 1.2.6 — completed Hollowreach introductory quest and persistent rewards on Home Screen and Safari.
+/* VEILWARD 1.2.7 — optional streaming terrain preview beside stable main game on Home Screen and Safari.
    Use network-first for HTML/scripts, and preserve offline assets. */
-const BUILD="1.2.6";
-const CACHE="veilward-hollowreach-v126-quest-closure";
+const BUILD="1.2.7";
+const CACHE="veilward-hollowreach-v127-world-preview";
 const FILES=[
- "./","./index.html","./combat.js?v=2","./quest.js?v=1","./game.js?v=18","./navigation.js?v=11",
- "./visual.js?v=33","./visual.css?v=10","./manifest.webmanifest?v=126","./icon.svg",
+ "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_stream.js?v=1","./docs/overworld/world_blueprint.json?v=1","./game.js?v=19","./navigation.js?v=11",
+ "./visual.js?v=33","./visual.css?v=11","./manifest.webmanifest?v=127","./icon.svg",
  "./assets/village_v06_clear.jpg?art=23","./assets/wilds_clean.jpg?art=23",
  "./assets/cave_clean.jpg?art=23","./assets/forge.jpg?art=23",
  "./assets/actors_v07.png?art=23",
@@ -47,7 +47,7 @@ self.addEventListener("fetch",event=>{
  const request=event.request;
  if(request.method!=="GET"||new URL(request.url).origin!==location.origin)return;
  const url=new URL(request.url);
- const core=request.mode==="navigate"||/[.](?:html|js|webmanifest)$/.test(url.pathname);
+ const core=request.mode==="navigate"||/[.](?:html|js|json|webmanifest)$/.test(url.pathname);
  event.respondWith(
   fetch(request,core?{cache:"no-store"}:undefined).then(response=>{
    if(response.ok){

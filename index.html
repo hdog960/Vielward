@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#111923"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="./manifest.webmanifest?v=126">
-<title>VEILWARD — The Broken Sky · v1.2.6</title>
+<link rel="manifest" href="./manifest.webmanifest?v=127">
+<title>VEILWARD — The Broken Sky · v1.2.7</title>
 <style>
 :root{--ink:#101720;--panel:rgba(14,23,34,.93);--gold:#d7b77a;--bone:#f0e2c4;--muted:#a2a99f}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;background:#090f16;color:var(--bone);font:14px/1.35 Georgia,serif;touch-action:none;-webkit-user-select:none;user-select:none}
@@ -35,20 +35,20 @@ button{font:inherit;color:inherit;cursor:pointer}#game{position:absolute;inset:0
 @media (orientation:portrait) and (max-width:750px){#rotate{display:flex}#start{max-height:80vh;overflow:auto}}
 @media (max-height:470px){#status{transform:scale(.84);transform-origin:top left}#quest{top:79px;transform:scale(.91);transform-origin:top left}#move{width:107px;height:107px}#knob{width:42px;height:42px}#actions{grid-template-columns:repeat(3,48px);gap:5px}.control{width:48px;height:48px}.control.primary{width:60px;height:60px}#hint{bottom:11%}#dialog,#inventory,#pause{padding:12px 16px}#inventoryBody{max-height:43vh}}
 @media (pointer:fine){#move{opacity:.35}#actions{opacity:.72}}
-</style><link rel="stylesheet" href="./visual.css?v=10"></head><body>
+</style><link rel="stylesheet" href="./visual.css?v=11"></head><body>
 <canvas id="game"></canvas><div id="shade"></div>
 <div id="hud">
 <div id="status" class="panel"><span class="name">THE WANDERER</span><span id="level" class="level">LV 1</span><div class="bar hp"><i id="hp"></i></div><div class="bar mp"><i id="mp"></i></div><div class="bar st"><i id="st"></i></div></div>
 <div id="location">Hollowreach • Frostbound Village</div><div id="topActions"><button class="mini" id="mapBtn" title="Map">◈</button><button class="mini" id="bagBtn" title="Inventory">♜</button><button class="mini" id="pauseBtn" title="Menu">☰</button></div>
 <div id="quest"><b id="questTitle">A Cold Welcome</b><p id="questText">Speak to the village blacksmith.</p></div>
-<div id="hint"></div><div id="toast"></div>
+<div id="hint"></div><div id="toast"></div><div id="streamStatus" aria-live="polite" style="display:none"></div>
 <div id="move"><div id="knob"></div></div>
 <div id="actions"><button class="control" id="spellBtn">✦<small>Spell</small></button><button class="control" id="interactBtn">✋<small>Talk</small></button><button class="control primary" id="attackBtn">⚔<small>Strike</small></button><button class="control" id="dodgeBtn">➶<small>Dodge</small></button><button class="control" id="potionBtn">♥<small>Potion</small></button></div>
 </div>
 <section id="dialog" class="panel"><button class="close" id="closeDialog">×</button><h2 id="dialogTitle"></h2><p id="dialogText"></p><div id="choices" class="choices"></div></section>
 <section id="inventory" class="panel"><button class="close" id="closeInventory">×</button><h2>Adventurer's Journal</h2><div id="tabs" class="tabs"><button class="tab selected" data-tab="pack">Satchel</button><button class="tab" data-tab="skills">Skills</button><button class="tab" data-tab="journal">Quests</button><button class="tab" data-tab="map">Map</button></div><div id="inventoryBody"></div></section>
-<section id="pause" class="panel"><button class="close" id="closePause">×</button><h2>Journey Menu</h2><p>The Broken Sky • Hollowreach Prototype</p><p id="buildInfo">Running build <strong id="buildVersion">v1.2.2</strong> · Quest closure and persistent rewards</p><button class="menuBtn" id="saveBtn">Save Journey</button><button class="menuBtn" id="resetBtn">Begin a New Journey</button><button class="menuBtn" id="resumeBtn">Continue Exploring</button><p style="font-size:11px;color:#afb8ae">Your journey autosaves locally on this device. No account, advertisements, or online services.</p></section>
+<section id="pause" class="panel"><button class="close" id="closePause">×</button><h2>Journey Menu</h2><p>The Broken Sky • Hollowreach Prototype</p><p id="buildInfo">Running build <strong id="buildVersion">v1.2.7</strong> · Optional outdoor streaming preview</p><button class="menuBtn" id="worldPreviewBtn">Explore Seamless Overworld (Phase 3 Preview)</button><p class="previewDisclaimer">Preview terrain tests streamed chunks and camera continuity. It is NOT the finished pixel-art overworld. Your current save and quest progress remain unchanged.</p><button class="menuBtn" id="saveBtn">Save Journey</button><button class="menuBtn" id="resetBtn">Begin a New Journey</button><button class="menuBtn" id="resumeBtn">Continue Exploring</button><p style="font-size:11px;color:#afb8ae">Your journey autosaves locally on this device. No account, advertisements, or online services.</p></section>
 <section id="start" class="panel"><div class="sigil">✦ ◇ ✦</div><h1>VEILWARD</h1><h3>THE BROKEN SKY</h3><p>A new journey begins at Frostbridge Outpost. Meet Joren by the mountain cottage, then follow the snowy trail over the bridge toward Greenwood.</p><button id="beginBtn" class="menuBtn">LOADING HOLLOWREACH…</button><p style="font-size:11px">Touch controls or WASD · E/Talk to interact or travel · Space attack · Q spell · Shift dodge · I inventory</p></section>
 <div id="rotate">↻<br>Rotate your iPhone to landscape for the best view of Hollowreach.</div>
-<script src="./visual.js?v=33"></script><script src="./navigation.js?v=11"></script><script src="./combat.js?v=2"></script><script src="./quest.js?v=1"></script><script src="./game.js?v=18"></script>
+<script src="./visual.js?v=33"></script><script src="./navigation.js?v=11"></script><script src="./combat.js?v=2"></script><script src="./quest.js?v=1"></script><script src="./world_stream.js?v=1"></script><script src="./game.js?v=19"></script>
 </body></html>

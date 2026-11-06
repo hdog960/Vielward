@@ -1,3 +1,17 @@
+# Veilward v1.2.7 — Phase 3: Playable Streaming World Preview
+
+**An actual game patch is now available.** The existing Hollowreach v1.2.6 experience remains intact, with a separate playable **Phase 3 world-streaming preview** accessible from the Journey Menu. It demonstrates continuous global walking across nearby lazy-loaded outdoor chunks, smooth camera and low-memory culling across the approved 12-region geography.
+
+**To test on iPhone:** Open the usual Home Screen shortcut or [GitHub Pages game](https://hdog960.github.io/Vielward/), open **Journey Menu → Explore Seamless Overworld (Phase 3 Preview)**. Move with the normal iPhone joystick; use **Journey Menu → Return to Hollowreach Adventure** to resume the untouched quest and saved position. The preview uses the approved Wanderer atlas, but disables combat, NPC interaction and inventory changes to preserve your saved adventure.
+
+- [Phase 3 implementation and QA handoff](./docs/overworld/PHASE3_HANDOFF.md)
+- [Phase 3 source tests](./tests/overworld_phase3_streaming.test.js)
+- [Approved 12-region outdoor blueprint](./docs/overworld/MASTER_MAP.md)
+
+**Visual disclaimer:** The streaming preview uses TEMPORARY procedural terrain textures and schematic roads/water from the blueprint. These are NOT the approved finished detailed pixel-art environment. Actual visually coherent terrain and coauthored collision/elevation are Phase 4–8 work; the creator's explicit *appearance approval* remains due after Phase 9 before Phase 10.
+
+---
+
 # Veilward Overworld Rebuild — Phase 2 Complete Topology (November 5, 2026)
 
 **Implemented in repository design assets, not game runtime.** A complete continuous outdoor planning map with **12 regions, 48 named route anchors, 65 connected walkable travel links, 7 physically designed water/chasm crossings and three independently passable Hollowreach→Greenwood options** is now source-controlled and validated. Natural snow-to-green transitions are planned across distance and elevation; cave/workshop doors remain true indoor thresholds.
