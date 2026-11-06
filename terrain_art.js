@@ -7,7 +7,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.4",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
+const VERSION="1.3.5",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
 const PALETTES={
  snow:{base:"#acbcd0",dark:"#788da9",light:"#e4eced",mid:"#bfcdd9",spark:"#f6f5e8",motif:"drift"},
  frost:{base:"#8fa3b8",dark:"#627590",light:"#cedadd",mid:"#adbbc9",spark:"#e9ece8",motif:"shale"},
@@ -34,13 +34,13 @@ function drawMotif(ctx,ox,oy,material,variant){
  rgbaPixel(ctx,ox,oy,TILE,TILE,p.base);
  // Source motifs are deliberately hand composed at pixel scale, not
  // rasterized vector circles or stretched reference scenes.
- for(let i=0;i<7;i++){
+ for(let i=0;i<2;i++){
   const px=ox+Math.floor(hash(i,step,11)*30),py=oy+Math.floor(hash(i,step,37)*30);
   const w=2+Math.floor(hash(i,step,19)*6),h=1+Math.floor(hash(i,step,49)*3);
   rgbaPixel(ctx,px,py,w,h,i%4===0?p.light:i%3===0?p.dark:p.mid)
  }
  const motif=p.motif;
- for(let j=0;j<5;j++){
+ for(let j=0;j<2;j++){
   const x=ox+2+Math.floor(hash(j,variant+MATERIALS.indexOf(material)*9,17)*26);
   const y=oy+2+Math.floor(hash(j,variant+MATERIALS.indexOf(material)*9,33)*26);
   if(motif==="drift"){

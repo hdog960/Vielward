@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.4",PI=Math.PI;
+const V="1.3.5",PI=Math.PI;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 function hash(a,b,c=0){let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
 function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
@@ -144,30 +144,62 @@ function create(model,geometry,options={}){
   }
  }
  function drawGround(ctx,b){
-  // Restrained clustered brushwork, not the old 25-pixel noise-per-32px checkerboard.
-  // All accents are low, non-solid and occur before the real road / water paint.
-  const cell=260;
+  // Locally-authored surface brush. Avoid the old evenly peppered 32px
+  // confetti pattern: no per-tile random material changes and very few white
+  // speckles. Fern, meadow and snowbank shapes have a consistent light source.
+  const cell=112;
   for(let iy=Math.floor(b[1]/cell)-1;iy<=Math.ceil(b[3]/cell);iy++)
    for(let ix=Math.floor(b[0]/cell)-1;ix<=Math.ceil(b[2]/cell);ix++){
-    const x=ix*cell+hash(ix,iy,1)*cell,y=iy*cell+hash(ix,iy,2)*cell;
-    const c=climate.sample(x,y);
-    if(geometry.waterAt(x,y,0)||!footprint.onLand(x,y))continue;
-    const n=hash(ix,iy,52),s=25+hash(ix,iy,26)*38;
-    if(c.snow>.4){
-     // Connected snowdrift ridges preserve the blue shadow and white highlight.
-     poly(ctx,[[x-s,y-7],[x-s*.65,y-19],[x-s*.18,y-22],[x+s*.36,y-15],[x+s,y-4],
-      [x+s*.6,y+12],[x-s*.75,y+8]],c.snow>.73?"rgba(225,232,230,.48)":"rgba(192,210,211,.45)");
-     rect(ctx,x-s*.49,y-18,s*.91,5,"rgba(245,246,238,.44)");
-    }else if(c.wet>.56){
-     oval(ctx,x,y,s*.7,s*.19,"rgba(37,78,81,.19)");
-     for(let i=0;i<4;i++)rect(ctx,x+(i-2)*15,y-14-i%2*8,6,20,"rgba(132,170,141,.27)")
+    const x=ix*cell+hash(ix,iy,1)*cell;
+    const y=iy*cell+hash(ix,iy,2)*cell;
+    if(!footprint.onLand(x,y)||geometry.waterAt(x,y,0))continue;
+    const c=climate.sample(x,y),n=hash(ix,iy,52);
+    const size=24+hash(ix,iy,26)*25;
+    if(c.snow>.52){
+     if(n>.62){
+      // Blue undercut beneath a continuous creamy overhanging snow bank.
+      poly(ctx,[[x-size,y+2],[x-size*.72,y-11],[x-size*.19,y-16],[x+size*.43,y-11],
+       [x+size,y+3],[x+size*.71,y+12],[x-size*.67,y+11]],"rgba(73,106,139,.20)");
+      poly(ctx,[[x-size,y-3],[x-size*.73,y-16],[x-size*.2,y-22],[x+size*.39,y-15],
+       [x+size*.83,y-2],[x+size*.35,y+4],[x-size*.63,y+2]],"rgba(230,237,235,.45)");
+      rect(ctx,x-size*.46,y-16,size*.78,4,"rgba(250,246,230,.39)")
+     }else if(n>.43){
+      // Wind-bent grass silhouettes emerging through the snow.
+      for(let k=0;k<3;k++){
+       const px=x+(k-1)*12;
+       line(ctx,[px,y],[px-4,y-14-k*2],"rgba(91,117,123,.25)",2)
+      }
+     }
+    }else if(c.wet>.70){
+     if(n>.16){
+      oval(ctx,x,y,size*.58,size*.20,"rgba(37,81,84,.20)");
+      for(let k=0;k<5;k++){
+       const px=x+(k-2)*9;
+       line(ctx,[px,y+3],[px+3,y-22-k%2*5],"rgba(120,153,128,.45)",3);
+       if(k%2===0)rect(ctx,px+3,y-21,4,8,"rgba(179,174,113,.42)")
+      }
+     }
     }else{
-     for(let i=0;i<6;i++){
-      const px=x+(hash(ix+i,iy,4)-.5)*s*1.8,py=y+(hash(ix,iy+i,7)-.5)*s;
-      rect(ctx,px,py,16+(i%3)*7,5,i%2?"rgba(179,184,127,.24)":"rgba(48,93,77,.16)")
+     if(n>.12){
+      const meadow=c.meadow>.55;
+      const tall=meadow?18:28;
+      for(let k=0;k<7;k++){
+       const xx=x+(hash(ix+k,iy,33)-.5)*size*1.9;
+       const yy=y+(hash(ix,iy+k,49)-.5)*size*.95;
+       const h=tall*(.55+hash(k,ix,28)*.64);
+       line(ctx,[xx,yy+2],[xx-6,yy-h*.8],meadow?"rgba(83,111,76,.45)":"rgba(42,92,71,.43)",2.4);
+       line(ctx,[xx,yy],[xx+5,yy-h],meadow?"rgba(191,187,118,.52)":"rgba(119,159,107,.44)",2.2)
+      }
+     }
+     if(n>.78){
+      for(let k=0;k<5;k++){
+       const px=x+(k-2)*13,py=y-(k%2)*10;
+       rect(ctx,px,py-14,5,7,k%3===0?"#d8b6d0":k%3===1?"#f0deb0":"#c7d0e0");
+       rect(ctx,px+1,py-10,3,3,"#f1edc7")
+      }
      }
     }
-  }
+   }
  }
  function cottage(ctx,h,solid){
   if(!solid?.polygon)return;
@@ -277,7 +309,10 @@ function create(model,geometry,options={}){
   }
  }
  function drawFeatures(ctx,bounds){
-  const features=footprint.cells(bounds,330).sort((a,b)=>a.y-b.y);
+  // Both sparse mature props and the new collision-backed young woodland
+  // share one painter's order and the same physical root coordinates.
+  const features=[...footprint.cells(bounds,330),...footprint.groves(bounds,320)]
+   .sort((a,b)=>a.y-b.y);
   for(const f of features)drawFeature(ctx,f);
   for(const h of hubs)if(inView(h.x,h.y,bounds,h.r+460)){
    if(h.kind==="smithy")cottage(ctx,h,solidById.get(h.solidId));
@@ -293,7 +328,8 @@ function create(model,geometry,options={}){
   return true
  }
  function foreground(ctx,player){
-  for(const o of footprint.cells([player.x-320,player.y-320,player.x+320,player.y+240],175)){
+  for(const o of [...footprint.cells([player.x-320,player.y-320,player.x+320,player.y+240],175),
+  ...footprint.groves([player.x-320,player.y-320,player.x+320,player.y+240],175)]){
    if(!["pine","oak"].includes(o.kind)||o.y<=player.y||Math.abs(o.x-player.x)>o.radius*1.4||o.y-player.y>o.radius*2)continue;
    ctx.save();ctx.globalAlpha=.25;
    oval(ctx,o.x,o.y-o.radius*1.8,o.radius*.95,o.radius*.45,o.kind==="pine"?"#416171":"#5b8a68");

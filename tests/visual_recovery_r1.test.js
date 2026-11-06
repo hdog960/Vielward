@@ -27,12 +27,14 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js","wor
  vm.runInNewContext(S[p],host,{filename:p});
 const stream=host.VeilwardWorldStream.create(model,{geometry:gd,footprint:fd,canvasFactory:canvas});
 const review=host.VeilwardReview.create(model,stream);
-eq(stream.version,"1.3.4","visual recovery live world version");
-eq(stream.illustration?.version,"1.3.4","source-coupled illustration actually loaded");
-eq(stream.art.version,"1.3.4","illustrated terrain compositor actually running");
-eq(stream.footprint.version,"1.3.4","physical natural props have recovery density");
-eq(stream.routeArt.version,"1.3.4","source-driven worn roads replace broad vector treads");
-eq(review.version,"1.3.4","in-game art review uses the restored renderer");
+eq(stream.version,"1.3.5","visual recovery live world version");
+eq(stream.illustration?.version,"1.3.5","source-coupled illustration actually loaded");
+eq(stream.art.version,"1.3.5","illustrated terrain compositor actually running");
+eq(stream.footprint.version,"1.3.5","physical natural props have recovery density");
+ok(typeof stream.footprint.groves==="function","new foot-colliding saplings are fully authored and simulated");
+ok(stream.footprint.groves([41000,23000,44000,26500]).length>0,"deep Greenwood has additional mature woodland density");
+eq(stream.routeArt.version,"1.3.5","source-driven worn roads replace broad vector treads");
+eq(review.version,"1.3.5","in-game art review uses the restored renderer");
 ok(stream.art.diagnostics().illustrationEnabled,"runtime imagery is wired through paintChunk");
 eq(stream.illustration.stats().sourceAnchors,13,"all thirteen original landmarks in scene artist");
 ok(stream.illustration.stats().changesPhysics===false,"visual illustrator does not pretend to create physics");
@@ -40,10 +42,10 @@ ok(S["terrain_art.js"].includes("illustration.drawFeatures(ctx,bounds)")&&
  S["terrain_art.js"].includes("illustration.drawGround(ctx,bounds)"),"actual chunks paint painterly ground and source-anchored landmarks");
 ok(S["terrain_art.js"].includes("if(illustration?.drawStatic(ctx,s))continue"),
  "original static tree collider uses art from the same coordinates");
-ok(S["terrain_art.js"].includes("for(let i=0;i<7;i++")&&S["terrain_art.js"].includes("for(let j=0;j<5;j++"),
+ok(S["terrain_art.js"].includes("for(let i=0;i<2;i++")&&S["terrain_art.js"].includes("for(let j=0;j<2;j++"),
  "flat noise texture density reduced rather than adding more grain");
 ok(S["world_climate.js"].includes("noise(x/2450,y/2280,82)"),"regional patch materials follow broad coherent drifts");
-ok(S["world_routes.js"].includes("e.halfWidth*1.54+7")&&
+ok(S["world_routes.js"].includes("e.halfWidth*1.03+7")&&
  !S["world_routes.js"].includes("e.halfWidth*2+13"),"oversized continuous road-pipes removed in favor of recessed paths");
 ok(S["world_footprint.js"].includes("Math.min(c.r*scale,315)")&&
  S["world_footprint.js"].includes("Math.min(h.r*.34,355)"),"empty mega-clearings reduced while keeping physical route buffers");
@@ -82,18 +84,18 @@ const i=review.paintOverview(canvas(),{width:420});
 eq(i.regions,12,"12 original region map remains intact");
 eq(i.roadCount,65,"atlas overview unchanged source network");
 const pack=S["index.html"],sw=S["sw.js"],game=S["game.js"];
-for(const name of ["world_climate.js?v=2","world_footprint.js?v=3",
- "world_illustration.js?v=1","terrain_art.js?v=5","world_routes.js?v=2",
- "world_stream.js?v=7","world_review.js?v=2","game.js?v=26",
- "manifest.webmanifest?v=134"]){
+for(const name of ["world_climate.js?v=3","world_footprint.js?v=4",
+ "world_illustration.js?v=2","terrain_art.js?v=6","world_routes.js?v=3",
+ "world_stream.js?v=8","world_review.js?v=3","game.js?v=27",
+ "manifest.webmanifest?v=135"]){
  ok(pack.includes(name)&&sw.includes(name),"iPhone and HTML pin identical rebuilt art asset "+name)
 }
-ok(pack.indexOf("world_illustration.js?v=1")<pack.indexOf("terrain_art.js?v=5")&&
- pack.indexOf("terrain_art.js?v=5")<pack.indexOf("world_stream.js?v=7"),"browser builds illustrator before runtime stream");
-ok(sw.includes("veilward-hollowreach-v134-illustrated-recovery-r1"),"old iPhone Home Screen visual tiles invalidated");
-ok(game.includes('const APP_VERSION="1.3.4";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),
+ok(pack.indexOf("world_illustration.js?v=2")<pack.indexOf("terrain_art.js?v=6")&&
+ pack.indexOf("terrain_art.js?v=6")<pack.indexOf("world_stream.js?v=8"),"browser builds illustrator before runtime stream");
+ok(sw.includes("veilward-hollowreach-v135-dense-landscapes-r11"),"old iPhone Home Screen visual tiles invalidated");
+ok(game.includes('const APP_VERSION="1.3.5";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),
  "old quest/local save key unchanged");
-ok(game.includes("Visual recovery R1")&&game.includes("span:1250"),"gallery labels truthful status and zooms to the art");
+ok(game.includes("Visual recovery R1.1")&&game.includes("span:1250"),"gallery labels truthful status and zooms to the art");
 ok(S["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&
  S["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved hero & Warden textures retained");
 console.log("Veilward visual recovery R1 SOURCE PASS:",checks,"checks; region art rendered",tests.length,

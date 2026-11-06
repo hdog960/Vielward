@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.4",TAU=2*Math.PI;
+const VERSION="1.3.5",TAU=2*Math.PI;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 function hash(x,y,seed){let n=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(seed|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296}
 function inside(x,y,poly){let yes=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){
@@ -43,6 +43,7 @@ function create(model,geo,source,options={}){
    ...hubs.map(h=>({x:h.x,y:h.y,r:Math.min(h.r*.34,355)}))];
  const staticSolids=geo.solids;
  const cachedFields=new Map(),MAX_CACHE=6000;
+ const groveCache=new Map(),GROVE_SPAN=220,MAX_GROVE_CACHE=8500;
  let evaluations=0;
  function remember(key,result){
   if(cachedFields.size>=MAX_CACHE){
@@ -102,12 +103,53 @@ function create(model,geo,source,options={}){
    }
   return result
  }
+ function groveCell(gx,gy){
+  const key=gx+":"+gy;
+  if(groveCache.has(key))return groveCache.get(key);
+  if(groveCache.size>=MAX_GROVE_CACHE)groveCache.delete(groveCache.keys().next().value);
+  function done(value){groveCache.set(key,value);return value}
+  const x=(gx+.5)*GROVE_SPAN+(hash(gx,gy,seed+171)-.5)*GROVE_SPAN*.60;
+  const y=(gy+.5)*GROVE_SPAN+(hash(gy,gx,seed+149)-.5)*GROVE_SPAN*.60;
+  if(!onLand(x,y))return done(null);
+  const reg=regionAt(x,y),opts=reg.opts,c=climate?.sample(x,y);
+  if(!opts||hash(gx,gy,seed+155)>Math.min(.76,opts.density*.85))return done(null);
+  const r=36+hash(gx,gy,seed+157)*20;
+  // Match the actual boot-level physical source; never fill any authored
+  // road, footbridge, ford, landmark threshold or water shoreline.
+  if(geo.nearRoad(x,y,()=>true,r+100))return done(null);
+  if(geo.waterAt(x,y,r+30)||geo.obstacle(x,y,r+45))return done(null);
+  for(const cl of clearings)
+   if(Math.hypot(x-cl.x,y-cl.y)<Math.min(cl.r,130)+r+35)return done(null);
+  const choice=hash(gx,gy,seed+161);
+  let kind="oak";
+  if(choice<.14&&c?.rock>.44)kind="boulder";
+  else if(choice<(c?.pine??.4)*.76+(c?.snow??.2)*.16)kind="pine";
+  const feature={id:"grove_"+gx+"_"+gy,x,y,radius:r,kind,solid:true,
+   variant:hash(gx,gy,seed+163),snow:c?.snow??.25,moisture:c?.wet??.45,
+   biome:reg.id};
+  return done(feature)
+ }
+ function groves(bounds,pad=220){
+  const [x0,y0,x1,y1]=bounds,result=[];
+  for(let iy=Math.floor((y0-pad)/GROVE_SPAN)-1;iy<=Math.floor((y1+pad)/GROVE_SPAN)+1;iy++)
+   for(let ix=Math.floor((x0-pad)/GROVE_SPAN)-1;ix<=Math.floor((x1+pad)/GROVE_SPAN)+1;ix++){
+    const o=groveCell(ix,iy);
+    if(o&&o.x+o.radius+190>=x0&&o.x-o.radius-190<=x1&&
+       o.y+o.radius+240>=y0&&o.y-o.radius-240<=y1)result.push(o)
+   }
+  return result
+ }
  function blocked(x,y,r=10){
   if(!onLand(x,y))return true;
   const gx=Math.floor(x/span),gy=Math.floor(y/span);
   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
    const obj=fieldCell(gx+dx,gy+dy);
    if(obj?.solid&&Math.hypot(x-obj.x,y-obj.y)<obj.radius+r)return true
+  }
+  const cx=Math.floor(x/GROVE_SPAN),cy=Math.floor(y/GROVE_SPAN);
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+   const obj=groveCell(cx+dx,cy+dy);
+   if(obj&&Math.hypot(x-obj.x,y-obj.y)<obj.radius+r)return true
   }
   return false
  }
@@ -268,7 +310,7 @@ function create(model,geo,source,options={}){
   }
  }
  function drawScenery(ctx,bounds){
-  for(const obj of cells(bounds))field(ctx,obj);
+  for(const obj of [...cells(bounds),...groves(bounds)].sort((a,b)=>a.y-b.y))field(ctx,obj);
   hubDraw(ctx,bounds)
  }
  function drawForeground(ctx,player){
@@ -290,9 +332,9 @@ function create(model,geo,source,options={}){
  }
  function stats(){
   return{version:VERSION,regions:regions.size,majorHubs:hubs.length,routeClearings:clearings.length,
-   sourceFieldCell:span,outlinePoints:poly.length,cachedFields:cachedFields.size,maximumCachedFields:MAX_CACHE,landmassCollision:true,climateEnabled:!!climate};
+   sourceFieldCell:span,outlinePoints:poly.length,cachedFields:cachedFields.size,maximumCachedFields:MAX_CACHE,groveCells:groveCache.size,maximumGroves:MAX_GROVE_CACHE,landmassCollision:true,climateEnabled:!!climate};
  }
- return{version:VERSION,source,climate,onLand,regionAt,fieldCell,cells,blocked,safePoint,draws,drawScenery,drawForeground,debug,stats,
+ return{version:VERSION,source,climate,onLand,regionAt,fieldCell,cells,groves,blocked,safePoint,draws,drawScenery,drawForeground,debug,stats,
   featureAt:(x,y)=>fieldCell(Math.floor(x/span),Math.floor(y/span))}
 }
 window.VeilwardFootprint={version:VERSION,validate,create,inside};

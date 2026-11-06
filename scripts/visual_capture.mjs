@@ -38,8 +38,8 @@ try{
   illustration:!!window.VeilwardIllustration,
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.4"||state.regions!==12||!state.illustration)
-  throw Error("Incomplete v1.3.4 visual preview "+JSON.stringify(state));
+ if(state.build!=="v1.3.5"||state.regions!==12||!state.illustration)
+  throw Error("Incomplete v1.3.5 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood and Coldpine captures");
 }finally{
@@ -49,7 +49,7 @@ try{
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_r1.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_r11.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.

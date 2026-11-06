@@ -1,3 +1,13 @@
+# VEILWARD v1.3.5 — VISUAL RECOVERY R1.1 (Creator appearance approval pending)
+
+The first recovered renderer (v1.3.4) passed functional tests but actual browser captures still showed barren crossroads, speckled ground and oversized roads. This update produces collision-backed groves closer to travel, denser illustrated foliage and grass, far fewer scattered texture dots, and narrower roads while keeping the 12 regions, 65 road links, seven crossings, character art and local saved adventure intact. These are real game changes; **not yet approved final 32-bit illustration quality.**
+
+**Play and compare:** [Open Veilward](https://hdog960.github.io/Vielward/) → Journey Menu → **Review Visual Recovery R1.1 (Phase 9)** → **Review World Map & All 12 In-Game Regions**. Confirm **v1.3.5**. Browser capture QA: [four actual rendered screenshots](https://github.com/hdog960/Vielward/actions/workflows/visual-qa.yml) (download job artifact). See [Visual Recovery R1–R1.1 engineering log](./docs/overworld/VISUAL_RECOVERY_R1.md).
+
+**Phase 10 remains locked while visual acceptance is 0%.** Our original high-detail snowy and Greenwood assets remain protected as the art targets.
+
+---
+
 # VEILWARD v1.3.4 — VISUAL RECOVERY R1 (ART ACCEPTANCE PENDING)
 
 The creator accepted the 12-region geometry/travel layout but explicitly rejected the Phase 9 appearance (0% visual acceptance). The latest playable build replaces part of the over-simplified 32px noise/pipe-road/empty-shape terrain renderer with world-coordinate clustered ground, narrower natural trails, visually richer climate-dependent tree/rock structures, a real footprint-anchored three-quarter cottage and 13 source-grounded landmark compositions, and a zoomed closer atlas with landmark-framed region previews. This is an **initial actual code/art change**; it is not yet a complete high-fidelity match to the approved reference JPGs.

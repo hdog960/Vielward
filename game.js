@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v1.3.3: final whole-overworld navigability and true runtime-art review atlas. */
+/* VEILWARD v1.3.5 — R1.1 dense source-backed woodland, quiet ground and naturally bounded trails. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -10,7 +10,7 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
-const APP_VERSION="1.3.4";
+const APP_VERSION="1.3.5";
 const SAVE="veilward-hollowreach-v01";
 const Q=window.VeilwardQuest;
 const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:4,sceneVersion:6,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,herbHarvested:[],defeatedEnemies:[],suppliesRecovered:false,suppliesDelivered:false,caveBanditCleared:false,scarAttuned:false,questVersion:1,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
@@ -77,7 +77,7 @@ function openReviewAtlas(){
  const panel=$("worldReview");panel.style.display="block";
  const map=$("reviewMap");
  review.paintOverview(map);
- $("reviewSummary").textContent="VISUAL RECOVERY R1 · 12 illustrated region views · 65 original roads and seven crossings · Appearance approval pending";
+ $("reviewSummary").textContent="VISUAL RECOVERY R1.1 · 12 illustrated region views · 65 original roads and seven crossings · Appearance approval pending";
  const grid=$("reviewRegionGrid");grid.innerHTML="";
  const epoch=++reviewState.epoch;
  // Create the 12 cards first; render one authentic world-art thumbnail per
@@ -158,7 +158,7 @@ async function toggleWorldPreview(){
    worldPreview.enabled=true;worldPreview.lastDt=.016;worldPreview.showcaseIndex=-1;worldPreview.crossingIndex=-1;
   clearJoystick();closeAll();showWorldPreviewStatus(true);
   $("location").textContent="STREAMING PREVIEW · "+stream.regionName();
-  notify("Visual recovery R1 · World artwork rebuilt · Creator acceptance still pending");
+  notify("Visual recovery R1.1 · World artwork rebuilt · Creator acceptance still pending");
  }catch(error){
   console.error("Veilward outdoor preview failed safely",error);
   notify("World preview could not load; the existing adventure is unaffected");
@@ -176,7 +176,7 @@ function tickWorldPreview(dt){
  s.move(x,y,dt);
  worldTime+=dt;
  const label=$("streamStatus"),state=s.stats();
- if(label)label.textContent="VISUAL RECOVERY R1 · APPEARANCE NOT APPROVED • "+s.regionName()+
+ if(label)label.textContent="VISUAL RECOVERY R1.1 · APPEARANCE NOT APPROVED • "+s.regionName()+
   " • Altitude "+state.elevation?.toFixed(1)+" • Snow "+Math.round((state.climate?.snow??0)*100)+"% • "+state.material+
   " • "+state.cachedTiles+" streamed chunks";
  $("location").textContent="OVERWORLD PREVIEW · "+s.regionName();

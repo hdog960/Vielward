@@ -4,7 +4,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.4",TAU=Math.PI*2;
+const VERSION="1.3.5",TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const palettes={
  alpine:{rim:"#687c8a",bed:"#adafa8",center:"#d7d6c7",shade:"#62758a",detail:"#f0e8d4"},
@@ -85,10 +85,10 @@ function create(model,geometry,options={}){
   // The earlier full-width round strokes looked like elevated concrete pipes.
   // Paint a slightly narrower worn earthen tread INSIDE the unchanged
   // traversable corridor, leaving softly broken shoulders and side greenery.
-  strokePath(ctx,e.path,"rgba(39,47,57,.24)",e.halfWidth*1.76+17);
-  strokePath(ctx,e.path,colors.rim,e.halfWidth*1.54+7);
-  strokePath(ctx,e.path,colors.bed,e.halfWidth*1.37);
-  strokePath(ctx,e.path,colors.center,e.halfWidth*(wide?.66:.43));
+  strokePath(ctx,e.path,"rgba(39,47,57,.24)",e.halfWidth*1.14+15);
+  strokePath(ctx,e.path,colors.rim,e.halfWidth*1.03+7);
+  strokePath(ctx,e.path,colors.bed,e.halfWidth*.86);
+  strokePath(ctx,e.path,colors.center,e.halfWidth*(wide?.44:.27));
   for(const [a,b,prior,len] of e.parts){
    if(!len||!closeTo(bounds,a,b,120))continue;
    const dx=(b[0]-a[0])/len,dy=(b[1]-a[1])/len,nx=-dy,ny=dx;

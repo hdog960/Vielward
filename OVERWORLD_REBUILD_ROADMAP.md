@@ -228,3 +228,12 @@ The creator explicitly approved the **physical world layout/connectivity** and r
 **Chosen slice complete** means physically logical navigation, reliable iPhone movement, compelling enemies/props, fair combat, meaningful discoveries, persistent quests, and **user-approved visual fidelity**.
 
 **The creator approved this roadmap with an additional mandatory full-overworld appearance review after Phase 9.** Implementation begins only when the creator requests development. **Phase 10 is locked until explicit creator approval of the Phase 9 world appearance.** The current playable build remains v1.2.6 until an implementation phase is completed and pushed.
+
+
+## Visual Recovery R1.1 — v1.3.5 (after real-browser screenshots)
+
+The creator's original v1.3.3 appearance rejection still stands at **0% approval**. Real browser screenshots of R1/v1.3.4 were captured by [GitHub Browser Visual QA](https://github.com/hdog960/Vielward/actions/workflows/visual-qa.yml). **They exposed that the environment was STILL visually inadequate**: Hollowreach/Greenwood too bare, landscapes still noisy, roads wide flat bands, and authentic original scene quality missing. We have not pretended a passing source test means adequate appearance.
+
+R1.1 directly responds: `world_footprint.js` now generates more **collision-backed grove plants** in a deterministic 220-unit global grid, placed only on real land and outside existing roads/river/authorised clearings; passability is still checked against the complete network. `world_illustration.js` draws those groves in proper y-order along with mature trees, with considerably denser planted grass/meadow, wetland reeds and delicate snowbanks. `terrain_art.js` reduces repetitive material speckle by a further ~70% to two background marks / two source motifs; `world_routes.js` trims the stylized visible road strokes without changing physical path geometry or crossing collision. iPhone service worker uses v1.3.5 cache and the browser capture workflow runs again.
+
+**Truthful current status:** More work is required before matching `village_v06_clear.jpg` and `wilds_clean.jpg`; R1.1 is another implemented art-recovery increment, not creator visual acceptance. Phase 10 remains locked. Compare the four new screenshot frames and iterate.
