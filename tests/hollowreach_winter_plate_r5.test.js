@@ -1,4 +1,4 @@
-/* VEILWARD v1.3.11: real authored raster atlas → seamless large world plates.
+/* VEILWARD v1.3.12: real authored raster atlas → seamless large world plates.
  * This is a geometry-safe art-production regression, NOT artist signoff.
  */
 "use strict";
@@ -31,7 +31,8 @@ class Img{
  set src(path){
   const dims=path.includes("pilot_sprites")?[288,96]:
    path.includes("bridge_stairs_lamp")?[216,72]:
-   path.includes("ground_painted")?[128,128]:null;
+   path.includes("ground_painted")?[128,128]:
+   path.includes("neighborhood_r6")?[288,144]:null;
   assert(dims,"only dedicated source art is allowed");
   [this.naturalWidth,this.naturalHeight]=dims;
   this.onload?.()
@@ -74,7 +75,7 @@ vm.runInNewContext(source,host,{filename:"world_raster_pilot.js"});
  assert.equal(trace[2][2],128,"road material has true independent row");
  assert.equal(painter.stats().creatorApproved,false);
  assert.equal(painter.stats().geometryChanged,false);
- assert.equal(painter.stats().artworkCells,22);
+ assert.equal(painter.stats().artworkCells,30);
  assert.equal(painter.stats().materialPlateMode,"seam-composed");
  assert.equal(painter.paintGroundCell(context,"snow",0,0,0,0,96),true);
  console.log("R5 PASS: native painted raster plates, softened x/y edges, global grid and unchanged colliders");
