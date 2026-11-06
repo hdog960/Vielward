@@ -26,3 +26,7 @@ New independently painted `assets/hollowreach_ground_painted_v2.webp` contains 1
 
 ### QA
 `npm run audit:winter-materials` checks binary asset signatures, authentic runtime image painting, strict 65-road/7-crossing geometry, 48 safe nodes, original game save key and iPhone worker/source parity. Other Phase 1–9 audits remain enabled. `Veilward Browser Visual QA` captures actual HOLLOWREACH, GREENWOOD, COLDPINE, FROSTBRIDGE and WORLD ATLAS views.
+
+
+### R4: site integration instead of additional isolated props
+See [R4 neighborhood integration](HOLLOWREACH_COMPOSITION_R4.md). Cliff artwork now follows the real polygon as a composed continuous face, warm light is anchored to physical village sprites, winter tree foreground duplications are suppressed, and snow-road rims are quieter. The 12-region art review remains FAILED at 0% until creator approval; no Phase 10.
