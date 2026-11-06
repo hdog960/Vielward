@@ -90,7 +90,7 @@ for(const path of paths)vm.runInNewContext(S[path],sandbox,{filename:path});
  for(const asset of ["assets/hollowreach_bridge_stairs_lamp_v2.png?v=1",
  "assets/hollowreach_ground_painted_v2.webp?v=1",
   "assets/hollowreach_neighborhood_r6.png?v=1",
- "world_raster_pilot.js?v=6","world_routes.js?v=7",
+ "world_raster_pilot.js?v=7","world_routes.js?v=7",
  "world_illustration.js?v=6","terrain_art.js?v=11","world_stream.js?v=12","game.js?v=33"]){
   assert.ok(sw.includes(asset),"all iPhone offline assets precached "+asset);
   if(!asset.startsWith("assets/"))assert.ok(html.includes(asset),"game references same updated code "+asset)

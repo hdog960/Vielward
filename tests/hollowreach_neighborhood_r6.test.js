@@ -72,7 +72,7 @@ for(const file of files)vm.runInNewContext(fs.readFileSync(file,"utf8"),host,{fi
  }
  const h=fs.readFileSync("index.html","utf8"),sw=fs.readFileSync("sw.js","utf8"),
   src=fs.readFileSync("game.js","utf8");
- assert.ok(h.includes("world_raster_pilot.js?v=6"));
+ assert.ok(h.includes("world_raster_pilot.js?v=7"));
  assert.ok(sw.includes("assets/hollowreach_neighborhood_r6.png?v=1"));
  assert.ok(sw.includes("veilward-hollowreach-v1312-raster-neighborhood"));
  assert.ok(src.includes('const APP_VERSION="1.3.12";'));

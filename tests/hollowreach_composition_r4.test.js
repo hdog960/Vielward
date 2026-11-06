@@ -57,7 +57,7 @@ for(const f of files)vm.runInNewContext(fs.readFileSync(f,"utf8"),host,{filename
  assert.ok(all.every(v=>v===false),"All 48 outdoor anchors remain walkable");
  const sw=fs.readFileSync("sw.js","utf8"),html=fs.readFileSync("index.html","utf8");
  assert.ok(sw.includes("veilward-hollowreach-v1312-raster-neighborhood"));
- assert.ok(html.includes("world_raster_pilot.js?v=6"));
+ assert.ok(html.includes("world_raster_pilot.js?v=7"));
  assert.ok(html.includes("terrain_art.js?v=11"));
  console.log("R4 PASS: painted cliff composition, source lighting, true tree depth, roads and caches");
 })().catch(e=>{console.error(e);process.exitCode=1});
