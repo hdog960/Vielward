@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.5",TAU=Math.PI*2;
+const VERSION="1.3.6",TAU=Math.PI*2;
 function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
 function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295}
 function rgb(hex){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
@@ -66,10 +66,12 @@ function create(model,options={}){
    window.VeilwardFootprint.create(model,geometry,options.footprint,{climate}):null;
  const routeArt=geometry&&window.VeilwardRoutes?
    window.VeilwardRoutes.create(model,geometry,{climate}):null;
+ const setpieces=geometry&&footprint&&climate&&window.VeilwardSetpieces?
+   window.VeilwardSetpieces.create(model,geometry,{footprint,climate}):null;
  const illustration=geometry&&footprint&&climate&&window.VeilwardIllustration?
-   window.VeilwardIllustration.create(model,geometry,{footprint,climate}):null;
+   window.VeilwardIllustration.create(model,geometry,{footprint,climate,setpieces}):null;
  const art=options.terrainArt||(geometry&&window.VeilwardTerrainArt?
-   window.VeilwardTerrainArt.create(model,geometry,{canvasFactory:factory,footprint,climate,routeArt,illustration}):null);
+   window.VeilwardTerrainArt.create(model,geometry,{canvasFactory:factory,footprint,climate,routeArt,illustration,setpieces}):null);
  const points=Object.fromEntries(model.nodes.map(n=>[n.id,n]));
  const edges=model.edges.map(e=>({
   ...e,polyline:[points[e.from].point,...(e.via||[]),points[e.to].point]
@@ -182,6 +184,7 @@ function create(model,options={}){
  }
  function blocked(x,y){
   if(routeArt?.edgeGuard(x,y,10))return true;
+  if(setpieces?.blocked(x,y,10))return true;
   if(footprint&&footprint.blocked(x,y,10))return true;
   if(geometry)return geometry.blocked(x,y,10);
   if(x<60||x>width-60||y<60||y>height-60)return true;
@@ -277,9 +280,10 @@ function create(model,options={}){
   footprint:footprint?.stats()??null,
   routeNetwork:routeArt?.stats()??null,
   illustration:illustration?.stats()??null,
+  setpieces:setpieces?.stats()??null,
   climate:climate?.sample(player.x,player.y)??null,
   terrainArt:art?.diagnostics?.()??null}}
- return{version:VERSION,model,geometry,footprint,climate,routeArt,illustration,art,player,camera,size,width,height,move,render,renderDebug,renderForeground,jumpToNode,
+ return{version:VERSION,model,geometry,footprint,climate,routeArt,setpieces,illustration,art,player,camera,size,width,height,move,render,renderDebug,renderForeground,jumpToNode,
   warm,cells,blocked,nearbyInteraction,regionName,stats,clearCache:()=>cache.clear(),
   tile:(col,row)=>cache.get(chunkId(col,row))||null}
 }

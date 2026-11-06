@@ -33,15 +33,21 @@ try{
  await page.locator('.reviewRegion[aria-label="Explore Coldpine Ridge"]').click();
  await sleep(1100);
  await capture(page,"COLDPINE");
+ await page.click("#pauseBtn");
+ await page.click("#reviewAtlasBtn");
+ await page.locator('.reviewRegion[aria-label="Explore Frostbridge River"]').click();
+ await sleep(1150);
+ await capture(page,"FROSTBRIDGE");
  const state=await page.evaluate(()=>({build:document.querySelector("#buildVersion")?.textContent,
   regions:document.querySelectorAll(".reviewRegion").length,
   illustration:!!window.VeilwardIllustration,
+  setpieces:!!window.VeilwardSetpieces,
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.5"||state.regions!==12||!state.illustration)
-  throw Error("Incomplete v1.3.5 visual preview "+JSON.stringify(state));
+ if(state.build!=="v1.3.6"||state.regions!==12||!state.illustration||!state.setpieces)
+  throw Error("Incomplete v1.3.6 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
- console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood and Coldpine captures");
+ console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
  if(browser)await browser.close();
  server.kill();
@@ -49,7 +55,7 @@ try{
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_r11.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_r2.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.

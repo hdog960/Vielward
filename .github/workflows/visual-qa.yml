@@ -4,6 +4,7 @@ on:
     paths:
       - "scripts/visual_capture.mjs"
       - ".github/workflows/visual-qa.yml"
+      - "world_setpieces.js"
       - "world_illustration.js"
       - "terrain_art.js"
       - "world_routes.js"
@@ -26,12 +27,12 @@ jobs:
         run: |
           npm install --no-save --no-package-lock playwright
           npx playwright install --with-deps chromium
-      - name: Render actual four Veilward views
+      - name: Render actual five Veilward views
         run: node scripts/visual_capture.mjs
       - name: Upload human-review screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: veilward-visual-recovery-r11
+          name: veilward-visual-recovery-r2
           path: artifacts/*.jpg
           if-no-files-found: warn

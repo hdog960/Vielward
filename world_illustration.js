@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.5",PI=Math.PI;
+const V="1.3.6",PI=Math.PI;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 function hash(a,b,c=0){let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
 function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
@@ -14,7 +14,7 @@ function oval(ctx,x,y,rx,ry,col){ctx.save();ctx.translate(x,y);ctx.scale(Math.ma
 function line(ctx,a,b,color,w){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineWidth=w;ctx.strokeStyle=color;ctx.stroke()}
 function inView(x,y,b,pad=400){return x>b[0]-pad&&x<b[2]+pad&&y>b[1]-pad&&y<b[3]+pad}
 function create(model,geometry,options={}){
- const footprint=options.footprint,climate=options.climate,unit=model.worldDesign.worldUnitScale;
+ const footprint=options.footprint,climate=options.climate,setpieces=options.setpieces||null,unit=model.worldDesign.worldUnitScale;
  if(!footprint||!climate||!geometry?.roads)throw Error("Illustrated environment requires the actual land, climate and solid sources");
  const anchors=Object.fromEntries(model.nodes.map(n=>[n.id,n.point.map(q=>q*unit)]));
  const hubs=footprint.source.hubs.map(h=>({...h,x:anchors[h.anchor][0],y:anchors[h.anchor][1],r:h.radius*unit}));
@@ -315,6 +315,9 @@ function create(model,geometry,options={}){
    .sort((a,b)=>a.y-b.y);
   for(const f of features)drawFeature(ctx,f);
   for(const h of hubs)if(inView(h.x,h.y,bounds,h.r+460)){
+   // The new detailed Coldpine cottage supersedes the old schematic lodge;
+   // never paint two mutually incompatible buildings on one footprint.
+   if(h.kind==="lodge"&&setpieces?.objects.some(o=>o.anchor==="colp_lodge"&&o.kind==="snow_cottage"))continue;
    if(h.kind==="smithy")cottage(ctx,h,solidById.get(h.solidId));
    else marker(ctx,h)
   }
@@ -336,7 +339,7 @@ function create(model,geometry,options={}){
    ctx.restore()
   }
  }
- function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false}}
+ function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces}}
  return{version:V,drawGround,drawFeatures,drawStatic,drawForeground:foreground,stats}
 }
 window.VeilwardIllustration={version:V,create};

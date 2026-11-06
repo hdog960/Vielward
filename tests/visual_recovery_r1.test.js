@@ -5,7 +5,7 @@
 "use strict";
 const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/strict");
 const core=["world_geometry.js","world_climate.js","world_footprint.js","world_routes.js",
- "world_illustration.js","terrain_art.js","world_stream.js","world_review.js",
+ "world_setpieces.js","world_illustration.js","terrain_art.js","world_stream.js","world_review.js",
  "game.js","index.html","sw.js","visual.js","package.json"];
 const S=Object.fromEntries(core.map(p=>[p,fs.readFileSync(p,"utf8")]));
 const model=JSON.parse(fs.readFileSync("docs/overworld/world_blueprint.json","utf8"));
@@ -23,18 +23,18 @@ function ctx(){
 const canvas=()=>({width:0,height:0,getContext:()=>ctx()});
 const host={console:{log(){},warn(){},error(){}}};host.window=host;
 for(const p of ["world_geometry.js","world_climate.js","world_footprint.js","world_routes.js",
- "world_illustration.js","terrain_art.js","world_stream.js","world_review.js"])
+ "world_setpieces.js","world_illustration.js","terrain_art.js","world_stream.js","world_review.js"])
  vm.runInNewContext(S[p],host,{filename:p});
 const stream=host.VeilwardWorldStream.create(model,{geometry:gd,footprint:fd,canvasFactory:canvas});
 const review=host.VeilwardReview.create(model,stream);
-eq(stream.version,"1.3.5","visual recovery live world version");
-eq(stream.illustration?.version,"1.3.5","source-coupled illustration actually loaded");
-eq(stream.art.version,"1.3.5","illustrated terrain compositor actually running");
-eq(stream.footprint.version,"1.3.5","physical natural props have recovery density");
+eq(stream.version,"1.3.6","visual recovery live world version");
+eq(stream.illustration?.version,"1.3.6","source-coupled illustration actually loaded");
+eq(stream.art.version,"1.3.6","illustrated terrain compositor actually running");
+eq(stream.footprint.version,"1.3.6","physical natural props have recovery density");
 ok(typeof stream.footprint.groves==="function","new foot-colliding saplings are fully authored and simulated");
 ok(stream.footprint.groves([41000,23000,44000,26500]).length>0,"deep Greenwood has additional mature woodland density");
-eq(stream.routeArt.version,"1.3.5","source-driven worn roads replace broad vector treads");
-eq(review.version,"1.3.5","in-game art review uses the restored renderer");
+eq(stream.routeArt.version,"1.3.6","source-driven worn roads replace broad vector treads");
+eq(review.version,"1.3.6","in-game art review uses the restored renderer");
 ok(stream.art.diagnostics().illustrationEnabled,"runtime imagery is wired through paintChunk");
 eq(stream.illustration.stats().sourceAnchors,13,"all thirteen original landmarks in scene artist");
 ok(stream.illustration.stats().changesPhysics===false,"visual illustrator does not pretend to create physics");
@@ -84,18 +84,18 @@ const i=review.paintOverview(canvas(),{width:420});
 eq(i.regions,12,"12 original region map remains intact");
 eq(i.roadCount,65,"atlas overview unchanged source network");
 const pack=S["index.html"],sw=S["sw.js"],game=S["game.js"];
-for(const name of ["world_climate.js?v=3","world_footprint.js?v=4",
- "world_illustration.js?v=2","terrain_art.js?v=6","world_routes.js?v=3",
- "world_stream.js?v=8","world_review.js?v=3","game.js?v=27",
- "manifest.webmanifest?v=135"]){
+for(const name of ["world_climate.js?v=4","world_footprint.js?v=5",
+ "world_illustration.js?v=3","terrain_art.js?v=7","world_routes.js?v=4",
+ "world_stream.js?v=9","world_review.js?v=4","game.js?v=28",
+ "manifest.webmanifest?v=136"]){
  ok(pack.includes(name)&&sw.includes(name),"iPhone and HTML pin identical rebuilt art asset "+name)
 }
-ok(pack.indexOf("world_illustration.js?v=2")<pack.indexOf("terrain_art.js?v=6")&&
- pack.indexOf("terrain_art.js?v=6")<pack.indexOf("world_stream.js?v=8"),"browser builds illustrator before runtime stream");
-ok(sw.includes("veilward-hollowreach-v135-dense-landscapes-r11"),"old iPhone Home Screen visual tiles invalidated");
-ok(game.includes('const APP_VERSION="1.3.5";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),
+ok(pack.indexOf("world_illustration.js?v=3")<pack.indexOf("terrain_art.js?v=7")&&
+ pack.indexOf("terrain_art.js?v=7")<pack.indexOf("world_stream.js?v=9"),"browser builds illustrator before runtime stream");
+ok(sw.includes("veilward-hollowreach-v136-setpieces-r2"),"old iPhone Home Screen visual tiles invalidated");
+ok(game.includes('const APP_VERSION="1.3.6";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),
  "old quest/local save key unchanged");
-ok(game.includes("Visual recovery R1.1")&&game.includes("span:1250"),"gallery labels truthful status and zooms to the art");
+ok(game.includes("Visual Recovery R2")&&game.includes("span:1250"),"gallery labels truthful status and zooms to the art");
 ok(S["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&
  S["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved hero & Warden textures retained");
 console.log("Veilward visual recovery R1 SOURCE PASS:",checks,"checks; region art rendered",tests.length,

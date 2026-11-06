@@ -7,7 +7,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.5",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
+const VERSION="1.3.6",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
 const PALETTES={
  snow:{base:"#acbcd0",dark:"#788da9",light:"#e4eced",mid:"#bfcdd9",spark:"#f6f5e8",motif:"drift"},
  frost:{base:"#8fa3b8",dark:"#627590",light:"#cedadd",mid:"#adbbc9",spark:"#e9ece8",motif:"shale"},
@@ -95,6 +95,7 @@ function create(model,geometry,options={}){
   const climate=options.climate||null;
  const routeArt=options.routeArt||null;
  const illustration=options.illustration||null;
+  const setpieces=options.setpieces||null;
  const surfaces=geometry.surfaces,roads=geometry.roads,solids=geometry.solids;
  const water=model.waterways.map(w=>({...w,
   line:(w.centerline||[]).map(([x,y])=>[x*unit,y*unit]),
@@ -173,7 +174,7 @@ function create(model,geometry,options={}){
   const sample=climate.sample(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5);
   // Snowflecks, wet moss and plants repeat consistently across chunk edges.
   // Small pixel clusters break the large 96-unit material checkerboard.
-  for(let i=0;i<8;i++){
+  for(let i=0;i<2;i++){
    const n=hash(c.gx*17+i,c.gy*13-i,129);
    const px=c.x+7+Math.floor(hash(c.gx,c.gy+i,101)*76);
    const py=c.y+8+Math.floor(hash(c.gx+i,c.gy,97)*75);
@@ -338,6 +339,7 @@ function create(model,geometry,options={}){
    const pts=s.polygon||(s.shape==="segment"?[s.a,s.b]:[[s.cx,s.cy]]);
    if(!inBounds(pts,bounds,600))continue;
    const x=s.cx,y=s.cy,r=s.radius;
+   if(s.material==="cliff-face"&&setpieces?.drawCliff(ctx,s))continue;
    if(s.material==="tree-trunk"||s.material==="pine-trunk"){
     if(illustration?.drawStatic(ctx,s))continue;
     tree(ctx,s);continue
@@ -394,6 +396,7 @@ function create(model,geometry,options={}){
   if(routeArt)routeArt.draw(ctx,bounds);else drawRoads(ctx,bounds);
   if(illustration)illustration.drawFeatures(ctx,bounds);
   else if(footprint)footprint.drawScenery(ctx,bounds);
+  if(setpieces)setpieces.draw(ctx,bounds);
   drawProps(ctx,bounds);
   ctx.restore()
  }
@@ -413,8 +416,8 @@ function create(model,geometry,options={}){
  }
  function diagnostics(){return{version:VERSION,atlasWidth:atlas.width,atlasHeight:atlas.height,
   materials:MATERIALS.length,variants:VARIANTS,sourceTilePixels:TILE,worldCellSize:WORLD_CELL,
-  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,illustrationEnabled:!!illustration,usesAuthoritativeSolids:true}}
- return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,illustration,paintChunk,paintForeground,
+  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,illustrationEnabled:!!illustration,setpiecesEnabled:!!setpieces,usesAuthoritativeSolids:true}}
+ return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,illustration,setpieces,paintChunk,paintForeground,
   materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,diagnostics}
 }
 window.VeilwardTerrainArt={version:VERSION,create,palettes:PALETTES,materials:MATERIALS,

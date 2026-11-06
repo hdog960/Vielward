@@ -4,7 +4,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.5",TAU=Math.PI*2;
+const VERSION="1.3.6",TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const palettes={
  alpine:{rim:"#687c8a",bed:"#adafa8",center:"#d7d6c7",shade:"#62758a",detail:"#f0e8d4"},
@@ -143,8 +143,11 @@ function create(model,geometry,options={}){
  function deck(ctx,e,bounds){
   const style=deckTypes[e.deck]||deckTypes.wooden;
   if(!style)throw Error("Unknown crossing deck "+e.id);
-  strokePath(ctx,e.path,style.dark,e.halfWidth*1.78+11);
-  strokePath(ctx,e.path,style.bed,e.halfWidth*1.63-5);
+  // Layered structural underside and real worn deck; source centerline,
+  // widths, 7% landings and edgeGuard rail positions are unchanged.
+  strokePath(ctx,e.path,"rgba(23,35,47,.65)",e.halfWidth*1.78+19);
+  strokePath(ctx,e.path,style.dark,e.halfWidth*1.73+7);
+  strokePath(ctx,e.path,style.bed,e.halfWidth*1.53);
   const full=e.total;
   for(const [a,b,prior,len] of e.parts){
    if(!len||!closeTo(bounds,a,b,170))continue;
@@ -159,6 +162,28 @@ function create(model,geometry,options={}){
     segment(ctx,[x-nx*width,y-ny*width],[x+nx*width,y+ny*width],col,style.kind==="planks"?9:6);
     segment(ctx,[x-nx*width*.76+dx*6,y-ny*width*.76+dy*6],
       [x+nx*width*.76+dx*6,y+ny*width*.76+dy*6],style.trim,style.kind==="ford"?8:3);
+    if(style.kind==="planks"){
+     // Board-end grain, staggered nail heads and weathered fibres:
+     // timber reads as wood rather than a striped vector road.
+     for(const side of [-1,1]){
+      const px=x+nx*side*width*.66,py=y+ny*side*width*.66;
+      ctx.fillStyle="#51484a";ctx.fillRect(Math.round(px),Math.round(py),5,5);
+      ctx.fillStyle=seed>.55?"#e1c49f":"#987c6a";
+      ctx.fillRect(Math.round(px+dx*9),Math.round(py+dy*9),10,3)
+     }
+     if(seed>.26){
+      segment(ctx,[x-nx*width*.42+dx*10,y-ny*width*.42+dy*10],
+       [x+nx*width*.18+dx*10,y+ny*width*.18+dy*10],
+       "rgba(62,49,48,.33)",2.5)
+     }
+    }else if(style.kind==="flagstone"||style.kind==="causeway"){
+     // Broken offset stone joints plus shallow chipped stone highlights.
+     const zz=width*(.40+.20*seed);
+     segment(ctx,[x-nx*zz+dx*11,y-ny*zz+dy*11],
+      [x-nx*width*.12+dx*11,y-ny*width*.12+dy*11],"rgba(54,64,73,.38)",4);
+     segment(ctx,[x+nx*width*.1-dx*5,y+ny*width*.1-dy*5],
+      [x+nx*width*.62-dx*5,y+ny*width*.62-dy*5],style.trim,2.5)
+    }
     if(style.kind==="ford"){
      // Dry raised stepping-stone caps are continuous over the authored ford
      // centerline: never imply an unsupported swimming shortcut.
@@ -188,8 +213,12 @@ function create(model,geometry,options={}){
      }
     }
     if(rail.length>=2){
-     strokePath(ctx,rail,style.dark,17);
-     strokePath(ctx,rail,style.rail,7)
+     // Layered parapet matches the same collision-center rail in edgeGuard.
+     const drop=rail.map(p=>[p[0]+4,p[1]+12]);
+     strokePath(ctx,drop,"rgba(30,38,46,.56)",18);
+     strokePath(ctx,rail,style.dark,15);
+     strokePath(ctx,rail,style.rail,7);
+     strokePath(ctx,rail,style.trim,2.5)
     }
    }
   }

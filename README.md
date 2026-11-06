@@ -1,3 +1,15 @@
+# VEILWARD v1.3.6 — VISUAL RECOVERY R2 (ART ACCEPTANCE STILL 0%)
+
+**Playable visual development:** 29 physically validated fantasy village, forest, bridge and highland compositions were added on the EXISTING 12-region source map. Source-accurate rock faces now have cliff-strata shading; all seven bridges have finer wood and stone construction; normal travel no longer has the obstructive debug label. The previously accepted 48 locations, 65 roads and 7 crossings, saves, quests and original approved sprites are preserved.
+
+[Play the new v1.3.6 Veilward build](https://hdog960.github.io/Vielward/) → Journey Menu → **Review Visual Recovery R2 (Phase 9)** → **Review World Map & All 12 In-Game Regions**. Walk Hollowreach, Greenwood, Coldpine, Northwatch and Frostbridge and inspect the original-game screenshots; the source test and browser images never substitute for the creator's visual judgment.
+
+[Visual Recovery R2 implementation, QA and limitations](./docs/overworld/VISUAL_RECOVERY_R2.md) · [Source landmark compositions](./world_setpieces.js) · [Physical scene QA](./tests/visual_recovery_r2.test.js) · [Five actual browser screenshots](https://github.com/hdog960/Vielward/actions/workflows/visual-qa.yml).
+
+**Phase 10 LOCKED.** This is a substantial R2 art pass, but not final 32-bit illustration acceptance. The creator's last expressed rating is 0%; all remaining art-focused R3+ revisions occur inside Phase 9 until explicit approval.
+
+---
+
 # VEILWARD v1.3.5 — VISUAL RECOVERY R1.1 (Creator appearance approval pending)
 
 The first recovered renderer (v1.3.4) passed functional tests but actual browser captures still showed barren crossroads, speckled ground and oversized roads. This update produces collision-backed groves closer to travel, denser illustrated foliage and grass, far fewer scattered texture dots, and narrower roads while keeping the 12 regions, 65 road links, seven crossings, character art and local saved adventure intact. These are real game changes; **not yet approved final 32-bit illustration quality.**
