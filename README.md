@@ -1,3 +1,18 @@
+# Veilward Overworld Rebuild — Phase 2 Complete Topology (November 5, 2026)
+
+**Implemented in repository design assets, not game runtime.** A complete continuous outdoor planning map with **12 regions, 48 named route anchors, 65 connected walkable travel links, 7 physically designed water/chasm crossings and three independently passable Hollowreach→Greenwood options** is now source-controlled and validated. Natural snow-to-green transitions are planned across distance and elevation; cave/workshop doors remain true indoor thresholds.
+
+- [**Open the new complete master map (SVG design schematic)**](./docs/overworld/MASTER_MAP.svg)
+- [Creator-readable geography, regions, roads, crossings, elevations and route timing](./docs/overworld/MASTER_MAP.md)
+- [World-coordinate JSON with all roads, polygons, paths, streams and landmarks](./docs/overworld/world_blueprint.json)
+- [Phase 2 geometry / topology audit](./docs/overworld/PHASE2_TOPOLOGY_AUDIT.md)
+- [Phase 3 technical handoff](./docs/overworld/PHASE2_HANDOFF.md)
+- [Approved 22-phase roadmap and full-overworld visual review gate after Phase 9](./OVERWORLD_REBUILD_ROADMAP.md)
+
+The map schematic is **not a gameplay screenshot or concept art approval request**. The actual v1.2.6 iPhone game and its sprites, scenes, saves and service worker remain unchanged during this design phase. Next, upon user request, Phase 3 implements the real global outdoor coordinate system and chunk-streaming foundation without breaking the current working game. After Phase 9 the creator reviews the complete **playable** outdoor appearance before Phase 10.
+
+---
+
 ## Approved Continuous Overworld Rebuild — Phase 1 Audit (November 5, 2026)
 
 The approved **22-phase** world rebuild has begun. **Phase 1 is a code-and-art audit only**: registered 34 creator issues covering all 12 pages of `Vielward.pdf`, established the visual design contract, inventoried all current scenes/NPCs/enemies/props, documented global-coordinate/save-migration rules, and pinned the approved Wanderer and Warden Hal assets. Run `npm run audit:world` for source baseline/protection assertions.

@@ -1,0 +1,2361 @@
+{
+  "schema": "veilward.world-blueprint.v1",
+  "phase": 2,
+  "status": "DESIGN BLUEPRINT ONLY — not implemented in live game",
+  "baseGameVersion": "1.2.6",
+  "sourceRoadmap": "OVERWORLD_REBUILD_ROADMAP.md",
+  "projection": "Plan map: x east, y south, top-down planning coordinates; rendering later uses elevated three-quarter pixel-art camera",
+  "created": "2026-11-05",
+  "geographyNote": "Region polygons are macro landscape influences and intentionally overlap in transition zones; these are NOT final collision polygons or sprite art. River and chasm lines are centerline planning features only.",
+  "regions": [
+    {
+      "id": "hollowreach",
+      "name": "Hollowreach · Frostbridge",
+      "center": [
+        280,
+        300
+      ],
+      "elevationBand": 4,
+      "biome": "alpine-village",
+      "purpose": "primary town / blacksmith, inn, guard, readable notices",
+      "influencePolygon": [
+        [
+          125,
+          180
+        ],
+        [
+          360,
+          175
+        ],
+        [
+          395,
+          340
+        ],
+        [
+          320,
+          438
+        ],
+        [
+          135,
+          465
+        ]
+      ]
+    },
+    {
+      "id": "northwatch",
+      "name": "Northwatch Heights",
+      "center": [
+        545,
+        177
+      ],
+      "elevationBand": 6,
+      "biome": "alpine-stone",
+      "purpose": "monument, outlook, accessible circular footpaths",
+      "influencePolygon": [
+        [
+          433,
+          88
+        ],
+        [
+          645,
+          83
+        ],
+        [
+          682,
+          240
+        ],
+        [
+          570,
+          298
+        ],
+        [
+          435,
+          260
+        ]
+      ]
+    },
+    {
+      "id": "coldpine",
+      "name": "Coldpine Ridge",
+      "center": [
+        240,
+        118
+      ],
+      "elevationBand": 6,
+      "biome": "alpine-evergreen",
+      "purpose": "highland forest, ridge lodge, quarry and predator loop",
+      "influencePolygon": [
+        [
+          100,
+          65
+        ],
+        [
+          430,
+          65
+        ],
+        [
+          390,
+          195
+        ],
+        [
+          275,
+          230
+        ],
+        [
+          115,
+          205
+        ]
+      ]
+    },
+    {
+      "id": "frost_river",
+      "name": "Frostbridge River",
+      "center": [
+        448,
+        352
+      ],
+      "elevationBand": 3,
+      "biome": "glacial-water",
+      "purpose": "glacier-fed river, crossings, banks and fishing",
+      "influencePolygon": [
+        [
+          365,
+          65
+        ],
+        [
+          455,
+          60
+        ],
+        [
+          448,
+          255
+        ],
+        [
+          500,
+          360
+        ],
+        [
+          650,
+          575
+        ],
+        [
+          733,
+          655
+        ],
+        [
+          671,
+          705
+        ],
+        [
+          500,
+          570
+        ],
+        [
+          370,
+          405
+        ]
+      ]
+    },
+    {
+      "id": "thawline",
+      "name": "The Thawline",
+      "center": [
+        494,
+        448
+      ],
+      "elevationBand": 3,
+      "biome": "snowmelt",
+      "purpose": "gradual snowy-to-mossy watershed and roadside camp",
+      "influencePolygon": [
+        [
+          310,
+          355
+        ],
+        [
+          610,
+          330
+        ],
+        [
+          700,
+          445
+        ],
+        [
+          625,
+          552
+        ],
+        [
+          420,
+          570
+        ],
+        [
+          295,
+          465
+        ]
+      ]
+    },
+    {
+      "id": "greenwood",
+      "name": "Greenwood",
+      "center": [
+        706,
+        413
+      ],
+      "elevationBand": 2,
+      "biome": "temperate-forest",
+      "purpose": "woodland, village trail, herbs, hermit and crossroad",
+      "influencePolygon": [
+        [
+          610,
+          290
+        ],
+        [
+          855,
+          282
+        ],
+        [
+          890,
+          520
+        ],
+        [
+          720,
+          585
+        ],
+        [
+          585,
+          530
+        ]
+      ]
+    },
+    {
+      "id": "greenwood_falls",
+      "name": "Greenwood Falls",
+      "center": [
+        618,
+        585
+      ],
+      "elevationBand": 2,
+      "biome": "waterfall-forest",
+      "purpose": "stepped river cascades, banks, pedestrian crossings",
+      "influencePolygon": [
+        [
+          500,
+          490
+        ],
+        [
+          690,
+          480
+        ],
+        [
+          770,
+          640
+        ],
+        [
+          615,
+          687
+        ],
+        [
+          490,
+          625
+        ]
+      ]
+    },
+    {
+      "id": "mossmere",
+      "name": "Mossmere Basin",
+      "center": [
+        757,
+        696
+      ],
+      "elevationBand": 1,
+      "biome": "lake-wetland",
+      "purpose": "lake, bridges, island secret and wetland paths",
+      "influencePolygon": [
+        [
+          605,
+          610
+        ],
+        [
+          855,
+          588
+        ],
+        [
+          925,
+          770
+        ],
+        [
+          645,
+          775
+        ]
+      ]
+    },
+    {
+      "id": "heatherwood",
+      "name": "Heatherwood Commons",
+      "center": [
+        985,
+        677
+      ],
+      "elevationBand": 2,
+      "biome": "meadow",
+      "purpose": "crossroads, farmers and optional meadow discoveries",
+      "influencePolygon": [
+        [
+          850,
+          560
+        ],
+        [
+          1110,
+          520
+        ],
+        [
+          1150,
+          760
+        ],
+        [
+          895,
+          775
+        ]
+      ]
+    },
+    {
+      "id": "old_crown",
+      "name": "Old Crown Road",
+      "center": [
+        893,
+        399
+      ],
+      "elevationBand": 3,
+      "biome": "historic-road",
+      "purpose": "long trade-road link and broken watchtower",
+      "influencePolygon": [
+        [
+          793,
+          315
+        ],
+        [
+          1034,
+          309
+        ],
+        [
+          1080,
+          506
+        ],
+        [
+          850,
+          582
+        ],
+        [
+          815,
+          465
+        ]
+      ]
+    },
+    {
+      "id": "smugglers",
+      "name": "Smuggler's Ravine",
+      "center": [
+        1035,
+        569
+      ],
+      "elevationBand": 3,
+      "biome": "canyon",
+      "purpose": "canyon bridges, bandit hideout and real cave threshold",
+      "influencePolygon": [
+        [
+          944,
+          470
+        ],
+        [
+          1135,
+          438
+        ],
+        [
+          1150,
+          655
+        ],
+        [
+          1038,
+          709
+        ],
+        [
+          926,
+          615
+        ]
+      ]
+    },
+    {
+      "id": "worldscar",
+      "name": "Worldscar Uplands",
+      "center": [
+        1020,
+        238
+      ],
+      "elevationBand": 5,
+      "biome": "arcane-highland",
+      "purpose": "stone ascents, violet ruins, mysterious circle and destination",
+      "influencePolygon": [
+        [
+          850,
+          90
+        ],
+        [
+          1100,
+          83
+        ],
+        [
+          1155,
+          343
+        ],
+        [
+          1015,
+          421
+        ],
+        [
+          863,
+          335
+        ]
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "village",
+      "name": "Hollowreach square",
+      "region": "hollowreach",
+      "point": [
+        282,
+        305
+      ],
+      "elevation": 4,
+      "kind": "town",
+      "purpose": "Village gathering square, smithy and departing road hub"
+    },
+    {
+      "id": "joren",
+      "name": "Joren's workshop door",
+      "region": "hollowreach",
+      "point": [
+        306,
+        310
+      ],
+      "elevation": 4,
+      "kind": "threshold",
+      "purpose": "true interior later"
+    },
+    {
+      "id": "village_north",
+      "name": "Northern snow trail",
+      "region": "hollowreach",
+      "point": [
+        274,
+        237
+      ],
+      "elevation": 4,
+      "kind": "junction",
+      "purpose": "north trail visible and walkable"
+    },
+    {
+      "id": "village_south",
+      "name": "Old southbound snow road",
+      "region": "hollowreach",
+      "point": [
+        292,
+        414
+      ],
+      "elevation": 4,
+      "kind": "junction",
+      "purpose": "southern road continues"
+    },
+    {
+      "id": "colp_lodge",
+      "name": "Coldpine trail lodge",
+      "region": "coldpine",
+      "point": [
+        246,
+        158
+      ],
+      "elevation": 5,
+      "kind": "landmark",
+      "purpose": "shelter and predator patrol"
+    },
+    {
+      "id": "colp_ridge",
+      "name": "Coldpine high pass",
+      "region": "coldpine",
+      "point": [
+        275,
+        103
+      ],
+      "elevation": 6,
+      "kind": "viewpoint",
+      "purpose": "outlook; intentional scenic terminus"
+    },
+    {
+      "id": "north_bridge_w",
+      "name": "Northwatch span · west bank",
+      "region": "frost_river",
+      "point": [
+        353,
+        218
+      ],
+      "elevation": 5,
+      "kind": "bridge-landing",
+      "purpose": "west bank of upstream gorge"
+    },
+    {
+      "id": "north_bridge_e",
+      "name": "Northwatch span · east bank",
+      "region": "frost_river",
+      "point": [
+        427,
+        218
+      ],
+      "elevation": 5,
+      "kind": "bridge-landing",
+      "purpose": "east bank of upstream gorge"
+    },
+    {
+      "id": "northwatch_stairs",
+      "name": "Northwatch stone stair",
+      "region": "northwatch",
+      "point": [
+        461,
+        220
+      ],
+      "elevation": 5,
+      "kind": "stairs",
+      "purpose": "climb from east bank"
+    },
+    {
+      "id": "northwatch_plaza",
+      "name": "Northwatch monument walk",
+      "region": "northwatch",
+      "point": [
+        513,
+        184
+      ],
+      "elevation": 6,
+      "kind": "landmark",
+      "purpose": "circle around monument"
+    },
+    {
+      "id": "northwatch_loop",
+      "name": "Northwatch back terrace",
+      "region": "northwatch",
+      "point": [
+        567,
+        226
+      ],
+      "elevation": 6,
+      "kind": "junction",
+      "purpose": "return loop around memorial"
+    },
+    {
+      "id": "east_ridge",
+      "name": "Eastern ridge descent",
+      "region": "northwatch",
+      "point": [
+        639,
+        289
+      ],
+      "elevation": 4,
+      "kind": "switchback",
+      "purpose": "slow descent toward evergreen belt"
+    },
+    {
+      "id": "north_woods",
+      "name": "Greenwood's north approach",
+      "region": "greenwood",
+      "point": [
+        697,
+        322
+      ],
+      "elevation": 3,
+      "kind": "junction",
+      "purpose": "forest upper entrance"
+    },
+    {
+      "id": "bridge_w",
+      "name": "Frostbridge · west landing",
+      "region": "frost_river",
+      "point": [
+        365,
+        353
+      ],
+      "elevation": 4,
+      "kind": "bridge-landing",
+      "purpose": "village river bank"
+    },
+    {
+      "id": "bridge_e",
+      "name": "Frostbridge · east landing",
+      "region": "frost_river",
+      "point": [
+        452,
+        353
+      ],
+      "elevation": 4,
+      "kind": "bridge-landing",
+      "purpose": "wooden deck to east bank"
+    },
+    {
+      "id": "thaw_upper",
+      "name": "Thawline upper road",
+      "region": "thawline",
+      "point": [
+        529,
+        391
+      ],
+      "elevation": 3,
+      "kind": "junction",
+      "purpose": "patchy snow, moss, springs"
+    },
+    {
+      "id": "thaw_camp",
+      "name": "Meltwater wayside camp",
+      "region": "thawline",
+      "point": [
+        431,
+        461
+      ],
+      "elevation": 3,
+      "kind": "camp",
+      "purpose": "safe rest along lower road"
+    },
+    {
+      "id": "greenwood_gate",
+      "name": "Greenwood old trail gate",
+      "region": "greenwood",
+      "point": [
+        649,
+        408
+      ],
+      "elevation": 2,
+      "kind": "junction",
+      "purpose": "biome transition complete"
+    },
+    {
+      "id": "greenwood_hearth",
+      "name": "Greenwood clearing",
+      "region": "greenwood",
+      "point": [
+        727,
+        430
+      ],
+      "elevation": 2,
+      "kind": "hub",
+      "purpose": "hermit, herbs, woodland road"
+    },
+    {
+      "id": "hermit",
+      "name": "Green Hermit's tree",
+      "region": "greenwood",
+      "point": [
+        766,
+        364
+      ],
+      "elevation": 2,
+      "kind": "landmark",
+      "purpose": "hermit and medicinal plants"
+    },
+    {
+      "id": "greenwood_east",
+      "name": "Eastern woodland crossroad",
+      "region": "greenwood",
+      "point": [
+        807,
+        448
+      ],
+      "elevation": 2,
+      "kind": "junction",
+      "purpose": "old trade road connection"
+    },
+    {
+      "id": "thaw_lower",
+      "name": "Southern thawline trail",
+      "region": "thawline",
+      "point": [
+        412,
+        533
+      ],
+      "elevation": 2,
+      "kind": "junction",
+      "purpose": "south snow-to-grass transition"
+    },
+    {
+      "id": "ford_w",
+      "name": "Stoneford · west bank",
+      "region": "frost_river",
+      "point": [
+        482,
+        516
+      ],
+      "elevation": 2,
+      "kind": "ford-landing",
+      "purpose": "shallow ford west access"
+    },
+    {
+      "id": "ford_e",
+      "name": "Stoneford · east bank",
+      "region": "frost_river",
+      "point": [
+        554,
+        516
+      ],
+      "elevation": 2,
+      "kind": "ford-landing",
+      "purpose": "shallow ford east access"
+    },
+    {
+      "id": "greenwood_south",
+      "name": "South Greenwood path",
+      "region": "greenwood",
+      "point": [
+        657,
+        526
+      ],
+      "elevation": 2,
+      "kind": "junction",
+      "purpose": "woodland stream-side path"
+    },
+    {
+      "id": "falls_w",
+      "name": "Greenwood Falls · west trail",
+      "region": "greenwood_falls",
+      "point": [
+        570,
+        575
+      ],
+      "elevation": 2,
+      "kind": "bridge-landing",
+      "purpose": "waterfall banks: west"
+    },
+    {
+      "id": "falls_e",
+      "name": "Greenwood Falls · east trail",
+      "region": "greenwood_falls",
+      "point": [
+        640,
+        575
+      ],
+      "elevation": 2,
+      "kind": "bridge-landing",
+      "purpose": "waterfall banks: east"
+    },
+    {
+      "id": "falls_overlook",
+      "name": "Falls' stone lookout",
+      "region": "greenwood_falls",
+      "point": [
+        680,
+        604
+      ],
+      "elevation": 3,
+      "kind": "viewpoint",
+      "purpose": "stairs and vista"
+    },
+    {
+      "id": "mossmere_w",
+      "name": "Mossmere western shore",
+      "region": "mossmere",
+      "point": [
+        674,
+        667
+      ],
+      "elevation": 1,
+      "kind": "junction",
+      "purpose": "lake shore path"
+    },
+    {
+      "id": "island",
+      "name": "Mossmere island sanctuary",
+      "region": "mossmere",
+      "point": [
+        758,
+        690
+      ],
+      "elevation": 1,
+      "kind": "island",
+      "purpose": "unique discovery / lore secret"
+    },
+    {
+      "id": "mossmere_e",
+      "name": "Mossmere eastern shore",
+      "region": "mossmere",
+      "point": [
+        885,
+        712
+      ],
+      "elevation": 1,
+      "kind": "junction",
+      "purpose": "small causeway landing"
+    },
+    {
+      "id": "mossmere_s",
+      "name": "Southern wetlands trail",
+      "region": "mossmere",
+      "point": [
+        692,
+        765
+      ],
+      "elevation": 1,
+      "kind": "junction",
+      "purpose": "loop around lake shore"
+    },
+    {
+      "id": "commons",
+      "name": "Heatherwood crossroad",
+      "region": "heatherwood",
+      "point": [
+        955,
+        665
+      ],
+      "elevation": 2,
+      "kind": "hub",
+      "purpose": "meadow camp and traveler hub"
+    },
+    {
+      "id": "market",
+      "name": "Heatherwood trading camp",
+      "region": "heatherwood",
+      "point": [
+        1065,
+        692
+      ],
+      "elevation": 2,
+      "kind": "landmark",
+      "purpose": "market, horse post and rest"
+    },
+    {
+      "id": "heather_path",
+      "name": "Heatherwood north track",
+      "region": "heatherwood",
+      "point": [
+        921,
+        586
+      ],
+      "elevation": 2,
+      "kind": "junction",
+      "purpose": "meadow road toward canyon"
+    },
+    {
+      "id": "oldroad_w",
+      "name": "Old Crown Road · western fork",
+      "region": "old_crown",
+      "point": [
+        865,
+        416
+      ],
+      "elevation": 3,
+      "kind": "junction",
+      "purpose": "oldstone marker and branches"
+    },
+    {
+      "id": "oldroad_tower",
+      "name": "Old Crown watchtower",
+      "region": "old_crown",
+      "point": [
+        949,
+        393
+      ],
+      "elevation": 4,
+      "kind": "landmark",
+      "purpose": "ruined watch post with overlook"
+    },
+    {
+      "id": "oldroad_e",
+      "name": "Old Crown Road · eastern fork",
+      "region": "old_crown",
+      "point": [
+        1008,
+        445
+      ],
+      "elevation": 3,
+      "kind": "junction",
+      "purpose": "ruin/canyon link"
+    },
+    {
+      "id": "ravine_w",
+      "name": "Smugglers' ravine approach",
+      "region": "smugglers",
+      "point": [
+        972,
+        541
+      ],
+      "elevation": 3,
+      "kind": "junction",
+      "purpose": "canyon upper trail"
+    },
+    {
+      "id": "ravine_bridge_w",
+      "name": "Ravine span · west landing",
+      "region": "smugglers",
+      "point": [
+        1010,
+        574
+      ],
+      "elevation": 3,
+      "kind": "bridge-landing",
+      "purpose": "over canyon, not a river"
+    },
+    {
+      "id": "ravine_bridge_e",
+      "name": "Ravine span · east landing",
+      "region": "smugglers",
+      "point": [
+        1086,
+        584
+      ],
+      "elevation": 3,
+      "kind": "bridge-landing",
+      "purpose": "over canyon, not a river"
+    },
+    {
+      "id": "cave_mouth",
+      "name": "Smuggler's Hollow cave mouth",
+      "region": "smugglers",
+      "point": [
+        1110,
+        622
+      ],
+      "elevation": 3,
+      "kind": "entrance",
+      "purpose": "real cave threshold with exit anchor"
+    },
+    {
+      "id": "ravine_high",
+      "name": "High ravine overlook",
+      "region": "smugglers",
+      "point": [
+        1073,
+        521
+      ],
+      "elevation": 4,
+      "kind": "viewpoint",
+      "purpose": "optional cliff overlook"
+    },
+    {
+      "id": "worldscar_foothill",
+      "name": "Worldscar footpath",
+      "region": "worldscar",
+      "point": [
+        949,
+        316
+      ],
+      "elevation": 4,
+      "kind": "junction",
+      "purpose": "ruin approach by road"
+    },
+    {
+      "id": "worldscar_stairs",
+      "name": "Worldscar switchback stair",
+      "region": "worldscar",
+      "point": [
+        1014,
+        295
+      ],
+      "elevation": 4,
+      "kind": "stairs",
+      "purpose": "stone ascent"
+    },
+    {
+      "id": "worldscar_ring",
+      "name": "Worldscar standing stones",
+      "region": "worldscar",
+      "point": [
+        1069,
+        247
+      ],
+      "elevation": 5,
+      "kind": "landmark",
+      "purpose": "arcane meaningful destination"
+    },
+    {
+      "id": "worldscar_outlook",
+      "name": "Worldscar northern overlook",
+      "region": "worldscar",
+      "point": [
+        1006,
+        172
+      ],
+      "elevation": 5,
+      "kind": "viewpoint",
+      "purpose": "optional highland loop"
+    },
+    {
+      "id": "worldscar_return",
+      "name": "Worldscar southeastern descent",
+      "region": "worldscar",
+      "point": [
+        1100,
+        354
+      ],
+      "elevation": 4,
+      "kind": "switchback",
+      "purpose": "loop to Old Crown Road"
+    }
+  ],
+  "edges": [
+    {
+      "id": "village--joren",
+      "from": "village",
+      "to": "joren",
+      "kind": "street",
+      "walkable": true
+    },
+    {
+      "id": "village--village_north",
+      "from": "village",
+      "to": "village_north",
+      "kind": "street",
+      "walkable": true
+    },
+    {
+      "id": "village--village_south",
+      "from": "village",
+      "to": "village_south",
+      "kind": "road",
+      "walkable": true
+    },
+    {
+      "id": "village--bridge_w",
+      "from": "village",
+      "to": "bridge_w",
+      "kind": "road",
+      "walkable": true
+    },
+    {
+      "id": "village_north--north_bridge_w",
+      "from": "village_north",
+      "to": "north_bridge_w",
+      "kind": "road",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "village_north--colp_lodge",
+      "from": "village_north",
+      "to": "colp_lodge",
+      "kind": "trail",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "colp_lodge--colp_ridge",
+      "from": "colp_lodge",
+      "to": "colp_ridge",
+      "kind": "trail",
+      "walkable": true,
+      "slope": "ramp",
+      "terminus": "scenic pass"
+    },
+    {
+      "id": "colp_ridge--north_bridge_w",
+      "from": "colp_ridge",
+      "to": "north_bridge_w",
+      "kind": "trail",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "north_bridge_w--north_bridge_e",
+      "from": "north_bridge_w",
+      "to": "north_bridge_e",
+      "kind": "bridge",
+      "walkable": true,
+      "crossing": "northwatch_span",
+      "waterway": "frostbridge_river",
+      "bankTransition": [
+        "west",
+        "east"
+      ],
+      "deck": "stone-and-timber"
+    },
+    {
+      "id": "north_bridge_e--northwatch_stairs",
+      "from": "north_bridge_e",
+      "to": "northwatch_stairs",
+      "kind": "path",
+      "walkable": true
+    },
+    {
+      "id": "northwatch_stairs--northwatch_plaza",
+      "from": "northwatch_stairs",
+      "to": "northwatch_plaza",
+      "kind": "stairs",
+      "walkable": true,
+      "slope": "stairs"
+    },
+    {
+      "id": "northwatch_plaza--northwatch_loop",
+      "from": "northwatch_plaza",
+      "to": "northwatch_loop",
+      "kind": "path",
+      "walkable": true
+    },
+    {
+      "id": "northwatch_loop--northwatch_stairs",
+      "from": "northwatch_loop",
+      "to": "northwatch_stairs",
+      "kind": "stairs",
+      "walkable": true,
+      "slope": "stairs"
+    },
+    {
+      "id": "northwatch_plaza--worldscar_outlook",
+      "from": "northwatch_plaza",
+      "to": "worldscar_outlook",
+      "kind": "ridge-trail",
+      "walkable": true,
+      "slope": "switchback",
+      "optional": true,
+      "via": [
+        [
+          679,
+          111
+        ],
+        [
+          848,
+          102
+        ],
+        [
+          943,
+          137
+        ]
+      ]
+    },
+    {
+      "id": "northwatch_loop--east_ridge",
+      "from": "northwatch_loop",
+      "to": "east_ridge",
+      "kind": "switchback",
+      "walkable": true,
+      "slope": "switchback",
+      "via": [
+        [
+          585,
+          245
+        ],
+        [
+          607,
+          271
+        ]
+      ]
+    },
+    {
+      "id": "east_ridge--north_woods",
+      "from": "east_ridge",
+      "to": "north_woods",
+      "kind": "trail",
+      "walkable": true,
+      "slope": "ramp",
+      "via": [
+        [
+          668,
+          307
+        ]
+      ]
+    },
+    {
+      "id": "north_woods--greenwood_gate",
+      "from": "north_woods",
+      "to": "greenwood_gate",
+      "kind": "trail",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "north_woods--hermit",
+      "from": "north_woods",
+      "to": "hermit",
+      "kind": "trail",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "bridge_w--bridge_e",
+      "from": "bridge_w",
+      "to": "bridge_e",
+      "kind": "bridge",
+      "walkable": true,
+      "crossing": "frostbridge_main",
+      "waterway": "frostbridge_river",
+      "bankTransition": [
+        "west",
+        "east"
+      ],
+      "deck": "wooden"
+    },
+    {
+      "id": "bridge_e--thaw_upper",
+      "from": "bridge_e",
+      "to": "thaw_upper",
+      "kind": "road",
+      "walkable": true,
+      "slope": "ramp",
+      "via": [
+        [
+          486,
+          369
+        ]
+      ]
+    },
+    {
+      "id": "thaw_upper--greenwood_gate",
+      "from": "thaw_upper",
+      "to": "greenwood_gate",
+      "kind": "road",
+      "walkable": true,
+      "slope": "ramp",
+      "via": [
+        [
+          583,
+          397
+        ]
+      ]
+    },
+    {
+      "id": "greenwood_gate--greenwood_hearth",
+      "from": "greenwood_gate",
+      "to": "greenwood_hearth",
+      "kind": "road",
+      "walkable": true
+    },
+    {
+      "id": "greenwood_hearth--hermit",
+      "from": "greenwood_hearth",
+      "to": "hermit",
+      "kind": "trail",
+      "walkable": true
+    },
+    {
+      "id": "greenwood_hearth--greenwood_east",
+      "from": "greenwood_hearth",
+      "to": "greenwood_east",
+      "kind": "road",
+      "walkable": true
+    },
+    {
+      "id": "greenwood_east--oldroad_w",
+      "from": "greenwood_east",
+      "to": "oldroad_w",
+      "kind": "old-road",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "village_south--thaw_camp",
+      "from": "village_south",
+      "to": "thaw_camp",
+      "kind": "road",
+      "walkable": true,
+      "slope": "ramp",
+      "via": [
+        [
+          335,
+          441
+        ],
+        [
+          383,
+          452
+        ]
+      ]
+    },
+    {
+      "id": "thaw_camp--thaw_lower",
+      "from": "thaw_camp",
+      "to": "thaw_lower",
+      "kind": "road",
+      "walkable": true,
+      "slope": "ramp",
+      "via": [
+        [
+          417,
+          500
+        ]
+      ]
+    },
+    {
+      "id": "thaw_lower--ford_w",
+      "from": "thaw_lower",
+      "to": "ford_w",
+      "kind": "trail",
+      "walkable": true,
+      "via": [
+        [
+          450,
+          525
+        ]
+      ]
+    },
+    {
+      "id": "ford_w--ford_e",
+      "from": "ford_w",
+      "to": "ford_e",
+      "kind": "ford",
+      "walkable": true,
+      "crossing": "stoneford_shallows",
+      "waterway": "frostbridge_river",
+      "bankTransition": [
+        "west",
+        "east"
+      ],
+      "requires": "raised stone steps/ford with a consistently walkable dry crossing; water-level animation is cosmetic only",
+      "deck": "raised stepped stones"
+    },
+    {
+      "id": "ford_e--greenwood_south",
+      "from": "ford_e",
+      "to": "greenwood_south",
+      "kind": "trail",
+      "walkable": true,
+      "via": [
+        [
+          598,
+          526
+        ]
+      ]
+    },
+    {
+      "id": "greenwood_south--greenwood_gate",
+      "from": "greenwood_south",
+      "to": "greenwood_gate",
+      "kind": "trail",
+      "walkable": true
+    },
+    {
+      "id": "greenwood_south--greenwood_hearth",
+      "from": "greenwood_south",
+      "to": "greenwood_hearth",
+      "kind": "trail",
+      "walkable": true
+    },
+    {
+      "id": "falls_w--falls_e",
+      "from": "falls_w",
+      "to": "falls_e",
+      "kind": "bridge",
+      "walkable": true,
+      "crossing": "falls_bridge",
+      "waterway": "frostbridge_river",
+      "bankTransition": [
+        "west",
+        "east"
+      ],
+      "deck": "stone-footbridge"
+    },
+    {
+      "id": "falls_e--falls_overlook",
+      "from": "falls_e",
+      "to": "falls_overlook",
+      "kind": "stairs",
+      "walkable": true,
+      "slope": "stairs"
+    },
+    {
+      "id": "falls_overlook--greenwood_south",
+      "from": "falls_overlook",
+      "to": "greenwood_south",
+      "kind": "trail",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "falls_w--mossmere_w",
+      "from": "falls_w",
+      "to": "mossmere_w",
+      "kind": "riverside",
+      "walkable": true,
+      "slope": "ramp",
+      "via": [
+        [
+          592,
+          612
+        ],
+        [
+          648,
+          647
+        ]
+      ]
+    },
+    {
+      "id": "falls_e--mossmere_e",
+      "from": "falls_e",
+      "to": "mossmere_e",
+      "kind": "riverside",
+      "walkable": true,
+      "slope": "ramp",
+      "via": [
+        [
+          695,
+          564
+        ],
+        [
+          815,
+          578
+        ],
+        [
+          874,
+          617
+        ],
+        [
+          910,
+          669
+        ]
+      ]
+    },
+    {
+      "id": "mossmere_w--island",
+      "from": "mossmere_w",
+      "to": "island",
+      "kind": "bridge",
+      "walkable": true,
+      "crossing": "mossmere_west_footbridge",
+      "waterway": "mossmere_lake",
+      "bankTransition": [
+        "west-shore",
+        "island"
+      ],
+      "deck": "wood-and-rope"
+    },
+    {
+      "id": "island--mossmere_e",
+      "from": "island",
+      "to": "mossmere_e",
+      "kind": "causeway",
+      "walkable": true,
+      "crossing": "mossmere_east_causeway",
+      "waterway": "mossmere_lake",
+      "bankTransition": [
+        "island",
+        "east-shore"
+      ],
+      "deck": "stone"
+    },
+    {
+      "id": "mossmere_w--mossmere_s",
+      "from": "mossmere_w",
+      "to": "mossmere_s",
+      "kind": "shore-trail",
+      "walkable": true,
+      "via": [
+        [
+          651,
+          710
+        ],
+        [
+          658,
+          743
+        ]
+      ]
+    },
+    {
+      "id": "mossmere_s--mossmere_e",
+      "from": "mossmere_s",
+      "to": "mossmere_e",
+      "kind": "shore-trail",
+      "walkable": true,
+      "via": [
+        [
+          739,
+          793
+        ],
+        [
+          827,
+          785
+        ],
+        [
+          893,
+          748
+        ]
+      ]
+    },
+    {
+      "id": "mossmere_e--commons",
+      "from": "mossmere_e",
+      "to": "commons",
+      "kind": "road",
+      "walkable": true,
+      "slope": "ramp",
+      "via": [
+        [
+          916,
+          698
+        ]
+      ]
+    },
+    {
+      "id": "commons--market",
+      "from": "commons",
+      "to": "market",
+      "kind": "road",
+      "walkable": true
+    },
+    {
+      "id": "commons--heather_path",
+      "from": "commons",
+      "to": "heather_path",
+      "kind": "road",
+      "walkable": true
+    },
+    {
+      "id": "heather_path--greenwood_east",
+      "from": "heather_path",
+      "to": "greenwood_east",
+      "kind": "old-road",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "heather_path--ravine_w",
+      "from": "heather_path",
+      "to": "ravine_w",
+      "kind": "trail",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "oldroad_w--oldroad_tower",
+      "from": "oldroad_w",
+      "to": "oldroad_tower",
+      "kind": "stairs",
+      "walkable": true,
+      "slope": "stairs"
+    },
+    {
+      "id": "oldroad_tower--oldroad_e",
+      "from": "oldroad_tower",
+      "to": "oldroad_e",
+      "kind": "switchback",
+      "walkable": true,
+      "slope": "switchback"
+    },
+    {
+      "id": "oldroad_w--oldroad_e",
+      "from": "oldroad_w",
+      "to": "oldroad_e",
+      "kind": "road",
+      "walkable": true
+    },
+    {
+      "id": "oldroad_e--ravine_w",
+      "from": "oldroad_e",
+      "to": "ravine_w",
+      "kind": "road",
+      "walkable": true
+    },
+    {
+      "id": "ravine_w--ravine_bridge_w",
+      "from": "ravine_w",
+      "to": "ravine_bridge_w",
+      "kind": "trail",
+      "walkable": true
+    },
+    {
+      "id": "ravine_bridge_w--ravine_bridge_e",
+      "from": "ravine_bridge_w",
+      "to": "ravine_bridge_e",
+      "kind": "bridge",
+      "walkable": true,
+      "crossing": "ravine_ropebridge",
+      "waterway": "smugglers_chasm",
+      "bankTransition": [
+        "west-rim",
+        "east-rim"
+      ],
+      "deck": "timber-rope"
+    },
+    {
+      "id": "ravine_bridge_e--cave_mouth",
+      "from": "ravine_bridge_e",
+      "to": "cave_mouth",
+      "kind": "trail",
+      "walkable": true
+    },
+    {
+      "id": "ravine_bridge_e--ravine_high",
+      "from": "ravine_bridge_e",
+      "to": "ravine_high",
+      "kind": "switchback",
+      "walkable": true,
+      "slope": "switchback"
+    },
+    {
+      "id": "ravine_high--ravine_w",
+      "from": "ravine_high",
+      "to": "ravine_w",
+      "kind": "switchback",
+      "walkable": true,
+      "slope": "switchback"
+    },
+    {
+      "id": "oldroad_tower--worldscar_foothill",
+      "from": "oldroad_tower",
+      "to": "worldscar_foothill",
+      "kind": "road",
+      "walkable": true
+    },
+    {
+      "id": "worldscar_foothill--worldscar_stairs",
+      "from": "worldscar_foothill",
+      "to": "worldscar_stairs",
+      "kind": "trail",
+      "walkable": true
+    },
+    {
+      "id": "worldscar_stairs--worldscar_ring",
+      "from": "worldscar_stairs",
+      "to": "worldscar_ring",
+      "kind": "stairs",
+      "walkable": true,
+      "slope": "stairs"
+    },
+    {
+      "id": "worldscar_ring--worldscar_outlook",
+      "from": "worldscar_ring",
+      "to": "worldscar_outlook",
+      "kind": "ridge-trail",
+      "walkable": true
+    },
+    {
+      "id": "worldscar_ring--worldscar_return",
+      "from": "worldscar_ring",
+      "to": "worldscar_return",
+      "kind": "switchback",
+      "walkable": true,
+      "slope": "switchback"
+    },
+    {
+      "id": "worldscar_return--oldroad_e",
+      "from": "worldscar_return",
+      "to": "oldroad_e",
+      "kind": "switchback",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "worldscar_return--ravine_high",
+      "from": "worldscar_return",
+      "to": "ravine_high",
+      "kind": "ridge-trail",
+      "walkable": true
+    },
+    {
+      "id": "north_woods--worldscar_foothill",
+      "from": "north_woods",
+      "to": "worldscar_foothill",
+      "kind": "ridge-trail",
+      "walkable": true,
+      "slope": "ramp"
+    },
+    {
+      "id": "ford_w--falls_w",
+      "from": "ford_w",
+      "to": "falls_w",
+      "kind": "riverside",
+      "walkable": true,
+      "via": [
+        [
+          516,
+          547
+        ],
+        [
+          545,
+          564
+        ]
+      ]
+    },
+    {
+      "id": "market--cave_mouth",
+      "from": "market",
+      "to": "cave_mouth",
+      "kind": "canyon-south-trail",
+      "walkable": true,
+      "slope": "ramp",
+      "via": [
+        [
+          1095,
+          667
+        ]
+      ],
+      "purpose": "Route from trade camp around the south canyon shelf to the cave threshold"
+    }
+  ],
+  "waterways": [
+    {
+      "id": "frostbridge_river",
+      "name": "Frostbridge River",
+      "flow": "north alpine headwaters → south-east Mossmere Basin",
+      "widthRangePlan": [
+        9,
+        22
+      ],
+      "centerline": [
+        [
+          418,
+          70
+        ],
+        [
+          405,
+          135
+        ],
+        [
+          388,
+          215
+        ],
+        [
+          392,
+          282
+        ],
+        [
+          410,
+          352
+        ],
+        [
+          466,
+          432
+        ],
+        [
+          520,
+          510
+        ],
+        [
+          586,
+          570
+        ],
+        [
+          653,
+          633
+        ],
+        [
+          697,
+          657
+        ]
+      ],
+      "upstreamElevation": 6,
+      "downstreamElevation": 1,
+      "banks": "west and east; crossing edges only"
+    },
+    {
+      "id": "mossmere_lake",
+      "name": "Mossmere Lake",
+      "flow": "receives Frostbridge River; spills south-east through marsh run",
+      "closedPolygon": [
+        [
+          692,
+          618
+        ],
+        [
+          739,
+          602
+        ],
+        [
+          822,
+          626
+        ],
+        [
+          867,
+          674
+        ],
+        [
+          858,
+          748
+        ],
+        [
+          774,
+          779
+        ],
+        [
+          714,
+          756
+        ],
+        [
+          683,
+          711
+        ]
+      ],
+      "islandPolygon": [
+        [
+          738,
+          675
+        ],
+        [
+          774,
+          671
+        ],
+        [
+          786,
+          701
+        ],
+        [
+          765,
+          717
+        ],
+        [
+          740,
+          704
+        ]
+      ],
+      "outflow": [
+        [
+          846,
+          748
+        ],
+        [
+          904,
+          776
+        ],
+        [
+          945,
+          799
+        ]
+      ],
+      "upstreamElevation": 1,
+      "downstreamElevation": 1
+    },
+    {
+      "id": "smugglers_chasm",
+      "name": "Smugglers' Chasm",
+      "flow": "dry ravine; bridge over a vertical drop, NOT the main river",
+      "centerline": [
+        [
+          1000,
+          542
+        ],
+        [
+          1041,
+          569
+        ],
+        [
+          1060,
+          600
+        ],
+        [
+          1050,
+          650
+        ]
+      ],
+      "upstreamElevation": 3,
+      "downstreamElevation": 1
+    }
+  ],
+  "worldDesign": {
+    "worldBounds": [
+      1200,
+      800
+    ],
+    "worldUnitScale": 60,
+    "designWorldUnits": [
+      72000,
+      48000
+    ],
+    "chunkPlan": {
+      "worldUnits": 1500,
+      "columns": 48,
+      "rows": 32,
+      "totalPlannedCells": 1536,
+      "atOnceTarget": "3×3 minimum; streaming and texture budget decided in Phase 3",
+      "renderAssetsNotBuilt": true
+    },
+    "playerWalkingSpeedAssumption": 165,
+    "estimateCaveats": "Design-only calculations: sampled centerline distance scaled 60 runtime units per map point at current assumed walk speed 165 world units/s; actual terrain and quest time must be measured in later playable builds.",
+    "mainQuestRoute": [
+      "village",
+      "bridge_w",
+      "bridge_e",
+      "thaw_upper",
+      "greenwood_gate",
+      "greenwood_hearth",
+      "greenwood_east",
+      "oldroad_w",
+      "oldroad_e",
+      "ravine_w",
+      "ravine_bridge_w",
+      "ravine_bridge_e",
+      "cave_mouth"
+    ],
+    "alternateSnowForestRoutes": [
+      [
+        "village",
+        "bridge_w",
+        "bridge_e",
+        "thaw_upper",
+        "greenwood_gate",
+        "greenwood_hearth"
+      ],
+      [
+        "village",
+        "village_north",
+        "north_bridge_w",
+        "north_bridge_e",
+        "northwatch_stairs",
+        "northwatch_plaza",
+        "northwatch_loop",
+        "east_ridge",
+        "north_woods",
+        "greenwood_gate",
+        "greenwood_hearth"
+      ],
+      [
+        "village",
+        "village_south",
+        "thaw_camp",
+        "thaw_lower",
+        "ford_w",
+        "ford_e",
+        "greenwood_south",
+        "greenwood_hearth"
+      ]
+    ],
+    "crossingIds": [
+      "northwatch_span",
+      "frostbridge_main",
+      "stoneford_shallows",
+      "falls_bridge",
+      "mossmere_west_footbridge",
+      "mossmere_east_causeway",
+      "ravine_ropebridge"
+    ],
+    "blockedRules": [
+      "No walking across glacial water except authored crossings",
+      "No free vertical movement across cliffs; stairs or switchback only",
+      "No highland ledge shortcut through chasm",
+      "No invisible outdoor portals",
+      "Inaccessible landmarks must have visibly blocked approaches"
+    ],
+    "expectedPhase9AppearanceApproval": true,
+    "travelDensityPlan": {
+      "feel": "Substantial authored travel with visual variety; avoid artificially empty terrain",
+      "macroNodeCount": 48,
+      "regionCount": 12,
+      "potentialChunkCount": 1536,
+      "poiGoals": [
+        {
+          "category": "major anchors",
+          "count": 12,
+          "note": "one per macro region; topological anchors, not all feature-complete"
+        },
+        {
+          "category": "landmark nodes",
+          "count": 13,
+          "note": "not a count of production-ready locations"
+        },
+        {
+          "category": "water/canyon crossings",
+          "count": 7,
+          "note": "7 physically drawn crossings"
+        },
+        {
+          "category": "designed road loops",
+          "count": 3,
+          "note": "three independent Frostbridge-to-Greenwood options, plus local detours"
+        }
+      ],
+      "chunkGoals": "Each visited chunk should have clear terrain composition, navigable edges and vegetation grammar; major points-of-interest on purposeful routes, not an equal-count grid.",
+      "preliminaryRoadPacing": "Every primary road section should have visible navigation cues or terrain events; final travel clock and encounter rates adjusted with Phase 9 iPhone route walks.",
+      "perTenTraversedChunks": {
+        "deliberate_vignettes": [
+          4,
+          7
+        ],
+        "harvestable_opportunities": [
+          2,
+          5
+        ],
+        "hostile_encounters_wilderness": [
+          1,
+          3
+        ],
+        "optional_secrets": [
+          0,
+          1
+        ],
+        "note": "Guidelines for experienced wilderness route chunks, NOT 10 guaranteed unique assets or fully authored encounters today. Town safe zones should have 0 hostile encounters and more social events."
+      },
+      "encountersByRegion": {
+        "hollowreach": [
+          0,
+          0
+        ],
+        "northwatch": [
+          0,
+          1
+        ],
+        "coldpine": [
+          2,
+          3
+        ],
+        "frost_river": [
+          0,
+          2
+        ],
+        "thawline": [
+          1,
+          2
+        ],
+        "greenwood": [
+          2,
+          3
+        ],
+        "greenwood_falls": [
+          1,
+          2
+        ],
+        "mossmere": [
+          1,
+          2
+        ],
+        "heatherwood": [
+          1,
+          2
+        ],
+        "old_crown": [
+          2,
+          3
+        ],
+        "smugglers": [
+          3,
+          4
+        ],
+        "worldscar": [
+          2,
+          3
+        ]
+      },
+      "pacingFormula": "Outdoor chunks crossed at 165 world units/s: (1500 / 165) ≈ 9.1 seconds per chunk in a straight unobstructed line. Curved roads and interactables increase actual time; adapt landmark/event spacing from real iPhone playtesting."
+    },
+    "travelEstimates": {
+      "assumption": "No combat, resource stops, UI interactions or run/dodge speed; 165 world units/sec. These are schematic node-to-node centerlines, not actual playtest times.",
+      "villageToGreenwood": [
+        {
+          "id": "main_bridge",
+          "path": [
+            "village",
+            "bridge_w",
+            "bridge_e",
+            "thaw_upper",
+            "greenwood_gate",
+            "greenwood_hearth"
+          ],
+          "lengthInPlanUnits": 471,
+          "projectedMinutes": 2.85
+        },
+        {
+          "id": "northern_snow_span",
+          "path": [
+            "village",
+            "village_north",
+            "north_bridge_w",
+            "north_bridge_e",
+            "northwatch_stairs",
+            "northwatch_plaza",
+            "northwatch_loop",
+            "east_ridge",
+            "north_woods",
+            "greenwood_gate",
+            "greenwood_hearth"
+          ],
+          "lengthInPlanUnits": 733,
+          "projectedMinutes": 4.44
+        },
+        {
+          "id": "southern_stoneford",
+          "path": [
+            "village",
+            "village_south",
+            "thaw_camp",
+            "thaw_lower",
+            "ford_w",
+            "ford_e",
+            "greenwood_south",
+            "greenwood_hearth"
+          ],
+          "lengthInPlanUnits": 700,
+          "projectedMinutes": 4.24
+        }
+      ],
+      "villageToCave": {
+        "path": [
+          "village",
+          "bridge_w",
+          "bridge_e",
+          "thaw_upper",
+          "greenwood_gate",
+          "greenwood_hearth",
+          "greenwood_east",
+          "oldroad_w",
+          "oldroad_e",
+          "ravine_w",
+          "ravine_bridge_w",
+          "ravine_bridge_e",
+          "cave_mouth"
+        ],
+        "lengthInPlanUnits": 1040,
+        "projectedMinutes": 6.3
+      },
+      "straightMapWidthMinutes": 7.27,
+      "straightMapHeightMinutes": 4.85,
+      "longFormTravelTarget": "Broader multi-region exploration should be substantial; exact travel clocks and world-scale satisfaction require Phase 9 device calibration."
+    }
+  },
+  "nextPhase": "Phase 3 global-coordinate streaming proof, creator continuation required",
+  "creatorAppearanceReviewGate": {
+    "afterPhase": 9,
+    "beforePhase": 10,
+    "explicitApprovalRequired": true
+  },
+  "environment": {
+    "elevationBands": [
+      {
+        "level": 6,
+        "descriptor": "upper snow ridge; exposed passes",
+        "referenceMeters": "fictional high alpine",
+        "regions": [
+          "coldpine",
+          "northwatch"
+        ],
+        "traverse": "signed passes; no sheer-cliff shortcut"
+      },
+      {
+        "level": 5,
+        "descriptor": "high stone and glacier foothills",
+        "regions": [
+          "northwatch",
+          "worldscar",
+          "coldpine"
+        ],
+        "traverse": "switchbacks/stairs"
+      },
+      {
+        "level": 4,
+        "descriptor": "snow settlement and upland ridges",
+        "regions": [
+          "hollowreach",
+          "frost_river",
+          "worldscar",
+          "old_crown"
+        ],
+        "traverse": "road cuts and shallow ramps"
+      },
+      {
+        "level": 3,
+        "descriptor": "snowmelt and cool foothills",
+        "regions": [
+          "thawline",
+          "old_crown",
+          "smugglers"
+        ],
+        "traverse": "stairways, roads and carved canyons"
+      },
+      {
+        "level": 2,
+        "descriptor": "temperate forest and meadows",
+        "regions": [
+          "greenwood",
+          "greenwood_falls",
+          "heatherwood"
+        ],
+        "traverse": "footpaths and town roads"
+      },
+      {
+        "level": 1,
+        "descriptor": "basin waterline and wetlands",
+        "regions": [
+          "mossmere"
+        ],
+        "traverse": "shore paths, lake footbridges"
+      }
+    ],
+    "contours": [
+      {
+        "name": "Coldpine peak",
+        "level": 6,
+        "line": [
+          [
+            130,
+            90
+          ],
+          [
+            230,
+            77
+          ],
+          [
+            330,
+            99
+          ],
+          [
+            402,
+            144
+          ]
+        ],
+        "shape": "closed land ridge, not a navigable path"
+      },
+      {
+        "name": "Northwatch alpine contour",
+        "level": 5,
+        "line": [
+          [
+            435,
+            119
+          ],
+          [
+            520,
+            96
+          ],
+          [
+            621,
+            155
+          ],
+          [
+            650,
+            209
+          ]
+        ],
+        "shape": "upper face and snow cut"
+      },
+      {
+        "name": "Worldscar stone crown",
+        "level": 5,
+        "line": [
+          [
+            882,
+            121
+          ],
+          [
+            988,
+            109
+          ],
+          [
+            1097,
+            142
+          ],
+          [
+            1127,
+            242
+          ],
+          [
+            1100,
+            323
+          ]
+        ],
+        "shape": "rocky snow remnant at altitude"
+      },
+      {
+        "name": "Thawline snow/moss transition",
+        "level": 3,
+        "line": [
+          [
+            94,
+            476
+          ],
+          [
+            289,
+            456
+          ],
+          [
+            425,
+            431
+          ],
+          [
+            530,
+            398
+          ],
+          [
+            656,
+            342
+          ],
+          [
+            775,
+            271
+          ]
+        ],
+        "shape": "broad blending belt; not a hard scene border"
+      },
+      {
+        "name": "Wet valley / basin floor",
+        "level": 1,
+        "line": [
+          [
+            560,
+            642
+          ],
+          [
+            625,
+            677
+          ],
+          [
+            674,
+            746
+          ],
+          [
+            779,
+            787
+          ],
+          [
+            886,
+            773
+          ]
+        ],
+        "shape": "lowland floodplain"
+      }
+    ],
+    "climateGradient": {
+      "snowInterior": "Northern altitude bands 4–6; snow retreats on south-facing slopes",
+      "thawline": "Blended mosaics through level 3; frozen reeds→moss→grass over hundreds of world meters",
+      "temperate": "Levels 1–2 are green except isolated winter microclimates",
+      "worldscarException": "Upland rock/snow appears again at altitude despite easterly position"
+    },
+    "groundMaterials": [
+      "snow-packed road",
+      "wind crust",
+      "ice rim",
+      "melt puddles",
+      "moss stone",
+      "forest duff",
+      "grass/path soil",
+      "wetland mud",
+      "bridge timber",
+      "stone stair",
+      "ruin flagstones"
+    ],
+    "waterRules": {
+      "swimmingImplemented": false,
+      "crossingsOnly": true,
+      "riverSource": "Coldpine icefields around plan (418,70)",
+      "riverMouth": "Mossmere Basin around plan (700,660)",
+      "mossmereOutflow": "South-east marsh channel leaves the planned map border"
+    },
+    "resources": [
+      {
+        "id": "snowroot_ridge",
+        "near": "colp_lodge",
+        "type": "mountain herb",
+        "purpose": "weather and altitude loot"
+      },
+      {
+        "id": "blueleaf_west_legacy",
+        "near": "greenwood_south",
+        "type": "medicinal herb",
+        "purpose": "migrate previous Blueleaf pickup state"
+      },
+      {
+        "id": "blueleaf_east_legacy",
+        "near": "hermit",
+        "type": "medicinal herb",
+        "purpose": "migrate previous Blueleaf pickup state"
+      },
+      {
+        "id": "mossmere_reeds",
+        "near": "mossmere_e",
+        "type": "water plant",
+        "purpose": "optional craft/lore"
+      },
+      {
+        "id": "worldscar_crystal",
+        "near": "worldscar_ring",
+        "type": "arcane resource",
+        "purpose": "one-time meaningful attunement, not free repeat loot"
+      }
+    ]
+  }
+}

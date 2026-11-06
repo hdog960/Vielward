@@ -64,6 +64,9 @@ This is a **physical geography proposal**, not a claim that these areas already 
 **Exit gate:** Every PDF complaint is assigned to a concrete future phase; approved Wanderer/visual style and saved progress are explicitly protected.
 
 #### Phase 2 — Complete terrain blueprint and world topology
+**Status: COMPLETE (November 5, 2026) — 12 macro-regions, 48 named global anchors, 65 links, 7 physical crossings, three distinct village→forest approaches, topological river/island/canyon verification, source-generated master map. Phase 3 NOT STARTED.**
+**Deliverables:** [Creator-readable master map and plan](./docs/overworld/MASTER_MAP.md) · [Vector geography diagram](./docs/overworld/MASTER_MAP.svg) · [Authoritative JSON source](./docs/overworld/world_blueprint.json) · [Geometry and density audit](./docs/overworld/PHASE2_TOPOLOGY_AUDIT.md) · [Phase 3 handoff](./docs/overworld/PHASE2_HANDOFF.md) · [Permanent automated topology test](./tests/overworld_phase2_topology.test.js).
+**Important:** This phase creates the **full outdoor design blueprint**, NOT playable seamless outdoors or finished pixel-art terrain. Live gameplay remains v1.2.6. The creator's complete **appearance approval** is still held after Phase 9 before Phase 10, not after the map schematic.
 **Work:** Draw the **whole outdoor map before expanding mechanics**: 12 proposed geographic regions, true rivers and banks, mountain contours, snowline, passable ridges, roads, bridges, island routes, villages, cave mouths, ruins, resources and memorable silhouettes. Label every intended road endpoint, elevation change and optional loop. Calculate terrain/encounter density and identify a candidate contiguous mechanics-test route.  
 **Exit gate:** Creator can trace a connected walking journey on the master map from Hollowreach to Greenwood and beyond without unexplained transitions or dead-end roads. No unreachable landmark presented as accessible.
 

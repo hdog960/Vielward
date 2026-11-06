@@ -52,3 +52,10 @@ Roadmap approval does not override the established **one complete phase per "Con
 **Completed only Phase 1** of the approved 22-phase plan. See `docs/overworld/ISSUE_REGISTER.md` (34 records, PDF p.1–12), `docs/overworld/WORLD_DESIGN_LOCK.md`, `docs/overworld/ASSET_AND_RUNTIME_INVENTORY.md`, `docs/overworld/COORDINATES_AND_MIGRATION.md`, machine-readable `docs/overworld/issue_register.json` and protected `docs/overworld/protected_assets.json`. Test with `npm run audit:world`. The detailed Phase 1 handoff is `docs/overworld/PHASE1_HANDOFF.md`.
 
 Use `OVERWORLD_REBUILD_ROADMAP.md` as the **current next-development authority**; the old prototype and micro-sprint roadmaps are preserved as history. Phase 1 authorizes documentation-only auditing, not changing the current playable code. **Do not start Phase 2 until the creator says “Continue development”.** Before Phase 10, the creator must approve full overworld appearance after the Phase 9 review build. Continue the original test→notes→actual GitHub patch workflow for gameplay feedback.
+
+
+## Overworld rebuild — Phase 2 complete (November 5, 2026)
+
+Phase 2 produced a full 12-region connected outdoor **DESIGN BLUEPRINT**, not a playable overhaul. Source of truth: `docs/overworld/world_blueprint.json` (48 named anchors, 65 unique physical links, 7 crossings). Creator map: `docs/overworld/MASTER_MAP.svg`, generated deterministically by `scripts/render_overworld_blueprint.js`. Readable geography: `docs/overworld/MASTER_MAP.md`; QA / implementation handoff: `docs/overworld/PHASE2_TOPOLOGY_AUDIT.md` and `docs/overworld/PHASE2_HANDOFF.md`. Run `npm run audit:topology` and `npm test`.
+
+**Phase 3 is NOT STARTED**. Do not begin it until the creator requests another continuation. Preserve v1.2.6 live gameplay until new streaming is stable. Respect the entire world's Phase 9 appearance approval gate: no Phase 10 work without explicit creator approval of the **actual built playable overworld**, not this planning SVG.
