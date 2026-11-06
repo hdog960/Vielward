@@ -1,3 +1,18 @@
+# VEILWARD v1.3.3 — Phase 9 Review Build · FULL OVERWORLD APPEARANCE APPROVAL REQUIRED
+
+**Phase 9 implementation:** Source-built 12-region visual atlas and a whole-world map with all 65 physical routes and seven crossings, rendered from the **actual playable world** (not conceptual illustrations). Every region has a true 160×160 terrain-art screenshot and a tap-to-visit source anchor. Graph/land-water/crossing/road collision checks, seasonal foliage, real outdoor geography and original gameplay preserved.
+
+**iPhone Safari / Home Screen:** [Play Veilward](https://hdog960.github.io/Vielward/). Journey Menu → **Review Full Overworld (Phase 9)**, then **Review World Map & All 12 In-Game Regions**. Tap one of the twelve real-world thumbnails to jump and walk, use the map icon ◈ to reopen the atlas, and Visit Next Crossing to review all seven river/chasm traversals.
+
+- [Phase 9 truthful playable-world handoff](./docs/overworld/PHASE9_HANDOFF.md)
+- [Region-by-region in-game atlas index](./docs/overworld/PHASE9_REGION_ATLAS.md)
+- [Physical/world art approval checklist](./docs/overworld/PHASE9_QA.md)
+- [Full graph, shoreline/material, road lane and genuine-rendered-atlas regression tests](./tests/overworld_phase9_review.test.js)
+
+The gold path marks the future Hollowreach → Thawline → Greenwood → Smugglers testing corridor, not a substitute for the remaining world. The original adventure, Warden Hal and approved Wanderer are unchanged. **This is an appearance-review build, not an entirely complete RPG. Development MUST STOP after Phase 9 until the creator explicitly approves the entire exterior look and map. No Phase 10 yet.**
+
+---
+
 # Veilward v1.3.2 — Phase 8: Real Roads, Bridges, Stairs & Island Network
 
 **Updated playable iPhone world:** The optional continuous overworld now draws all 65 authored roads using their actual movement/collision positions; snow roads, forest tracks, switchbacks and stone stairs follow the same source geography. Five visually differentiated and physically guarded bridges, the Stoneford dry ford and Mossmere's east stone causeway are built. The island has both east/west physical entrances instead of a travel portal. Road palette follows Phase 7's gradual regional climate. Streamed terrain's water/chasm material uses the actual physical hazard mask.

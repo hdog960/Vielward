@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v1.3.2: connected 65-road/7-crossing physical road-and-bridge network. */
+/* VEILWARD — Hollowreach v1.3.3: final whole-overworld navigability and true runtime-art review atlas. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -10,12 +10,12 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
-const APP_VERSION="1.3.2";
+const APP_VERSION="1.3.3";
 const SAVE="veilward-hollowreach-v01";
 const Q=window.VeilwardQuest;
 const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:4,sceneVersion:6,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,herbHarvested:[],defeatedEnemies:[],suppliesRecovered:false,suppliesDelivered:false,caveBanditCleared:false,scarAttuned:false,questVersion:1,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
 let pendingTravel=null,travelCooldown=0,arrivalPulse=0,lastCombatNotice=-100;
-const worldPreview={enabled:false,loading:false,stream:null,lastDt:.016,debug:location.search.includes("debugWorld"),showcaseIndex:-1,crossingIndex:-1};
+const worldPreview={enabled:false,loading:false,stream:null,lastDt:.016,debug:location.search.includes("debugWorld"),showcaseIndex:-1,crossingIndex:-1,review:null};
 const showcaseStops=[
  ["village","Hollowreach · Frostbridge Village"],
  ["northwatch_plaza","Northwatch · Memorial Heights"],
@@ -55,6 +55,64 @@ function cycleCrossingShowcase(){
  worldPreview.stream.jumpToNode(id);clearJoystick();closeAll();
  notify("Physical crossing "+(worldPreview.crossingIndex+1)+"/7: "+name+" · Walk across to verify")
 }
+const reviewState={epoch:0};
+function closeReviewAtlas(){
+ reviewState.epoch++;
+ closeAll();
+}
+function jumpReviewRegion(id){
+ const review=worldPreview.review;
+ if(!worldPreview.enabled||!review)return;
+ const target=review.safeAnchor(id);
+ worldPreview.stream.jumpToNode(target.node);
+ clearJoystick();closeReviewAtlas();
+ notify("Now reviewing "+review.caption(id).name+" · Explore the real outdoor terrain");
+}
+function openReviewAtlas(){
+ const s=worldPreview.stream,review=worldPreview.review;
+ if(!worldPreview.enabled||!s||!review){
+  notify("Enter the continuous overworld first, then open its review atlas");return
+ }
+ clearJoystick();closeAll();modal=true;
+ const panel=$("worldReview");panel.style.display="block";
+ const map=$("reviewMap");
+ review.paintOverview(map);
+ $("reviewSummary").textContent="12 source-authored regions · 65 connected trails · 7 physical crossings · Runtime terrain screenshots";
+ const grid=$("reviewRegionGrid");grid.innerHTML="";
+ const epoch=++reviewState.epoch;
+ // Create the 12 cards first; render one authentic world-art thumbnail per
+ // animation frame to avoid allocating full-res world tiles on iPhone.
+ const canvases=[];
+ review.regions.forEach((r,i)=>{
+  const card=document.createElement("button");
+  card.className="reviewRegion";
+  card.type="button";
+  card.setAttribute("aria-label","Explore "+r.name);
+  const canvas=document.createElement("canvas");
+  canvas.className="reviewThumb";
+  canvas.width=160;canvas.height=160;
+  const title=document.createElement("b");title.textContent=(i+1)+". "+r.name;
+  const note=document.createElement("small");note.textContent=r.notes;
+  const go=document.createElement("span");go.textContent="VISIT REGION";
+  card.appendChild(canvas);card.appendChild(title);card.appendChild(note);card.appendChild(go);
+  card.addEventListener("click",()=>jumpReviewRegion(r.id));
+  grid.appendChild(card);canvases.push({canvas,id:r.id})
+ });
+ const renderNext=i=>{
+  if(epoch!==reviewState.epoch||!worldPreview.enabled||panel.style.display==="none")return;
+  if(i>=canvases.length)return;
+  const item=canvases[i];
+  try{
+   review.paintRegion(item.canvas,item.id,{pixels:160,span:1900});
+  }catch(error){
+   console.warn("Overworld review region render failed",item.id,error);
+   item.canvas.getContext("2d").fillStyle="#6d7e79";
+   item.canvas.getContext("2d").fillRect(0,0,160,160);
+  }
+  if(i+1<canvases.length)requestAnimationFrame(()=>renderNext(i+1))
+ };
+ requestAnimationFrame(()=>renderNext(0));
+}
 function showWorldPreviewStatus(show){
  const label=$("streamStatus");
  if(label)label.style.display=show?"block":"none";
@@ -66,8 +124,9 @@ function showWorldPreviewStatus(show){
  const showcase=$("materialShowcaseBtn");
  if(showcase)showcase.style.display=show?"block":"none";
  const crossings=$("crossingShowcaseBtn");if(crossings)crossings.style.display=show?"block":"none";
+ const reviewButton=$("reviewAtlasBtn");if(reviewButton)reviewButton.style.display=show?"block":"none";
  const option=$("worldPreviewBtn");
- if(option)option.textContent=show?"Return to Hollowreach Adventure":"Explore Roads & Crossings (Phase 8)";
+ if(option)option.textContent=show?"Return to Hollowreach Adventure":"Review Full Overworld (Phase 9)";
 }
 async function toggleWorldPreview(){
  if(worldPreview.enabled){
@@ -77,7 +136,7 @@ async function toggleWorldPreview(){
   return;
  }
  if(worldPreview.loading)return;
- if(!window.VeilwardWorldStream||!window.VeilwardGeometry||!window.VeilwardTerrainArt||!window.VeilwardFootprint||!window.VeilwardClimate||!window.VeilwardRoutes||typeof fetch!=="function"){
+ if(!window.VeilwardWorldStream||!window.VeilwardGeometry||!window.VeilwardTerrainArt||!window.VeilwardFootprint||!window.VeilwardClimate||!window.VeilwardRoutes||!window.VeilwardReview||typeof fetch!=="function"){
   notify("Outdoor preview module unavailable; your adventure is safe");return
  }
  worldPreview.loading=true;
@@ -92,13 +151,14 @@ async function toggleWorldPreview(){
   if(!response.ok||!geometryResponse.ok||!footprintResponse.ok)throw Error("Full outdoor terrain source unavailable");
   const [blueprint,geometry,footprint]=await Promise.all([response.json(),geometryResponse.json(),footprintResponse.json()]);
   const stream=window.VeilwardWorldStream.create(blueprint,{geometry,footprint});
-  if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt)throw Error("Phase 6 full world could not initialize");
+  if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!window.VeilwardReview)throw Error("Phase 6 full world could not initialize");
   await new Promise(resolve=>requestAnimationFrame(resolve));
   stream.warm(stream.player.x,stream.player.y,viewWidth()+320,viewHeight()+320);
-  worldPreview.stream=stream;worldPreview.enabled=true;worldPreview.lastDt=.016;worldPreview.showcaseIndex=-1;worldPreview.crossingIndex=-1;
+  worldPreview.stream=stream;worldPreview.review=window.VeilwardReview.create(blueprint,stream);
+   worldPreview.enabled=true;worldPreview.lastDt=.016;worldPreview.showcaseIndex=-1;worldPreview.crossingIndex=-1;
   clearJoystick();closeAll();showWorldPreviewStatus(true);
   $("location").textContent="STREAMING PREVIEW · "+stream.regionName();
-  notify("Road network ready · 65 connected paths and seven distinct physical crossings");
+  notify("Full overworld review ready · Journey Menu → Review World Map & All 12 Regions");
  }catch(error){
   console.error("Veilward outdoor preview failed safely",error);
   notify("World preview could not load; the existing adventure is unaffected");
@@ -116,12 +176,12 @@ function tickWorldPreview(dt){
  s.move(x,y,dt);
  worldTime+=dt;
  const label=$("streamStatus"),state=s.stats();
- if(label)label.textContent="PHASE 8 · ROAD & CROSSING NETWORK • "+s.regionName()+
+ if(label)label.textContent="PHASE 9 · OVERWORLD APPEARANCE REVIEW • "+s.regionName()+
   " • Altitude "+state.elevation?.toFixed(1)+" • Snow "+Math.round((state.climate?.snow??0)*100)+"% • "+state.material+
   " • "+state.cachedTiles+" streamed chunks";
  $("location").textContent="OVERWORLD PREVIEW · "+s.regionName();
  const item=s.nearbyInteraction();
- setHint(item?"✋ Inspect "+item.name:"☰ Journey Menu → Visit Next Region or Crossing");
+ setHint(item?"✋ Inspect "+item.name:"☰ Journey Menu → Review World Map or Visit Region");
 }
 function renderWorldPreview(){
  const s=worldPreview.stream;if(!s)return;
@@ -621,7 +681,7 @@ function shop(title){
   ])
 }
 function showDialog(title,body,choices){clearJoystick();modal=true;$("dialogTitle").textContent=title;$("dialogText").textContent=body;const root=$("choices");root.innerHTML="";for(let ch of choices){let b=document.createElement("button");b.className="choice";b.textContent=ch.text;b.onclick=ch.action;root.appendChild(b)}$("dialog").style.display="block"}
-function closeAll(){modal=false;for(let id of ["dialog","pause","inventory"])$(id).style.display="none"}
+function closeAll(){modal=false;reviewState.epoch++;for(let id of ["dialog","pause","inventory","worldReview"])$(id).style.display="none"}
 function openInv(tab="pack"){if(!active)return;clearJoystick();closeAll();modal=true;invTab=tab;$("inventory").style.display="block";renderInventory()}
 function renderInventory(){document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("selected",t.dataset.tab===invTab));let s="",b=$("inventoryBody");
 if(invTab==="pack"){s='<p style="font-size:12px;color:#c1ba9d">Gold: '+p.gold+' ✦ &nbsp; • &nbsp; Equipped: '+p.weapon+'</p>';
@@ -688,8 +748,8 @@ function bind(){
  ["interactBtn",interact],
  ["potionBtn",()=>worldPreview.enabled?notify("Your potions are safe in the main adventure"):potion()],
  ["bagBtn",()=>worldPreview.enabled?notify("Inventory is safe in the main adventure"):openInv()],
- ["mapBtn",()=>worldPreview.enabled?notify("The final world map arrives with the terrain overhaul"):openInv("map")],
- ["worldPreviewBtn",toggleWorldPreview],["materialShowcaseBtn",cycleTerrainShowcase],["crossingShowcaseBtn",cycleCrossingShowcase],
+ ["mapBtn",()=>worldPreview.enabled?openReviewAtlas():openInv("map")],
+ ["worldPreviewBtn",toggleWorldPreview],["materialShowcaseBtn",cycleTerrainShowcase],["crossingShowcaseBtn",cycleCrossingShowcase],["reviewAtlasBtn",openReviewAtlas],["closeReviewBtn",closeReviewAtlas],
  ["geometryDebugBtn",()=>{
   if(!worldPreview.enabled){notify("Open the terrain preview to inspect its geometry");return}
   worldPreview.debug=!worldPreview.debug;showWorldPreviewStatus(true);
@@ -717,7 +777,7 @@ addEventListener("keyup",e=>{keys[e.code]=false});addEventListener("blur",()=>{k
   if(document.visibilityState==="hidden"){keys={};clearJoystick();save(true)}
  });
 document.addEventListener("touchmove",e=>{
-  if(!e.target.closest("#inventory,#dialog,#pause,#start"))e.preventDefault();
+  if(!e.target.closest("#inventory,#dialog,#pause,#start,#worldReview"))e.preventDefault();
  },{passive:false});
 }
 function tick(dt){

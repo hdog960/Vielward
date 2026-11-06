@@ -110,14 +110,14 @@ const foothills=stream.jumpToNode("worldscar_ring");
 yes(foothills.node==="worldscar_ring"&&stream.player.groundHeight>=4,"stone terrain showcase updates foot elevation");
 stream.renderForeground(context(),stream.player);
 yes(stream.player.x>0,"foreground occlusion does not relocate player or sprites");
-const refs=["world_routes.js?v=1","world_climate.js?v=1","world_footprint.js?v=2","terrain_art.js?v=4","world_stream.js?v=6","game.js?v=24","visual.css?v=14","manifest.webmanifest?v=132"];
+const refs=["world_review.js?v=1","world_routes.js?v=1","world_climate.js?v=1","world_footprint.js?v=2","terrain_art.js?v=4","world_stream.js?v=6","game.js?v=25","visual.css?v=15","manifest.webmanifest?v=133"];
 for(const ref of refs)yes(html.includes(ref)&&sw.includes(ref),"PWA/HTML contain version-identical art module "+ref);
 yes(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=2")&&html.indexOf("world_footprint.js?v=2")<html.indexOf("terrain_art.js?v=4")&&
     html.indexOf("terrain_art.js?v=4")<html.indexOf("world_stream.js?v=6")&&
-    html.indexOf("world_stream.js?v=6")<html.indexOf("game.js?v=24"),"HTML resolves geometry→art→stream→game");
+    html.indexOf("world_stream.js?v=6")<html.indexOf("game.js?v=25"),"HTML resolves geometry→art→stream→game");
 yes(html.includes('id="materialShowcaseBtn"')&&game.includes("cycleTerrainShowcase"),"real game includes five material biome inspection trips");
-yes(game.includes('const APP_VERSION="1.3.2";'),"actual game version set");
-yes(sw.includes('veilward-hollowreach-v132-road-crossing-network'),"Home Screen cache rotated");
+yes(game.includes('const APP_VERSION="1.3.3";'),"actual game version set");
+yes(sw.includes('veilward-hollowreach-v133-world-review-gate'),"Home Screen cache rotated");
 yes(game.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure save key never modified");
 yes(visual.includes('load("hero","hero_approved_8way_v12.webp"'),"approved Wanderer atlas preserved");
 yes(visual.includes('load("warden","warden_hal_v13.png"'),"approved Warden separate art preserved");
