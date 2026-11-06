@@ -111,6 +111,9 @@ This is a **physical geography proposal**, not a claim that these areas already 
 **Exit gate:** The Hollowreach-to-Greenwood trek visibly and logically changes climate over distance; no abrupt JPG/world swap, severe palette edge, cut-off flower sheet or mismatched texture scale.
 
 #### Phase 8 — Entire road, bridge, stairway and island network
+**Status: IMPLEMENTED v1.3.2 — all 65 graph edges draw from physical route coordinates, five varied railed bridges, a walkable dry ford, the Mossmere island west bridge/east causeway, real landing aprons, authored stair/switchback cues and mapped junction/terminus details. Phase 9 NOT STARTED.**
+**Source:** [Runtime route/crossing renderer and rail guard](./world_routes.js) · [Phase 8 technical and mobile handoff](./docs/overworld/PHASE8_HANDOFF.md) · [Source-art route contract](./docs/overworld/ROAD_NETWORK_ART_GUIDE.md) · [QA checklist](./docs/overworld/PHASE8_QA.md) · [Route topology/art/physics regression](./tests/overworld_phase8_routes.test.js).
+**Playable:** v1.3.2 Journey Menu → Explore Roads & Crossings (Phase 8) → Visit Next Crossing (7-stop physical survey). The original Hollowreach quest and saved character remain intact. Source-level connectivity does NOT replace the creator's real-iPhone assessment or mandatory post-Phase-9 appearance approval.
 **Work:** Build all major roads, footpaths, side branches, crossings, switchbacks and stairs across the complete outdoor map. Every road ends in a landmark, junction, believable barrier, scenic overlook or intentional discovery. Give the river island a visible bridge, ford or deliberate transport interaction. Make stairs and bridge decks traversable where the art promises they are.  
 **Exit gate:** Every planned endpoint has at least one proven reachable route; crossing to islands requires a physical, understandable action; no invisible detour to walk left along an apparently open path.
 

@@ -1,3 +1,18 @@
+# Veilward v1.3.2 — Phase 8: Real Roads, Bridges, Stairs & Island Network
+
+**Updated playable iPhone world:** The optional continuous overworld now draws all 65 authored roads using their actual movement/collision positions; snow roads, forest tracks, switchbacks and stone stairs follow the same source geography. Five visually differentiated and physically guarded bridges, the Stoneford dry ford and Mossmere's east stone causeway are built. The island has both east/west physical entrances instead of a travel portal. Road palette follows Phase 7's gradual regional climate. Streamed terrain's water/chasm material uses the actual physical hazard mask.
+
+**Playtest:** [Play Veilward](https://hdog960.github.io/Vielward/) → Journey Menu → **Explore Roads & Crossings (Phase 8)**. Inside the preview use **Visit Next Crossing** to inspect all seven structures, and **Visit Next Region** for 12-region roads and stairs. The original saved Hollowreach adventure remains independent.
+
+- [Phase 8 handoff, iPhone testing and remaining limitations](./docs/overworld/PHASE8_HANDOFF.md)
+- [Physical road art source and five guarded bridge structures](./world_routes.js)
+- [Road network and crossing QA](./docs/overworld/PHASE8_QA.md)
+- [Full crossing art/physics and iPhone version regression suite](./tests/overworld_phase8_routes.test.js)
+
+**Next:** Phase 9 whole-outdoor navigability survey and creator appearance review build. **STOP after Phase 9 for creator's explicit approval of the full exterior landscape before Phase 10.** Full in-game visual fidelity is not certified by source-only tests.
+
+---
+
 # Veilward v1.3.1 — Phase 7: Climate-Blended Continuous World
 
 **Real playable update:** A global climate sampler now connects snowy Hollowreach and Northwatch through exposed pine slopes, patchy snowmelt, damp moss and temperate Greenwood. The Mossmere shore gets moisture gradients, and high eastern Worldscar retains a frost-capable rock canopy. Existing authored pixel material families, detailed tile-level patches, and deterministic regional trees/flowers/rocks all read this common climate data; roads, terrain collision, and the original quest remain intact.

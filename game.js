@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v1.3.1: gradual climate and vegetation across the physical twelve-region landscape. */
+/* VEILWARD — Hollowreach v1.3.2: connected 65-road/7-crossing physical road-and-bridge network. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -10,12 +10,12 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
-const APP_VERSION="1.3.1";
+const APP_VERSION="1.3.2";
 const SAVE="veilward-hollowreach-v01";
 const Q=window.VeilwardQuest;
 const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:4,sceneVersion:6,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,herbHarvested:[],defeatedEnemies:[],suppliesRecovered:false,suppliesDelivered:false,caveBanditCleared:false,scarAttuned:false,questVersion:1,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
 let pendingTravel=null,travelCooldown=0,arrivalPulse=0,lastCombatNotice=-100;
-const worldPreview={enabled:false,loading:false,stream:null,lastDt:.016,debug:location.search.includes("debugWorld"),showcaseIndex:-1};
+const worldPreview={enabled:false,loading:false,stream:null,lastDt:.016,debug:location.search.includes("debugWorld"),showcaseIndex:-1,crossingIndex:-1};
 const showcaseStops=[
  ["village","Hollowreach · Frostbridge Village"],
  ["northwatch_plaza","Northwatch · Memorial Heights"],
@@ -39,6 +39,22 @@ function cycleTerrainShowcase(){
  notify("Overworld region survey: "+name+" · Continue walking to explore")
 }
 
+const crossingStops=[
+ ["north_bridge_w","Northwatch · Highland Stone-Timber Bridge"],
+ ["bridge_w","Frostbridge · Village Timber Bridge"],
+ ["ford_w","Stoneford · Raised Stepping-Stone Ford"],
+ ["falls_w","Greenwood Falls · Mossy Stone Footbridge"],
+ ["mossmere_w","Mossmere · West Island Footbridge"],
+ ["island","Mossmere · East Island Stone Causeway"],
+ ["ravine_bridge_w","Smugglers' Ravine · Rope Crossing"]
+];
+function cycleCrossingShowcase(){
+ if(!worldPreview.enabled||!worldPreview.stream?.routeArt){notify("Enter the outdoor road network preview first");return}
+ worldPreview.crossingIndex=(worldPreview.crossingIndex+1)%crossingStops.length;
+ const [id,name]=crossingStops[worldPreview.crossingIndex];
+ worldPreview.stream.jumpToNode(id);clearJoystick();closeAll();
+ notify("Physical crossing "+(worldPreview.crossingIndex+1)+"/7: "+name+" · Walk across to verify")
+}
 function showWorldPreviewStatus(show){
  const label=$("streamStatus");
  if(label)label.style.display=show?"block":"none";
@@ -49,8 +65,9 @@ function showWorldPreviewStatus(show){
  if(overlayBtn){overlayBtn.style.display=show?"block":"none";overlayBtn.textContent="Terrain Geometry Overlay: "+(worldPreview.debug?"ON":"OFF")}
  const showcase=$("materialShowcaseBtn");
  if(showcase)showcase.style.display=show?"block":"none";
+ const crossings=$("crossingShowcaseBtn");if(crossings)crossings.style.display=show?"block":"none";
  const option=$("worldPreviewBtn");
- if(option)option.textContent=show?"Return to Hollowreach Adventure":"Explore Climate-Blended Overworld (Phase 7)";
+ if(option)option.textContent=show?"Return to Hollowreach Adventure":"Explore Roads & Crossings (Phase 8)";
 }
 async function toggleWorldPreview(){
  if(worldPreview.enabled){
@@ -60,7 +77,7 @@ async function toggleWorldPreview(){
   return;
  }
  if(worldPreview.loading)return;
- if(!window.VeilwardWorldStream||!window.VeilwardGeometry||!window.VeilwardTerrainArt||!window.VeilwardFootprint||!window.VeilwardClimate||typeof fetch!=="function"){
+ if(!window.VeilwardWorldStream||!window.VeilwardGeometry||!window.VeilwardTerrainArt||!window.VeilwardFootprint||!window.VeilwardClimate||!window.VeilwardRoutes||typeof fetch!=="function"){
   notify("Outdoor preview module unavailable; your adventure is safe");return
  }
  worldPreview.loading=true;
@@ -75,13 +92,13 @@ async function toggleWorldPreview(){
   if(!response.ok||!geometryResponse.ok||!footprintResponse.ok)throw Error("Full outdoor terrain source unavailable");
   const [blueprint,geometry,footprint]=await Promise.all([response.json(),geometryResponse.json(),footprintResponse.json()]);
   const stream=window.VeilwardWorldStream.create(blueprint,{geometry,footprint});
-  if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate)throw Error("Phase 6 full world could not initialize");
+  if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt)throw Error("Phase 6 full world could not initialize");
   await new Promise(resolve=>requestAnimationFrame(resolve));
   stream.warm(stream.player.x,stream.player.y,viewWidth()+320,viewHeight()+320);
-  worldPreview.stream=stream;worldPreview.enabled=true;worldPreview.lastDt=.016;worldPreview.showcaseIndex=-1;
+  worldPreview.stream=stream;worldPreview.enabled=true;worldPreview.lastDt=.016;worldPreview.showcaseIndex=-1;worldPreview.crossingIndex=-1;
   clearJoystick();closeAll();showWorldPreviewStatus(true);
   $("location").textContent="STREAMING PREVIEW · "+stream.regionName();
-  notify("Climate-blended world ready · seamless snowmelt, forests, wetlands and alpine Worldscar");
+  notify("Road network ready · 65 connected paths and seven distinct physical crossings");
  }catch(error){
   console.error("Veilward outdoor preview failed safely",error);
   notify("World preview could not load; the existing adventure is unaffected");
@@ -99,12 +116,12 @@ function tickWorldPreview(dt){
  s.move(x,y,dt);
  worldTime+=dt;
  const label=$("streamStatus"),state=s.stats();
- if(label)label.textContent="PHASE 7 · CLIMATE-BLENDED OUTDOORS • "+s.regionName()+
+ if(label)label.textContent="PHASE 8 · ROAD & CROSSING NETWORK • "+s.regionName()+
   " • Altitude "+state.elevation?.toFixed(1)+" • Snow "+Math.round((state.climate?.snow??0)*100)+"% • "+state.material+
   " • "+state.cachedTiles+" streamed chunks";
  $("location").textContent="OVERWORLD PREVIEW · "+s.regionName();
  const item=s.nearbyInteraction();
- setHint(item?"✋ Inspect "+item.name:"☰ Journey Menu → Visit Next Region (12-region tour)");
+ setHint(item?"✋ Inspect "+item.name:"☰ Journey Menu → Visit Next Region or Crossing");
 }
 function renderWorldPreview(){
  const s=worldPreview.stream;if(!s)return;
@@ -672,7 +689,7 @@ function bind(){
  ["potionBtn",()=>worldPreview.enabled?notify("Your potions are safe in the main adventure"):potion()],
  ["bagBtn",()=>worldPreview.enabled?notify("Inventory is safe in the main adventure"):openInv()],
  ["mapBtn",()=>worldPreview.enabled?notify("The final world map arrives with the terrain overhaul"):openInv("map")],
- ["worldPreviewBtn",toggleWorldPreview],["materialShowcaseBtn",cycleTerrainShowcase],
+ ["worldPreviewBtn",toggleWorldPreview],["materialShowcaseBtn",cycleTerrainShowcase],["crossingShowcaseBtn",cycleCrossingShowcase],
  ["geometryDebugBtn",()=>{
   if(!worldPreview.enabled){notify("Open the terrain preview to inspect its geometry");return}
   worldPreview.debug=!worldPreview.debug;showWorldPreviewStatus(true);

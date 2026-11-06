@@ -4,7 +4,7 @@
 "use strict";
 const assert=require("node:assert/strict"),fs=require("node:fs"),vm=require("node:vm");
 const blueprint=JSON.parse(fs.readFileSync("docs/overworld/world_blueprint.json","utf8"));
-const paths=["world_climate.js","world_stream.js","game.js","navigation.js","combat.js","quest.js","visual.js","index.html","sw.js","world_geometry.js","world_footprint.js","terrain_art.js","docs/overworld/terrain_geometry.json","docs/overworld/outdoor_footprint.json"];
+const paths=["world_routes.js","world_climate.js","world_stream.js","game.js","navigation.js","combat.js","quest.js","visual.js","index.html","sw.js","world_geometry.js","world_footprint.js","terrain_art.js","docs/overworld/terrain_geometry.json","docs/overworld/outdoor_footprint.json"];
 const source=Object.fromEntries(paths.map(p=>[p,fs.readFileSync(p,"utf8")]));
 let checks=0;const ok=(b,m)=>{assert.ok(b,m);checks++},eq=(a,b,m)=>{assert.equal(a,b,m);checks++};
 const drawing={fills:0,images:0};
@@ -17,7 +17,7 @@ const makeCanvas=()=>({width:0,height:0,getContext:()=>ctx2d()});
 const host={console:{log(){},warn(){},error(){}}};host.window=host;
 vm.runInNewContext(source["world_stream.js"],host);
 const World=host.VeilwardWorldStream;
-ok(!!World&&World.version==="1.3.1","streaming module loaded");
+ok(!!World&&World.version==="1.3.2","streaming module loaded");
 ok(World.validate(blueprint)===blueprint,"real Phase 2 geography validated");
 eq(blueprint.worldDesign.chunkPlan.totalPlannedCells,1536,"logical grid not allocated eagerly");
 const stream=World.create(blueprint,{canvasFactory:makeCanvas,maxTiles:18});
@@ -79,14 +79,14 @@ ok(stream.stats().tilesBuilt>built,"view reloads after tile eviction");
 const sample=World.colorAt(blueprint,16500,18000).join(",");
 eq(World.colorAt(blueprint,16500,18000).join(","),sample,"tile coloring deterministic");
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
-for(const asset of ["world_climate.js?v=1","world_geometry.js?v=1","world_footprint.js?v=2","terrain_art.js?v=3","world_stream.js?v=5","game.js?v=23","visual.css?v=14","docs/overworld/world_blueprint.json?v=1","manifest.webmanifest?v=131"]){
+for(const asset of ["world_routes.js?v=1","world_climate.js?v=1","world_geometry.js?v=1","world_footprint.js?v=2","terrain_art.js?v=4","world_stream.js?v=6","game.js?v=24","visual.css?v=14","docs/overworld/world_blueprint.json?v=1","manifest.webmanifest?v=132"]){
  ok((asset.includes("world_blueprint.json")?game.includes(asset):html.includes(asset))&&sw.includes(asset),
   "Runtime/worker asset version parity "+asset);
 }
-ok(html.indexOf("world_stream.js?v=5")<html.indexOf("game.js?v=23"),"world module before game.js");
+ok(html.indexOf("world_stream.js?v=6")<html.indexOf("game.js?v=24"),"world module before game.js");
 ok(html.includes('id="worldPreviewBtn"')&&html.includes('id="streamStatus"'),"preview menu and status exist");
-ok(sw.includes("veilward-hollowreach-v131-climate-transitions"),"PWA cache rotated");
-ok(game.includes('const APP_VERSION="1.3.1";'),"runtime app version bumped");
+ok(sw.includes("veilward-hollowreach-v132-road-crossing-network"),"PWA cache rotated");
+ok(game.includes('const APP_VERSION="1.3.2";'),"runtime app version bumped");
 ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original save key retained");
 ok(game.includes("if(worldPreview.enabled){renderWorldPreview();return}"),"preview renderer is isolated");
 ok(game.includes("if(worldPreview.enabled){tickWorldPreview(dt);return}"),"preview tick is isolated");
@@ -117,7 +117,7 @@ function gameSession(){
  ctx.VeilwardArt={background(){return null},sceneReady(){return true},sceneError(){return false},
   glows(){},routeGlows(){},actor(){return true}};
  const sandbox=vm.createContext(ctx);
- for(const path of ["navigation.js","combat.js","quest.js","world_geometry.js","world_climate.js","world_footprint.js","terrain_art.js","world_stream.js"])vm.runInContext(source[path],sandbox);
+ for(const path of ["navigation.js","combat.js","quest.js","world_geometry.js","world_climate.js","world_footprint.js","world_routes.js","terrain_art.js","world_stream.js"])vm.runInContext(source[path],sandbox);
  const injection='\nwindow.__qa={get player(){return p},get preview(){return worldPreview},toggleWorldPreview,tickWorldPreview,renderWorldPreview,save};\n';
  const realGame=game.replace(/\n\}\)\(\);\s*$/,injection+"})();");
  ok(realGame!==game,"actual game function integration instrumented");
@@ -135,6 +135,7 @@ async function integration(){
  ok(!!qa.preview.stream.geometry,"real preview receives Phase 4 co-authored collision data");
  ok(!!qa.preview.stream.art,"game preview uses authored pixel-art atlas");
  ok(!!qa.preview.stream.footprint,"game preview now uses full outdoor landmass, not an isolated scene");
+ ok(!!qa.preview.stream.routeArt,"game preview includes Phase 8 full road-network artwork and physical rail collision");
  ok(!!qa.preview.stream.climate,"Phase 7 world uses shared climate model");
  eq(el("streamStatus").style.display,"block","stream preview status visible");
  eq(el("quest").style.display,"none","quest HUD hidden only while in preview");

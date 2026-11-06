@@ -1,10 +1,10 @@
-/* VEILWARD 1.3.1 — highland-to-forest climate blending on Home Screen and Safari.
+/* VEILWARD 1.3.2 — physical 65-route/7-crossing network with bridges, stairs and shore landings.
    Use network-first for HTML/scripts, and preserve offline assets. */
-const BUILD="1.3.1";
-const CACHE="veilward-hollowreach-v131-climate-transitions";
+const BUILD="1.3.2";
+const CACHE="veilward-hollowreach-v132-road-crossing-network";
 const FILES=[
- "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_geometry.js?v=1","./world_climate.js?v=1","./world_footprint.js?v=2","./terrain_art.js?v=3","./world_stream.js?v=5","./docs/overworld/world_blueprint.json?v=1","./docs/overworld/terrain_geometry.json?v=1","./docs/overworld/outdoor_footprint.json?v=1","./game.js?v=23","./navigation.js?v=11",
- "./visual.js?v=33","./visual.css?v=14","./manifest.webmanifest?v=131","./icon.svg",
+ "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_geometry.js?v=1","./world_climate.js?v=1","./world_footprint.js?v=2","./terrain_art.js?v=4","./world_routes.js?v=1","./world_stream.js?v=6","./docs/overworld/world_blueprint.json?v=1","./docs/overworld/terrain_geometry.json?v=1","./docs/overworld/outdoor_footprint.json?v=1","./game.js?v=24","./navigation.js?v=11",
+ "./visual.js?v=33","./visual.css?v=14","./manifest.webmanifest?v=132","./icon.svg",
  "./assets/village_v06_clear.jpg?art=23","./assets/wilds_clean.jpg?art=23",
  "./assets/cave_clean.jpg?art=23","./assets/forge.jpg?art=23",
  "./assets/actors_v07.png?art=23",

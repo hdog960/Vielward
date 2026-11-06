@@ -1,4 +1,4 @@
-/* VEILWARD v1.3.1 — Phase 7: gradual snow/grass/moss ecological terrain transitions.
+/* VEILWARD v1.3.2 — Phase 8: source-aligned 65-route road, stair and crossing networks.
  * 16 source materials × 4 variants, 32×32 native source pixels per cell.
  * No network fetch, image generation at runtime or giant full-world bitmap.
  * Base, shore, road, stairs, props, contact shadow and foliage all use
@@ -7,7 +7,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.1",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
+const VERSION="1.3.2",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
 const PALETTES={
  snow:{base:"#acbcd0",dark:"#788da9",light:"#e4eced",mid:"#bfcdd9",spark:"#f6f5e8",motif:"drift"},
  frost:{base:"#8fa3b8",dark:"#627590",light:"#cedadd",mid:"#adbbc9",spark:"#e9ece8",motif:"shale"},
@@ -93,6 +93,7 @@ function create(model,geometry,options={}){
  const atlas=makeAtlas(factory),unit=model.worldDesign.worldUnitScale;
  const footprint=options.footprint||null;
   const climate=options.climate||null;
+ const routeArt=options.routeArt||null;
  const surfaces=geometry.surfaces,roads=geometry.roads,solids=geometry.solids;
  const water=model.waterways.map(w=>({...w,
   line:(w.centerline||[]).map(([x,y])=>[x*unit,y*unit]),
@@ -128,6 +129,12 @@ function create(model,geometry,options={}){
   return yes
  }
  function waterAt(x,y){
+  // Exact physical shore: no walkable strip on painted river/water.
+  const hazard=geometry.waterAt(x,y,0);
+  if(hazard)return hazard.id==="mossmere_lake"?"lake":hazard.id==="smugglers_chasm"?"cliff":"river";
+  return null
+ }
+ function legacyWaterAt(x,y){
   for(const w of water){
    if(w.polygon.length&&inPolygon(x,y,w.polygon)&&!inPolygon(x,y,w.island))return "lake";
    if(w.line.length){
@@ -379,7 +386,7 @@ function create(model,geometry,options={}){
   drawBase(ctx,bounds);
   if(footprint)footprint.draws(ctx,bounds);
   drawSurfaces(ctx,bounds);
-  drawRoads(ctx,bounds);
+  if(routeArt)routeArt.draw(ctx,bounds);else drawRoads(ctx,bounds);
   if(footprint)footprint.drawScenery(ctx,bounds);
   drawProps(ctx,bounds);
   ctx.restore()
@@ -399,8 +406,8 @@ function create(model,geometry,options={}){
  }
  function diagnostics(){return{version:VERSION,atlasWidth:atlas.width,atlasHeight:atlas.height,
   materials:MATERIALS.length,variants:VARIANTS,sourceTilePixels:TILE,worldCellSize:WORLD_CELL,
-  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,usesAuthoritativeSolids:true}}
- return{version:VERSION,atlas,materials:MATERIALS,climate,paintChunk,paintForeground,
+  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,usesAuthoritativeSolids:true}}
+ return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,paintChunk,paintForeground,
   materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,diagnostics}
 }
 window.VeilwardTerrainArt={version:VERSION,create,palettes:PALETTES,materials:MATERIALS,

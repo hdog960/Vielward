@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.1",TAU=Math.PI*2;
+const VERSION="1.3.2",TAU=Math.PI*2;
 function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
 function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295}
 function rgb(hex){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
@@ -64,8 +64,10 @@ function create(model,options={}){
  const climate=window.VeilwardClimate?window.VeilwardClimate.create(model):null;
  const footprint=options.footprint&&geometry&&window.VeilwardFootprint?
    window.VeilwardFootprint.create(model,geometry,options.footprint,{climate}):null;
+ const routeArt=geometry&&window.VeilwardRoutes?
+   window.VeilwardRoutes.create(model,geometry,{climate}):null;
  const art=options.terrainArt||(geometry&&window.VeilwardTerrainArt?
-   window.VeilwardTerrainArt.create(model,geometry,{canvasFactory:factory,footprint,climate}):null);
+   window.VeilwardTerrainArt.create(model,geometry,{canvasFactory:factory,footprint,climate,routeArt}):null);
  const points=Object.fromEntries(model.nodes.map(n=>[n.id,n]));
  const edges=model.edges.map(e=>({
   ...e,polyline:[points[e.from].point,...(e.via||[]),points[e.to].point]
@@ -177,6 +179,7 @@ function create(model,options={}){
   trim(list);peakCache=Math.max(peakCache,cache.size);
  }
  function blocked(x,y){
+  if(routeArt?.edgeGuard(x,y,10))return true;
   if(footprint&&footprint.blocked(x,y,10))return true;
   if(geometry)return geometry.blocked(x,y,10);
   if(x<60||x>width-60||y<60||y>height-60)return true;
@@ -255,7 +258,7 @@ function create(model,options={}){
   if(!geometry)return;
   const view=[camera.x,camera.y,camera.x+screenW/zoom,camera.y+screenH/zoom];
   ctx.save();ctx.scale(zoom,zoom);ctx.translate(-Math.floor(camera.x),-Math.floor(camera.y));
-  geometry.drawDebug(ctx,view,player);if(footprint)footprint.debug(ctx,view);ctx.restore()
+  geometry.drawDebug(ctx,view,player);if(footprint)footprint.debug(ctx,view);if(routeArt)routeArt.drawDebug(ctx,view);ctx.restore()
  }
  function nearbyInteraction(){return geometry?.nearbyInteraction(player.x,player.y)||null}
  function regionName(){
@@ -270,9 +273,10 @@ function create(model,options={}){
   worldWidth:width,worldHeight:height,
   geometry:geometry?.stats()??null,
   footprint:footprint?.stats()??null,
+  routeNetwork:routeArt?.stats()??null,
   climate:climate?.sample(player.x,player.y)??null,
   terrainArt:art?.diagnostics?.()??null}}
- return{version:VERSION,model,geometry,footprint,climate,art,player,camera,size,width,height,move,render,renderDebug,renderForeground,jumpToNode,
+ return{version:VERSION,model,geometry,footprint,climate,routeArt,art,player,camera,size,width,height,move,render,renderDebug,renderForeground,jumpToNode,
   warm,cells,blocked,nearbyInteraction,regionName,stats,clearCache:()=>cache.clear(),
   tile:(col,row)=>cache.get(chunkId(col,row))||null}
 }
