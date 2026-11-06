@@ -5,11 +5,81 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.10",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.11",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 
-let picture=null,detail=null,ground=null,pending=null,error=null;
+let picture=null,detail=null,ground=null,groundPlates=null,pending=null,error=null;
+const PLATE_CELLS=8,PLATE_CELL=32,PLATE_SIZE=PLATE_CELLS*PLATE_CELL;
+// Hand-selected material variations, used only with the NEW independent
+// authored raster atlas. Never sample, mirror, or tile the reference painting.
+const WINTER_LAYOUT=[
+ [0,2,1,3,2,0,3,1],[3,1,0,2,1,3,2,0],
+ [1,3,2,0,3,1,0,2],[2,0,3,1,0,2,1,3],
+ [3,0,1,2,1,2,0,3],[1,2,3,0,2,3,1,0],
+ [0,3,2,1,3,0,2,1],[2,1,0,3,0,1,3,2]
+];
+// Assemble each painted material's 8x8 world-scale plate ONCE, in native
+// source pixels, with genuinely shared pixels at internal/outer boundaries.
+// This prevents each 96-unit cell looking like a separate framed carpet.
+function makeGroundPlates(source){
+ if(typeof document==="undefined"||!document.createElement)return null;
+ const bases=[[202,217,231],[173,182,194],[158,169,184],[165,184,181]];
+ const result=[];
+ for(let row=0;row<4;row++){
+  const c=document.createElement("canvas");c.width=PLATE_SIZE;c.height=PLATE_SIZE;
+  const t=c.getContext("2d",{willReadFrequently:true});
+  if(!t?.getImageData||!t?.putImageData)return null;
+  t.imageSmoothingEnabled=false;
+  for(let gy=0;gy<PLATE_CELLS;gy++)for(let gx=0;gx<PLATE_CELLS;gx++){
+   const variant=WINTER_LAYOUT[gy][gx];
+   t.drawImage(source,variant*PLATE_CELL,row*PLATE_CELL,
+    PLATE_CELL,PLATE_CELL,gx*PLATE_CELL,gy*PLATE_CELL,PLATE_CELL,PLATE_CELL)
+  }
+  const pixels=t.getImageData(0,0,PLATE_SIZE,PLATE_SIZE),original=pixels.data;
+  const intermediate=new Uint8ClampedArray(original.length);
+  const at=(x,y,ch)=>((y+PLATE_SIZE)%PLATE_SIZE*PLATE_SIZE+
+    (x+PLATE_SIZE)%PLATE_SIZE)*4+ch;
+  // Seam-only wrapped brush: never blur the artist's native pixel details
+  // across the interior of a material swatch. Seam width is 5/32 pixels.
+  for(let y=0;y<PLATE_SIZE;y++)for(let x=0;x<PLATE_SIZE;x++){
+   const d=Math.min(x%PLATE_CELL,PLATE_CELL-1-x%PLATE_CELL);
+   const strength=d<6?(6-d)/6*.88:0;
+   for(let ch=0;ch<4;ch++){
+    const originalValue=original[at(x,y,ch)];
+    if(!strength||ch===3){intermediate[at(x,y,ch)]=originalValue;continue}
+    let total=0,weights=0;
+    for(let dx=-6;dx<=6;dx++){
+     const w=7-Math.abs(dx);total+=original[at(x+dx,y,ch)]*w;weights+=w
+    }
+    intermediate[at(x,y,ch)]=originalValue*(1-strength)+(total/weights)*strength
+   }
+  }
+  for(let y=0;y<PLATE_SIZE;y++)for(let x=0;x<PLATE_SIZE;x++){
+   const d=Math.min(y%PLATE_CELL,PLATE_CELL-1-y%PLATE_CELL);
+   const strength=d<6?(6-d)/6*.88:0;
+   for(let ch=0;ch<4;ch++){
+    const idx=at(x,y,ch),value=intermediate[idx];
+    if(ch===3){original[idx]=255;continue}
+    let smoothed=value;
+    if(strength){
+     let total=0,weights=0;
+     for(let dy=-6;dy<=6;dy++){
+      const w=7-Math.abs(dy);total+=intermediate[at(x,y+dy,ch)]*w;weights+=w
+     }
+     smoothed=value*(1-strength)+(total/weights)*strength
+    }
+    // A coherent cool daylight grade counteracts the noisy high-contrast
+    // snow checker without replacing the illustrated source with flat fill.
+    const grade=[.12,.10,.09,.11][row];
+    original[idx]=Math.round(smoothed*(1-grade)+bases[row][ch]*grade)
+   }
+  }
+  t.putImageData(pixels,0,0);result.push(c)
+ }
+ return result
+}
+
 function decode(url,width,height,label){
  return new Promise((resolve,reject)=>{
   if(typeof Image!=="function"){reject(Error("Cannot decode "+label));return}
@@ -28,7 +98,13 @@ function load(){
   decode(DETAIL,216,72,"painted bridge/stairs/lantern"),
   decode(GROUND,128,128,"painted winter terrain")
  ]).then(images=>{
-  [picture,detail,ground]=images;error=null;return picture
+  [picture,detail,ground]=images;
+  // The material stage is optional ONLY in synthetic test canvases. Normal
+  // browsers produce four composited plates from the real source art.
+  try{groundPlates=makeGroundPlates(ground)}catch(e){
+   groundPlates=null;console.warn("Winter plate composition unavailable",e)
+  }
+  error=null;return picture
  },e=>{error=e;pending=null;throw e});
  return pending
 }
@@ -105,10 +181,13 @@ function create(model,geometry,options={}){
   return count
  }
 
- function groundIndex(material,gx,gy){
-  const row=material==="road"||material==="dirt"?1:
+ function groundRow(material){
+  return material==="road"||material==="dirt"?1:
    ["stone","frost","cliff","ruin"].includes(material)?2:
-   material==="thaw"?3:0;
+   material==="thaw"?3:0
+ }
+ function groundIndex(material,gx,gy){
+  const row=groundRow(material);
   let n=Math.imul(gx+317,73428767)^Math.imul(gy-29,192486581)^row*0x45d9f3b;
   n=(n^(n>>>16))>>>0;
   return row*4+(n%4)
@@ -116,12 +195,21 @@ function create(model,geometry,options={}){
  function paintGroundCell(ctx,material,gx,gy,x,y,size){
   if(!winter(x+size*.5,y+size*.5)||
     !["snow","frost","stone","cliff","road","dirt","thaw","ruin"].includes(material))return false;
-  const cell=groundIndex(material,gx,gy);
+  const row=groundRow(material);
   ctx.save();ctx.imageSmoothingEnabled=true;
-  ctx.fillStyle=material==="snow"?"#cbd7e8":material==="road"?"#acacc0":"#a2acc1";
+  ctx.fillStyle=row===0?"#c4d4e1":row===1?"#aeb4bd":row===2?"#a5afc2":"#b0c1bf";
   ctx.fillRect(x,y,size,size);
-  ctx.globalAlpha=material==="snow"?.70:.73;
-  ctx.drawImage(ground,(cell%4)*32,Math.floor(cell/4)*32,32,32,x,y,size,size);
+  ctx.globalAlpha=row===0?.64:row===1?.67:.72;
+  if(groundPlates?.[row]){
+   // Global modulo means the exact same source pixels meet across EVERY
+   // streamed chunk; no chunk-local randomness or repeating 96px frames.
+   const px=((gx%PLATE_CELLS)+PLATE_CELLS)%PLATE_CELLS*PLATE_CELL;
+   const py=((gy%PLATE_CELLS)+PLATE_CELLS)%PLATE_CELLS*PLATE_CELL;
+   ctx.drawImage(groundPlates[row],px,py,PLATE_CELL,PLATE_CELL,x,y,size,size)
+  }else{
+   const cell=groundIndex(material,gx,gy);
+   ctx.drawImage(ground,(cell%4)*32,row*32,32,32,x,y,size,size)
+  }
   ctx.restore();return true
  }
  let stonePattern=null;
@@ -137,9 +225,12 @@ function create(model,geometry,options={}){
   stroke("#c2ccd8",e.halfWidth*.76);
   if(!stonePattern&&typeof ctx.createPattern==="function"&&
     typeof document!=="undefined"&&document.createElement){
-   const tile=document.createElement("canvas");tile.width=32;tile.height=32;
-   const c=tile.getContext("2d");
-   c.drawImage(ground,32,32,32,32,0,0,32,32);
+   const tile=groundPlates?.[1]||document.createElement("canvas");
+   if(!groundPlates?.[1]){
+    tile.width=32;tile.height=32;
+    const c=tile.getContext("2d");
+    c.drawImage(ground,32,32,32,32,0,0,32,32)
+   }
    stonePattern=ctx.createPattern(tile,"repeat")
   }
   ctx.globalAlpha=.64;
@@ -225,11 +316,15 @@ function create(model,geometry,options={}){
   return painted
  }
  function stats(){return{version:VERSION,source:"authored raster assets (3 object + 3 infrastructure + 16 ground)",
-  artworkCells:22,pilotRegion:region,geometryChanged:false,
+  artworkCells:22,pilotRegion:region,materialPlateSize:PLATE_SIZE,
+  materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
   drawCliff,drawForeground,drawVillageAtmosphere,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
-window.VeilwardRasterPilot={version:VERSION,load,create,get ready(){return !!picture&&!!detail&&!!ground},get error(){return error}};
+window.VeilwardRasterPilot={version:VERSION,load,create,
+ get ready(){return !!picture&&!!detail&&!!ground},
+ get materialPlateMode(){return groundPlates?"seam-composed":"single-cell fallback"},
+ get error(){return error}};
 })();
