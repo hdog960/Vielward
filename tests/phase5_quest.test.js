@@ -165,7 +165,7 @@ function legacyStageThree(){
  eq(s.q.p.gold,160,"legacy delivery receives exactly one reward");
 }
 mainRoute();earlyScar();legacy();legacyStageThree();
-ok(game.includes('const APP_VERSION="1.3.8"'),"game build bumped");
+ok(game.includes('const APP_VERSION="1.3.9"'),"game build bumped");
 ok(game.includes('const SAVE="veilward-hollowreach-v01"'),"save key retained");
 ok(visual.includes('load("hero","hero_approved_8way_v12.webp"'),"approved hero intact");
 ok(visual.includes('load("warden","warden_hal_v13.png"'),"Warden Hal intact");

@@ -19,7 +19,7 @@ function eq(a,b,msg){assert.equal(a,b,msg);checks++}
 const host={console:{warn(){},log(){},error(){}}};host.window=host;
 vm.runInNewContext(source,host);vm.runInNewContext(streaming,host);
 const G=host.VeilwardGeometry,W=host.VeilwardWorldStream;
-ok(G.version==="1.2.8"&&W.version==="1.3.8","Phase 4 modules both installed");
+ok(G.version==="1.2.8"&&W.version==="1.3.9","Phase 4 modules both installed");
 eq(G.validate(map,data),data,"source blueprint and geometry schema supported");
 eq(data.groundDefaults.footRadiusWorld,10,"collision footprint is separate from actor sprite size");
 ok(data.groundDefaults.footAnchor.includes("boots"),"sprite ground-foot contract explicit");
