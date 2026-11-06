@@ -117,7 +117,7 @@ yes(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=5")
     html.indexOf("world_stream.js?v=13")<html.indexOf("game.js?v=34"),"HTML resolves geometry→art→stream→game");
 yes(html.includes('id="materialShowcaseBtn"')&&game.includes("cycleTerrainShowcase"),"real game includes five material biome inspection trips");
 yes(game.includes('const APP_VERSION="1.3.13";'),"actual game version set");
-yes(sw.includes('veilward-hollowreach-v1312-raster-neighborhood'),"Home Screen cache rotated");
+yes(sw.includes('veilward-hollowreach-v1313-winter-scene-depth'),"Home Screen cache rotated");
 yes(game.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure save key never modified");
 yes(visual.includes('load("hero","hero_approved_8way_v12.webp"'),"approved Wanderer atlas preserved");
 yes(visual.includes('load("warden","warden_hal_v13.png"'),"approved Warden separate art preserved");

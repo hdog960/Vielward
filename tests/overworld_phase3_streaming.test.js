@@ -85,7 +85,7 @@ for(const asset of ["world_review.js?v=4","world_routes.js?v=8","world_climate.j
 }
 ok(html.indexOf("world_stream.js?v=13")<html.indexOf("game.js?v=34"),"world module before game.js");
 ok(html.includes('id="worldPreviewBtn"')&&html.includes('id="streamStatus"'),"preview menu and status exist");
-ok(sw.includes("veilward-hollowreach-v1312-raster-neighborhood"),"PWA cache rotated");
+ok(sw.includes("veilward-hollowreach-v1313-winter-scene-depth"),"PWA cache rotated");
 ok(game.includes('const APP_VERSION="1.3.13";'),"runtime app version bumped");
 ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original save key retained");
 ok(game.includes("if(worldPreview.enabled){renderWorldPreview();return}"),"preview renderer is isolated");
