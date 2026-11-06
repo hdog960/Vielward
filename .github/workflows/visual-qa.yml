@@ -1,0 +1,37 @@
+name: Veilward Browser Visual QA
+on:
+  push:
+    paths:
+      - "scripts/visual_capture.mjs"
+      - ".github/workflows/visual-qa.yml"
+      - "world_illustration.js"
+      - "terrain_art.js"
+      - "world_routes.js"
+      - "world_footprint.js"
+      - "world_review.js"
+      - "index.html"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install headless browser
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install --with-deps chromium
+      - name: Render actual four Veilward views
+        run: node scripts/visual_capture.mjs
+      - name: Upload human-review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: veilward-visual-recovery-r1
+          path: artifacts/*.jpg
+          if-no-files-found: warn
