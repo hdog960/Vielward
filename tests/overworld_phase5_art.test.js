@@ -110,7 +110,7 @@ const foothills=stream.jumpToNode("worldscar_ring");
 yes(foothills.node==="worldscar_ring"&&stream.player.groundHeight>=4,"stone terrain showcase updates foot elevation");
 stream.renderForeground(context(),stream.player);
 yes(stream.player.x>0,"foreground occlusion does not relocate player or sprites");
-const refs=["world_review.js?v=4","world_routes.js?v=6","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31","visual.css?v=15","manifest.webmanifest?v=139"];
+const refs=["world_review.js?v=4","world_routes.js?v=6","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31","visual.css?v=15","manifest.webmanifest?v=1310"];
 for(const ref of refs)yes(html.includes(ref)&&sw.includes(ref),"PWA/HTML contain version-identical art module "+ref);
 yes(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=5")&&html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=10")&&
     html.indexOf("terrain_art.js?v=10")<html.indexOf("world_stream.js?v=11")&&

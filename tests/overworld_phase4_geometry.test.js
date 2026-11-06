@@ -124,7 +124,7 @@ ok(visual.arc>0,"streaming engine debug draws foot anchor on actual view");
 for(let i=0;i<32;i++){s.player.x=(i+10.5)*1500;s.player.y=18000;s.render(ctx(),1536,708,.78,.05);
  ok(s.stats().cachedTiles<=18,"terrain cache bounded during authored rendering "+i)}
 ok(s.stats().estimatedCachedRGBABytes<=18*375*375*4,"geometry does not exceed previous canvas cache budget");
-for(const file of ["world_review.js?v=4","world_routes.js?v=6","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31","visual.css?v=15","manifest.webmanifest?v=139"]){
+for(const file of ["world_review.js?v=4","world_routes.js?v=6","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31","visual.css?v=15","manifest.webmanifest?v=1310"]){
  ok(html.includes(file)&&sw.includes(file),"iPhone HTML / PWA cache agrees: "+file);
 }
 ok(game.includes('terrain_geometry.json?v=1')&&sw.includes('terrain_geometry.json?v=1'),"actual game fetch and offline cache agree on geometry document");

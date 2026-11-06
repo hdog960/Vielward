@@ -116,7 +116,7 @@ stream.renderForeground(ctx(),stream.player);
 stream.renderDebug(ctx(),1536,708,.78);
 ok(stream.stats().footprint?.maximumCachedFields===6000,"field feature cache is memory bounded on iPhone");
 const body=source["game.js"],html=source["index.html"],sw=source["sw.js"];
-for(const asset of ["world_review.js?v=4","world_routes.js?v=6","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31","visual.css?v=15","manifest.webmanifest?v=139"])
+for(const asset of ["world_review.js?v=4","world_routes.js?v=6","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31","visual.css?v=15","manifest.webmanifest?v=1310"])
  ok(html.includes(asset)&&sw.includes(asset),"HTML and PWA worker version parity "+asset);
 ok(body.includes("outdoor_footprint.json?v=1")&&sw.includes("outdoor_footprint.json?v=1"),"authoritative world data is fetched by the live game and pre-cached offline");
 ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=5")&&html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=10")&&html.indexOf("terrain_art.js?v=10")<html.indexOf("world_stream.js?v=11"),
