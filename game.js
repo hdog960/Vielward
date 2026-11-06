@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v1.2.7: seamless outdoor world preview; stable quest and art preserved. */
+/* VEILWARD — Hollowreach v1.2.8: co-authored walkability, elevation and landmark inspections; original adventure safe. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -10,19 +10,22 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
-const APP_VERSION="1.2.7";
+const APP_VERSION="1.2.8";
 const SAVE="veilward-hollowreach-v01";
 const Q=window.VeilwardQuest;
 const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:4,sceneVersion:6,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,herbHarvested:[],defeatedEnemies:[],suppliesRecovered:false,suppliesDelivered:false,caveBanditCleared:false,scarAttuned:false,questVersion:1,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
 let pendingTravel=null,travelCooldown=0,arrivalPulse=0,lastCombatNotice=-100;
-const worldPreview={enabled:false,loading:false,stream:null,lastDt:.016};
+const worldPreview={enabled:false,loading:false,stream:null,lastDt:.016,debug:location.search.includes("debugWorld")};
 function showWorldPreviewStatus(show){
  const label=$("streamStatus");
  if(label)label.style.display=show?"block":"none";
  const quest=$("quest");if(quest)quest.style.display=show?"none":"";
  const actions=$("actions");if(actions)actions.classList.toggle("preview-actions",show);
+ const inspect=$("interactBtn");if(inspect)inspect.innerHTML=show?"✋<small>Inspect</small>":"✋<small>Talk</small>";
+ const overlayBtn=$("geometryDebugBtn");
+ if(overlayBtn){overlayBtn.style.display=show?"block":"none";overlayBtn.textContent="Terrain Geometry Overlay: "+(worldPreview.debug?"ON":"OFF")}
  const option=$("worldPreviewBtn");
- if(option)option.textContent=show?"Return to Hollowreach Adventure":"Explore Seamless Overworld (Phase 3 Preview)";
+ if(option)option.textContent=show?"Return to Hollowreach Adventure":"Explore Outdoor Terrain (Phase 4 Preview)";
 }
 async function toggleWorldPreview(){
  if(worldPreview.enabled){
@@ -32,23 +35,27 @@ async function toggleWorldPreview(){
   return;
  }
  if(worldPreview.loading)return;
- if(!window.VeilwardWorldStream||typeof fetch!=="function"){
+ if(!window.VeilwardWorldStream||!window.VeilwardGeometry||typeof fetch!=="function"){
   notify("Outdoor preview module unavailable; your adventure is safe");return
  }
  worldPreview.loading=true;
  const button=$("worldPreviewBtn");
  if(button)button.textContent="Preparing streaming-world preview…";
  try{
-  const response=await fetch("./docs/overworld/world_blueprint.json?v=1",{cache:"default"});
-  if(!response.ok)throw Error("World data could not load: "+response.status);
-  const blueprint=await response.json();
-  const stream=window.VeilwardWorldStream.create(blueprint);
+  const [response,geometryResponse]=await Promise.all([
+   fetch("./docs/overworld/world_blueprint.json?v=1",{cache:"default"}),
+   fetch("./docs/overworld/terrain_geometry.json?v=1",{cache:"default"})
+  ]);
+  if(!response.ok||!geometryResponse.ok)throw Error("Authoritative outdoor geometry unavailable");
+  const [blueprint,geometry]=await Promise.all([response.json(),geometryResponse.json()]);
+  const stream=window.VeilwardWorldStream.create(blueprint,{geometry});
+  if(!stream.geometry)throw Error("Phase 4 geometry did not initialize");
   await new Promise(resolve=>requestAnimationFrame(resolve));
   stream.warm(stream.player.x,stream.player.y,viewWidth()+320,viewHeight()+320);
   worldPreview.stream=stream;worldPreview.enabled=true;worldPreview.lastDt=.016;
   clearJoystick();closeAll();showWorldPreviewStatus(true);
   $("location").textContent="STREAMING PREVIEW · "+stream.regionName();
-  notify("Walk the seamless outdoor test terrain · Pause to return");
+  notify("Terrain test ready · Foot collisions, bridges and stairs now use authored geometry");
  }catch(error){
   console.error("Veilward outdoor preview failed safely",error);
   notify("World preview could not load; the existing adventure is unaffected");
@@ -65,11 +72,13 @@ function tickWorldPreview(dt){
  const length=Math.hypot(x,y);if(length>1){x/=length;y/=length}
  s.move(x,y,dt);
  worldTime+=dt;
- const label=$("streamStatus");
- if(label)label.textContent="PHASE 3 · STREAMING TERRAIN TEST • "+s.regionName()+
-  " • "+s.stats().cachedTiles+" cached chunks • Final terrain art comes later";
+ const label=$("streamStatus"),state=s.stats();
+ if(label)label.textContent="PHASE 4 · GEOMETRY PREVIEW • "+s.regionName()+
+  " • Altitude "+state.elevation?.toFixed(1)+" • "+state.material+
+  " • "+state.cachedTiles+" streamed chunks";
  $("location").textContent="OVERWORLD PREVIEW · "+s.regionName();
- setHint("Terrain streaming test · Pause → Return to Adventure");
+ const item=s.nearbyInteraction();
+ setHint(item?"✋ Inspect "+item.name:"Inspect landmarks · ☰ Menu for collision overlay");
 }
 function renderWorldPreview(){
  const s=worldPreview.stream;if(!s)return;
@@ -85,6 +94,7 @@ function renderWorldPreview(){
   g.fillStyle="#bd9b75";g.fillRect(s.player.x-6,s.player.y-50,12,13);
  }
  g.restore();
+ if(worldPreview.debug)s.renderDebug(g,vw,vh,WORLD_ZOOM);
  if(toastTime>0){toastTime-=worldPreview.lastDt;if(toastTime<=0)$("toast").style.display="none"}
 }
 
@@ -470,7 +480,12 @@ function nearest(){
                        (b.dist+(priority[b.interaction]||0)));
  return list[0]||null
 }
-function interact(){if(worldPreview.enabled){notify("Streaming terrain preview has no quests; return to your adventure for interactions");return}if(modal||!active)return;let target=nearest();if(!target){notify("No one nearby to interact with");return}if(target.interaction==="portal"){if(travelCooldown>0||pendingTravel)return;changeZone(target.to,target.tx,target.ty);return}
+function interact(){if(worldPreview.enabled){
+  const feature=worldPreview.stream?.nearbyInteraction();
+  if(!feature){notify("No nearby terrain landmark · Look for a named destination");return}
+  showDialog(feature.name,feature.description,[{text:"Continue exploring",action:closeAll}]);
+  return
+ }if(modal||!active)return;let target=nearest();if(!target){notify("No one nearby to interact with");return}if(target.interaction==="portal"){if(travelCooldown>0||pendingTravel)return;changeZone(target.to,target.tx,target.ty);return}
 if(target.interaction==="herb"){
  const item=objects.find(o=>o.zone===target.zone&&o.id===target.id);
  if(!item||!Q.harvest(p,item.id)){notify("Already gathered this blueleaf");return}
@@ -630,7 +645,11 @@ function bind(){
  ["potionBtn",()=>worldPreview.enabled?notify("Your potions are safe in the main adventure"):potion()],
  ["bagBtn",()=>worldPreview.enabled?notify("Inventory is safe in the main adventure"):openInv()],
  ["mapBtn",()=>worldPreview.enabled?notify("The final world map arrives with the terrain overhaul"):openInv("map")],
- ["worldPreviewBtn",toggleWorldPreview],["pauseBtn",()=>{clearJoystick();modal=true;$("pause").style.display="block"}],["closeDialog",closeAll],["closeInventory",closeAll],["closePause",closeAll],["resumeBtn",closeAll],["saveBtn",()=>save()],["resetBtn",()=>{if(confirm("Erase the journey on this device and begin again?"))reset()}],["beginBtn",()=>{
+ ["worldPreviewBtn",toggleWorldPreview],
+ ["geometryDebugBtn",()=>{
+  if(!worldPreview.enabled){notify("Open the terrain preview to inspect its geometry");return}
+  worldPreview.debug=!worldPreview.debug;showWorldPreviewStatus(true);
+ }],["pauseBtn",()=>{clearJoystick();modal=true;$("pause").style.display="block"}],["closeDialog",closeAll],["closeInventory",closeAll],["closePause",closeAll],["resumeBtn",closeAll],["saveBtn",()=>save()],["resetBtn",()=>{if(confirm("Erase the journey on this device and begin again?"))reset()}],["beginBtn",()=>{
   if(window.VeilwardArt&&!window.VeilwardArt.sceneReady(p.zone)){
    const failed=window.VeilwardArt.sceneError(p.zone);
    $("beginBtn").textContent=failed?"RETRY LOADING THE WORLD":"LOADING HOLLOWREACH…";
@@ -642,7 +661,8 @@ function bind(){
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{invTab=t.dataset.tab;renderInventory()}));
 addEventListener("keydown",e=>{if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.repeat)return;if(e.code==="Escape"){closeAll();return}if(!active||modal)return;
  if(worldPreview.enabled){
-  if(["Space","KeyJ","KeyQ","KeyK","KeyE","KeyF","ShiftLeft","ShiftRight","KeyH"].includes(e.code))
+  if(e.code==="KeyE"||e.code==="KeyF"){interact();return}
+  if(["Space","KeyJ","KeyQ","KeyK","ShiftLeft","ShiftRight","KeyH"].includes(e.code))
    notify("Terrain preview only · Return to the adventure for combat and quests");
   return
  }

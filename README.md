@@ -1,3 +1,19 @@
+# Veilward v1.2.8 — Phase 4: Real Ground, Collision and Elevation Preview
+
+**Actual game patch deployed to the GitHub source branch.** The playable outdoor preview now loads **co-authored terrain geometry** with one source for visible floors, tree trunks, physical blockers, bridge decks, stair grades, river/chasm/lake hazards and named inspection zones. There are 7 authored floor patches, 30 grounded solids and 11 inspectable locations; 65 roads and 7 planned crossings retain continuous movement.
+
+**On iPhone:** Open [Veilward](https://hdog960.github.io/Vielward/) → **Journey Menu → Explore Outdoor Terrain (Phase 4 Preview)**. Inside the preview, ☰ → **Terrain Geometry Overlay: ON** to inspect foot anchors, height, colliders and paths; use **✋ Inspect** near a named landmark. ☰ → **Return to Hollowreach Adventure** resumes the existing quest/save. This is a REAL gameplay engine update, but the preview's schematic terrain art is **not** yet the final rich pixel-art environment.
+
+- [Phase 4 technical handoff / on-device checklist](./docs/overworld/PHASE4_HANDOFF.md)
+- [Authoritative physical geometry source](./docs/overworld/terrain_geometry.json)
+- [Phase 4 geometry QA report](./docs/overworld/PHASE4_QA.md)
+- [Automated movement/collision/altitude regression](./tests/overworld_phase4_geometry.test.js)
+- [Approved Phase 2 full-world master map](./docs/overworld/MASTER_MAP.svg)
+
+**Next:** Phase 5 pixel-art terrain and compositing workflow — only upon next Continue development. **Appearance review remains mandatory after Phase 9, before Phase 10.** Existing player/Warden sprite assets and saved adventure state were not changed.
+
+---
+
 # Veilward v1.2.7 — Phase 3: Playable Streaming World Preview
 
 **An actual game patch is now available.** The existing Hollowreach v1.2.6 experience remains intact, with a separate playable **Phase 3 world-streaming preview** accessible from the Journey Menu. It demonstrates continuous global walking across nearby lazy-loaded outdoor chunks, smooth camera and low-memory culling across the approved 12-region geography.

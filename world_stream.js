@@ -1,11 +1,11 @@
-/* VEILWARD — Phase 3 continuous outdoor world streaming foundation.
+/* VEILWARD — Phase 4 terrain-authoritative continuous outdoor world streaming.
  * Data-authored macro terrain preview. NOT approved final terrain art or collision.
  * The stable v1.2.6 adventure stays intact; this module owns only its optional
  * streaming preview and is never allowed to mutate the legacy local save.
  */
 (function(){
 "use strict";
-const VERSION="1.2.7",TAU=Math.PI*2;
+const VERSION="1.2.8",TAU=Math.PI*2;
 function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
 function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295}
 function rgb(hex){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
@@ -59,6 +59,8 @@ function create(model,options={}){
  const width=size*columns,height=size*rows;
  const resolution=options.tileResolution||375,maxTiles=options.maxTiles||18;
  const factory=options.canvasFactory||(()=>document.createElement("canvas"));
+ const geometry=options.geometry&&window.VeilwardGeometry?
+   window.VeilwardGeometry.create(model,options.geometry):null;
  const points=Object.fromEntries(model.nodes.map(n=>[n.id,n]));
  const edges=model.edges.map(e=>({
   ...e,polyline:[points[e.from].point,...(e.via||[]),points[e.to].point]
@@ -72,6 +74,11 @@ function create(model,options={}){
  const start=points.village.point;
  const player={x:start[0]*unit,y:start[1]*unit,facing:{x:0,y:1},step:0,moving:false};
  const camera={x:0,y:0};let cameraReady=false;
+ if(geometry){
+  const spawn=geometry.safePoint(player.x,player.y);
+  player.x=spawn.x;player.y=spawn.y;
+  player.groundHeight=geometry.elevationAt(player.x,player.y);
+ }
  const cache=new Map();let renderSerial=0,tilesBuilt=0,peakCache=0,visibleTiles=0,previewTime=0;
  const chunkId=(col,row)=>col+":"+row;
  const bounds=(col,row)=>[col*size,row*size,(col+1)*size,(row+1)*size];
@@ -101,6 +108,7 @@ function create(model,options={}){
   }
   ctx.save();ctx.scale(resolution/size,resolution/size);ctx.translate(-x0,-y0);
   const x1=x0+size,y1=y0+size;
+  if(geometry)geometry.drawFloor(ctx,[x0,y0,x1,y1]);
   for(const w of water){
    if(w.polygon.length){
     const nearby=w.polygon.some(p=>p[0]>=x0-150&&p[0]<=x1+150&&p[1]>=y0-150&&p[1]<=y1+150);
@@ -125,6 +133,7 @@ function create(model,options={}){
     ctx.setLineDash([18,25]);drawPolyline(ctx,e.polyline,0,"rgba(41,46,45,.45)",5);ctx.setLineDash([])
    }
   }
+  if(geometry)geometry.drawSolids(ctx,[x0,y0,x1,y1]);
   // Small deterministic ground clusters; no human NPC/collectible art is faked.
   for(let i=0;i<30;i++){
    const gx=x0+hash(col,row,i+31)*size,gy=y0+hash(col+8,row+19,i+50)*size;
@@ -159,6 +168,7 @@ function create(model,options={}){
   trim(list);peakCache=Math.max(peakCache,cache.size);
  }
  function blocked(x,y){
+  if(geometry)return geometry.blocked(x,y,10);
   if(x<60||x>width-60||y<60||y>height-60)return true;
   const pt=[x,y];
   for(const w of water){
@@ -177,13 +187,14 @@ function create(model,options={}){
   const maxMove=speed*dt,segments=Math.max(1,Math.ceil(maxMove/10));
   for(let i=0;i<segments;i++){
    const x=player.x+mx*maxMove/segments,y=player.y+my*maxMove/segments;
-   if(!blocked(x,y)){player.x=x;player.y=y}
-   else if(!blocked(x,player.y))player.x=x;
-   else if(!blocked(player.x,y))player.y=y;
+   if(!blocked(x,y)&&(!geometry||geometry.step(player.x,player.y,x,y))){player.x=x;player.y=y}
+   else if(!blocked(x,player.y)&&(!geometry||geometry.step(player.x,player.y,x,player.y)))player.x=x;
+   else if(!blocked(player.x,y)&&(!geometry||geometry.step(player.x,player.y,player.x,y)))player.y=y;
   }
   const dist=Math.hypot(player.x-oldX,player.y-oldY);
   player.moving=dist>.15;
   if(player.moving){player.facing={x:mx,y:my};player.step=(player.step+dist*TAU/68)%(TAU*100)}
+  if(geometry)player.groundHeight=geometry.elevationAt(player.x,player.y);
   previewTime+=dt;
   return dist
  }
@@ -216,12 +227,27 @@ function create(model,options={}){
   visibleTiles=visible.length;renderSerial++;
   return {camera,viewWidth:viewW,viewHeight:viewH,missing:missing.length}
  }
+ function renderDebug(ctx,screenW,screenH,zoom=.78){
+  if(!geometry)return;
+  const view=[camera.x,camera.y,camera.x+screenW/zoom,camera.y+screenH/zoom];
+  ctx.save();ctx.scale(zoom,zoom);ctx.translate(-Math.floor(camera.x),-Math.floor(camera.y));
+  geometry.drawDebug(ctx,view,player);ctx.restore()
+ }
+ function nearbyInteraction(){return geometry?.nearbyInteraction(player.x,player.y)||null}
  function regionName(){
   const r=nearestRegion(model,player.x/unit,player.y/unit);
   return r?r.name:"Unmapped wilderness"
  }
- function stats(){return{tilesBuilt,cachedTiles:cache.size,peakCachedTiles:peakCache,estimatedCachedRGBABytes:cache.size*resolution*resolution*4,visibleTiles,frame:renderSerial,region:regionName(),x:player.x,y:player.y,worldWidth:width,worldHeight:height}}
- return{version:VERSION,model,player,camera,size,width,height,move,render,warm,cells,blocked,regionName,stats,clearCache:()=>cache.clear(),tile:(col,row)=>cache.get(chunkId(col,row))||null}
+ function stats(){return{tilesBuilt,cachedTiles:cache.size,peakCachedTiles:peakCache,
+  estimatedCachedRGBABytes:cache.size*resolution*resolution*4,
+  visibleTiles,frame:renderSerial,region:regionName(),x:player.x,y:player.y,
+  elevation:geometry?.elevationAt(player.x,player.y)??null,
+  material:geometry?.materialAt(player.x,player.y)??null,
+  worldWidth:width,worldHeight:height,
+  geometry:geometry?.stats()??null}}
+ return{version:VERSION,model,geometry,player,camera,size,width,height,move,render,renderDebug,
+  warm,cells,blocked,nearbyInteraction,regionName,stats,clearCache:()=>cache.clear(),
+  tile:(col,row)=>cache.get(chunkId(col,row))||null}
 }
 window.VeilwardWorldStream={version:VERSION,validate,create,pointInside,colorAt,nearestRegion,segDist};
 })();

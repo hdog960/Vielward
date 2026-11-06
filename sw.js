@@ -1,10 +1,10 @@
-/* VEILWARD 1.2.7 — optional streaming terrain preview beside stable main game on Home Screen and Safari.
+/* VEILWARD 1.2.8 — authored outdoor ground, collision, stair slopes and inspection preview on Home Screen and Safari.
    Use network-first for HTML/scripts, and preserve offline assets. */
-const BUILD="1.2.7";
-const CACHE="veilward-hollowreach-v127-world-preview";
+const BUILD="1.2.8";
+const CACHE="veilward-hollowreach-v128-terrain-geometry";
 const FILES=[
- "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_stream.js?v=1","./docs/overworld/world_blueprint.json?v=1","./game.js?v=19","./navigation.js?v=11",
- "./visual.js?v=33","./visual.css?v=11","./manifest.webmanifest?v=127","./icon.svg",
+ "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_geometry.js?v=1","./world_stream.js?v=2","./docs/overworld/world_blueprint.json?v=1","./docs/overworld/terrain_geometry.json?v=1","./game.js?v=20","./navigation.js?v=11",
+ "./visual.js?v=33","./visual.css?v=12","./manifest.webmanifest?v=128","./icon.svg",
  "./assets/village_v06_clear.jpg?art=23","./assets/wilds_clean.jpg?art=23",
  "./assets/cave_clean.jpg?art=23","./assets/forge.jpg?art=23",
  "./assets/actors_v07.png?art=23",

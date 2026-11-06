@@ -115,3 +115,14 @@
 
 #actions.preview-actions .control{opacity:.64;filter:saturate(.58)}
 #actions.preview-actions #interactBtn{opacity:.85}
+
+
+/* v1.2.8 co-authored terrain inspection controls (preview mode only). */
+#geometryDebugBtn{
+ border:1px solid #9bbec4!important;
+ background:linear-gradient(145deg,#233e46,#192c39)!important;
+ color:#e2ecdf!important;
+}
+#actions.preview-actions #interactBtn{opacity:1;filter:none;border-color:#d4b47f}
+#streamStatus{max-width:min(680px,65vw);font-size:10px}
+@media(max-width:740px){#streamStatus{max-width:52vw;font-size:9px;top:15%}}
