@@ -115,7 +115,7 @@ ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_climate.js?v=4")&&
    html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=12")&&
    html.indexOf("terrain_art.js?v=12")<html.indexOf("world_stream.js?v=13"),"browser climate module load order correct");
 ok(game.includes('const APP_VERSION="1.3.13";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"player save preserved with correct new build version");
-ok(sw.includes("veilward-hollowreach-v1312-raster-neighborhood"),"new Home Screen build cache rotated");
+ok(sw.includes("veilward-hollowreach-v1313-winter-scene-depth"),"new Home Screen build cache rotated");
 ok(sources["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"'),"approved hero preserved");
 ok(sources["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved Warden preserved");
 console.log("Veilward Phase 7 PASS:",checks,"climate, foliage, atlas continuity, route geometry and PWA checks.");
