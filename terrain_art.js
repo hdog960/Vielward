@@ -7,7 +7,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.9",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
+const VERSION="1.3.10",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
 const PALETTES={
  snow:{base:"#acbcd0",dark:"#788da9",light:"#e4eced",mid:"#bfcdd9",spark:"#f6f5e8",motif:"drift"},
  frost:{base:"#8fa3b8",dark:"#627590",light:"#cedadd",mid:"#adbbc9",spark:"#e9ece8",motif:"shale"},
@@ -403,6 +403,7 @@ function create(model,geometry,options={}){
   if(setpieces)setpieces.draw(ctx,bounds,o=>!!raster?.handlesSetpiece(o));
   if(raster)raster.drawSetpieces(ctx,bounds,setpieces?.objects||[]);
   drawProps(ctx,bounds);
+  if(raster)raster.drawVillageAtmosphere(ctx,bounds,setpieces?.objects||[]);
   ctx.restore()
  }
  function paintForeground(ctx,player){
@@ -411,7 +412,7 @@ function create(model,geometry,options={}){
   // Painter's order: only trees physically *in front* of the player's boots
   // gain a translucent crown overlap. Roots and shadows remain on terrain.
   for(const s of solids){
-   if(!["tree-trunk","pine-trunk"].includes(s.material)||s.cy<=player.y)continue;
+   if(!["tree-trunk","pine-trunk"].includes(s.material)||s.cy<=player.y||raster?.covers(s.cx,s.cy))continue;
    if(Math.abs(s.cx-player.x)>s.radius*1.15||s.cy-player.y>s.radius*1.45)continue;
    ctx.save();ctx.globalAlpha=.37;
    oval(ctx,s.cx,s.cy-s.radius*.85,s.radius*.88,s.radius*.54,

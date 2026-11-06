@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.9",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.10",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 
@@ -133,8 +133,8 @@ function create(model,geometry,options={}){
    ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
   // Real illustrated stone textures replace a smooth concrete-tube ribbon.
   // Visual width stays INSIDE the existing collision corridor.
-  stroke("rgba(56,68,91,.22)",e.halfWidth*.91+8);
-  stroke("#c8d2e0",e.halfWidth*.84+1);
+  stroke("rgba(56,68,91,.11)",e.halfWidth*.84+6);
+  stroke("#c2ccd8",e.halfWidth*.76);
   if(!stonePattern&&typeof ctx.createPattern==="function"&&
     typeof document!=="undefined"&&document.createElement){
    const tile=document.createElement("canvas");tile.width=32;tile.height=32;
@@ -142,10 +142,10 @@ function create(model,geometry,options={}){
    c.drawImage(ground,32,32,32,32,0,0,32,32);
    stonePattern=ctx.createPattern(tile,"repeat")
   }
-  ctx.globalAlpha=.58;
-  stroke(stonePattern||"#a7a9af",e.halfWidth*.60);
-  ctx.globalAlpha=.22;
-  stroke("#d6dce1",e.halfWidth*.26);
+  ctx.globalAlpha=.64;
+  stroke(stonePattern||"#a7a9af",e.halfWidth*.57);
+  ctx.globalAlpha=.13;
+  stroke("#d6dce1",e.halfWidth*.16);
   ctx.restore();return true
  }
  function decorateRoute(ctx,e,bounds){
@@ -165,12 +165,24 @@ function create(model,geometry,options={}){
  function drawCliff(ctx,s){
   if(!s||s.material!=="cliff-face"||!s.polygon?.length)return false;
   const pts=s.polygon,cx=pts.reduce((sum,p)=>sum+p[0],0)/pts.length,
-   cy=pts.reduce((sum,p)=>sum+p[1],0)/pts.length;
+    cy=pts.reduce((sum,p)=>sum+p[1],0)/pts.length;
   if(!winter(cx,cy))return false;
   const left=Math.min(...pts.map(p=>p[0])),right=Math.max(...pts.map(p=>p[0])),
-   foot=Math.max(...pts.map(p=>p[1]));
-  const width=Math.min(400,Math.max(175,(right-left)*.72));
-  return stamp(ctx,2,(left+right)*.5,foot,width,width*.9)
+    top=Math.min(...pts.map(p=>p[1])),foot=Math.max(...pts.map(p=>p[1]));
+  const span=right-left,segments=Math.max(1,Math.min(30,Math.ceil(span/155)));
+  const width=Math.min(340,Math.max(195,span/segments*1.4));
+  // The art follows and is clipped by the ORIGINAL impassable cliff polygon.
+  // No single stretched boulder, extra colliders, or detached shape overlays.
+  ctx.save();ctx.beginPath();
+  pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+  ctx.closePath();ctx.clip();
+  for(let i=0;i<segments;i++){
+    const x=left+span*(i+.5)/segments;
+    const shift=((i%3)-1)*Math.min(16,(foot-top)*.08);
+    const height=Math.max(195,Math.min(350,width*.93));
+    stamp(ctx,2,x,foot+shift,width,height,i%2===1,.93)
+  }
+  ctx.restore();return true
  }
  function drawForeground(ctx,player){
   if(!winter(player.x,player.y))return false;
@@ -184,11 +196,39 @@ function create(model,geometry,options={}){
   }
   return true
  }
+ function drawVillageAtmosphere(ctx,bounds,objects=[]){
+  // Warm light belongs to the painted village structures and physical lamps:
+  // one cohesive environment layer, never fake illuminated proxy buildings.
+  if(typeof ctx.createRadialGradient!=="function")return 0;
+  const sources=[];
+  for(const o of objects){
+    if(!coveredSetpiece(o)||!["snow_cottage","brazier","sign"].includes(o.kind))continue;
+    sources.push({x:o.x+(o.kind==="snow_cottage"?o.r*.28:0),
+      y:o.y-(o.kind==="snow_cottage"?o.r*.95:65),
+      power:o.kind==="snow_cottage"?.15:.19,r:o.kind==="snow_cottage"?230:155})
+  }
+  for(const s of geometry.solids||[]){
+    if(s.material==="lantern-post"&&winter(s.cx,s.cy))
+      sources.push({x:s.cx,y:s.cy-100,power:.18,r:140})
+  }
+  let painted=0;
+  for(const {x,y,r,power} of sources){
+    if(x+r<bounds[0]||x-r>bounds[2]||y+r<bounds[1]||y-r>bounds[3])continue;
+    ctx.save();
+    const glow=ctx.createRadialGradient(x,y,2,x,y,r);
+    glow.addColorStop(0,"rgba(255,200,117,"+power+")");
+    glow.addColorStop(.42,"rgba(247,186,122,"+(power*.42)+")");
+    glow.addColorStop(1,"rgba(238,182,136,0)");
+    ctx.fillStyle=glow;ctx.fillRect(x-r,y-r,r*2,r*2);
+    ctx.restore();painted++
+  }
+  return painted
+ }
  function stats(){return{version:VERSION,source:"authored raster assets (3 object + 3 infrastructure + 16 ground)",
   artworkCells:22,pilotRegion:region,geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
-  drawCliff,drawForeground,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
+  drawCliff,drawForeground,drawVillageAtmosphere,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
 window.VeilwardRasterPilot={version:VERSION,load,create,get ready(){return !!picture&&!!detail&&!!ground},get error(){return error}};
