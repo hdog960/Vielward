@@ -1,4 +1,4 @@
-/* VEILWARD — Hollowreach v1.2.9: authored pixel-art terrain, material atlas and five-biome showcase; legacy adventure safe. */
+/* VEILWARD — Hollowreach v1.3.0: connected 12-region landmass, natural foot colliders and authored outdoor hubs; original adventure safe. */
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),cv=$("game"),g=cv.getContext("2d",{alpha:false});
@@ -10,16 +10,25 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
-const APP_VERSION="1.2.9";
+const APP_VERSION="1.3.0";
 const SAVE="veilward-hollowreach-v01";
 const Q=window.VeilwardQuest;
 const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:4,sceneVersion:6,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,herbHarvested:[],defeatedEnemies:[],suppliesRecovered:false,suppliesDelivered:false,caveBanditCleared:false,scarAttuned:false,questVersion:1,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
 let pendingTravel=null,travelCooldown=0,arrivalPulse=0,lastCombatNotice=-100;
 const worldPreview={enabled:false,loading:false,stream:null,lastDt:.016,debug:location.search.includes("debugWorld"),showcaseIndex:-1};
 const showcaseStops=[
- ["village","Snow · Hollowreach"],["thaw_camp","Thawline · Snowmelt"],
- ["greenwood_hearth","Greenwood · Forest"],["worldscar_ring","Worldscar · Ancient Stone"],
- ["mossmere_w","Mossmere · River and Lake"]
+ ["village","Hollowreach · Frostbridge Village"],
+ ["northwatch_plaza","Northwatch · Memorial Heights"],
+ ["colp_ridge","Coldpine · Alpine Pass"],
+ ["bridge_e","Frostbridge · River Landing"],
+ ["thaw_camp","Thawline · Snowmelt Foothills"],
+ ["greenwood_hearth","Greenwood · Forest"],
+ ["falls_overlook","Greenwood Falls · River Lookout"],
+ ["island","Mossmere · Accessible Lake Island"],
+ ["commons","Heatherwood · Meadow Roads"],
+ ["oldroad_tower","Old Crown Road · Watchtower"],
+ ["ravine_w","Smugglers' Ravine · Canyon Approach"],
+ ["worldscar_ring","Worldscar · Standing Stones"]
 ];
 function cycleTerrainShowcase(){
  if(!worldPreview.enabled||!worldPreview.stream){notify("Enter the outdoor material preview first");return}
@@ -27,7 +36,7 @@ function cycleTerrainShowcase(){
  const [id,name]=showcaseStops[worldPreview.showcaseIndex];
  worldPreview.stream.jumpToNode(id);
  clearJoystick();closeAll();
- notify("Material showcase: "+name+" · Walk to examine textures and edges")
+ notify("Overworld region survey: "+name+" · Continue walking to explore")
 }
 
 function showWorldPreviewStatus(show){
@@ -41,7 +50,7 @@ function showWorldPreviewStatus(show){
  const showcase=$("materialShowcaseBtn");
  if(showcase)showcase.style.display=show?"block":"none";
  const option=$("worldPreviewBtn");
- if(option)option.textContent=show?"Return to Hollowreach Adventure":"Explore Pixel-Art Terrain (Phase 5 Preview)";
+ if(option)option.textContent=show?"Return to Hollowreach Adventure":"Explore Continuous Overworld (Phase 6)";
 }
 async function toggleWorldPreview(){
  if(worldPreview.enabled){
@@ -51,27 +60,28 @@ async function toggleWorldPreview(){
   return;
  }
  if(worldPreview.loading)return;
- if(!window.VeilwardWorldStream||!window.VeilwardGeometry||!window.VeilwardTerrainArt||typeof fetch!=="function"){
+ if(!window.VeilwardWorldStream||!window.VeilwardGeometry||!window.VeilwardTerrainArt||!window.VeilwardFootprint||typeof fetch!=="function"){
   notify("Outdoor preview module unavailable; your adventure is safe");return
  }
  worldPreview.loading=true;
  const button=$("worldPreviewBtn");
  if(button)button.textContent="Preparing streaming-world preview…";
  try{
-  const [response,geometryResponse]=await Promise.all([
+  const [response,geometryResponse,footprintResponse]=await Promise.all([
    fetch("./docs/overworld/world_blueprint.json?v=1",{cache:"default"}),
-   fetch("./docs/overworld/terrain_geometry.json?v=1",{cache:"default"})
+   fetch("./docs/overworld/terrain_geometry.json?v=1",{cache:"default"}),
+   fetch("./docs/overworld/outdoor_footprint.json?v=1",{cache:"default"})
   ]);
-  if(!response.ok||!geometryResponse.ok)throw Error("Authoritative outdoor geometry unavailable");
-  const [blueprint,geometry]=await Promise.all([response.json(),geometryResponse.json()]);
-  const stream=window.VeilwardWorldStream.create(blueprint,{geometry});
-  if(!stream.geometry||!stream.art)throw Error("Phase 5 terrain artwork failed to initialize");
+  if(!response.ok||!geometryResponse.ok||!footprintResponse.ok)throw Error("Full outdoor terrain source unavailable");
+  const [blueprint,geometry,footprint]=await Promise.all([response.json(),geometryResponse.json(),footprintResponse.json()]);
+  const stream=window.VeilwardWorldStream.create(blueprint,{geometry,footprint});
+  if(!stream.geometry||!stream.art||!stream.footprint)throw Error("Phase 6 full world could not initialize");
   await new Promise(resolve=>requestAnimationFrame(resolve));
   stream.warm(stream.player.x,stream.player.y,viewWidth()+320,viewHeight()+320);
   worldPreview.stream=stream;worldPreview.enabled=true;worldPreview.lastDt=.016;worldPreview.showcaseIndex=-1;
   clearJoystick();closeAll();showWorldPreviewStatus(true);
   $("location").textContent="STREAMING PREVIEW · "+stream.regionName();
-  notify("Pixel-art materials active · Explore snow, thawline, forest, ancient stone and water");
+  notify("Continuous world ready · 12 connected regions, local landmarks, rooted environmental objects");
  }catch(error){
   console.error("Veilward outdoor preview failed safely",error);
   notify("World preview could not load; the existing adventure is unaffected");
@@ -89,12 +99,12 @@ function tickWorldPreview(dt){
  s.move(x,y,dt);
  worldTime+=dt;
  const label=$("streamStatus"),state=s.stats();
- if(label)label.textContent="PHASE 5 · PIXEL-ART PREVIEW • "+s.regionName()+
+ if(label)label.textContent="PHASE 6 · CONTINUOUS OUTDOORS • "+s.regionName()+
   " • Altitude "+state.elevation?.toFixed(1)+" • "+state.material+
   " • "+state.cachedTiles+" streamed chunks";
  $("location").textContent="OVERWORLD PREVIEW · "+s.regionName();
  const item=s.nearbyInteraction();
- setHint(item?"✋ Inspect "+item.name:"☰ Menu → Material Showcase to visit all 5 terrain samples");
+ setHint(item?"✋ Inspect "+item.name:"☰ Journey Menu → Visit Next Region (12-region tour)");
 }
 function renderWorldPreview(){
  const s=worldPreview.stream;if(!s)return;

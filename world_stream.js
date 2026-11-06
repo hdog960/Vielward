@@ -1,11 +1,11 @@
-/* VEILWARD — Phase 5 authored pixel-art materials over terrain-authoritative streaming.
+/* VEILWARD — Phase 6 real 12-region landmass, source scenery, unified blockers and routes.
  * Data-authored macro terrain preview. NOT approved final terrain art or collision.
  * The stable v1.2.6 adventure stays intact; this module owns only its optional
  * streaming preview and is never allowed to mutate the legacy local save.
  */
 (function(){
 "use strict";
-const VERSION="1.2.9",TAU=Math.PI*2;
+const VERSION="1.3.0",TAU=Math.PI*2;
 function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
 function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295}
 function rgb(hex){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
@@ -61,8 +61,10 @@ function create(model,options={}){
  const factory=options.canvasFactory||(()=>document.createElement("canvas"));
  const geometry=options.geometry&&window.VeilwardGeometry?
    window.VeilwardGeometry.create(model,options.geometry):null;
+ const footprint=options.footprint&&geometry&&window.VeilwardFootprint?
+   window.VeilwardFootprint.create(model,geometry,options.footprint):null;
  const art=options.terrainArt||(geometry&&window.VeilwardTerrainArt?
-   window.VeilwardTerrainArt.create(model,geometry,{canvasFactory:factory}):null);
+   window.VeilwardTerrainArt.create(model,geometry,{canvasFactory:factory,footprint}):null);
  const points=Object.fromEntries(model.nodes.map(n=>[n.id,n]));
  const edges=model.edges.map(e=>({
   ...e,polyline:[points[e.from].point,...(e.via||[]),points[e.to].point]
@@ -77,7 +79,7 @@ function create(model,options={}){
  const player={x:start[0]*unit,y:start[1]*unit,facing:{x:0,y:1},step:0,moving:false};
  const camera={x:0,y:0};let cameraReady=false;
  if(geometry){
-  const spawn=geometry.safePoint(player.x,player.y);
+  const spawn=footprint?footprint.safePoint(player.x,player.y):geometry.safePoint(player.x,player.y);
   player.x=spawn.x;player.y=spawn.y;
   player.groundHeight=geometry.elevationAt(player.x,player.y);
  }
@@ -174,6 +176,7 @@ function create(model,options={}){
   trim(list);peakCache=Math.max(peakCache,cache.size);
  }
  function blocked(x,y){
+  if(footprint&&footprint.blocked(x,y,10))return true;
   if(geometry)return geometry.blocked(x,y,10);
   if(x<60||x>width-60||y<60||y>height-60)return true;
   const pt=[x,y];
@@ -237,7 +240,7 @@ function create(model,options={}){
  function jumpToNode(id){
   const node=points[id];if(!node)throw Error("Unknown terrain showcase landmark "+id);
   const x=node.point[0]*unit,y=node.point[1]*unit;
-  const ground=geometry?geometry.safePoint(x,y):{x,y};
+  const ground=footprint?footprint.safePoint(x,y):geometry?geometry.safePoint(x,y):{x,y};
   player.x=ground.x;player.y=ground.y;player.moving=false;player.step=0;
   if(geometry)player.groundHeight=geometry.elevationAt(player.x,player.y);
   cameraReady=false;
@@ -251,7 +254,7 @@ function create(model,options={}){
   if(!geometry)return;
   const view=[camera.x,camera.y,camera.x+screenW/zoom,camera.y+screenH/zoom];
   ctx.save();ctx.scale(zoom,zoom);ctx.translate(-Math.floor(camera.x),-Math.floor(camera.y));
-  geometry.drawDebug(ctx,view,player);ctx.restore()
+  geometry.drawDebug(ctx,view,player);if(footprint)footprint.debug(ctx,view);ctx.restore()
  }
  function nearbyInteraction(){return geometry?.nearbyInteraction(player.x,player.y)||null}
  function regionName(){
@@ -265,8 +268,9 @@ function create(model,options={}){
   material:geometry?.materialAt(player.x,player.y)??null,
   worldWidth:width,worldHeight:height,
   geometry:geometry?.stats()??null,
+  footprint:footprint?.stats()??null,
   terrainArt:art?.diagnostics?.()??null}}
- return{version:VERSION,model,geometry,art,player,camera,size,width,height,move,render,renderDebug,renderForeground,jumpToNode,
+ return{version:VERSION,model,geometry,footprint,art,player,camera,size,width,height,move,render,renderDebug,renderForeground,jumpToNode,
   warm,cells,blocked,nearbyInteraction,regionName,stats,clearCache:()=>cache.clear(),
   tile:(col,row)=>cache.get(chunkId(col,row))||null}
 }

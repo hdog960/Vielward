@@ -1,3 +1,18 @@
+# Veilward v1.3.0 — Phase 6: Twelve-Region Outdoor Landmass
+
+**Real playable update:** The continuous outdoor preview now uses a **single 29-point physical landmass outline** and authored environment composition across **all 12 approved regions**. It retains **65 connected roads and 7 physical crossings**, adds **13 landmark environments, 35 deliberately clear travel/hub areas**, and places region-specific trees, rocks, cairns, flowers, reeds and ruins using deterministic world coordinates. The same natural object source is used for its visible shape and collision.
+
+**iPhone test:** [Play Veilward](https://hdog960.github.io/Vielward/) → **Journey Menu → Explore Continuous Overworld (Phase 6)**. Inside the preview use **Visit Next Region** to inspect 12 areas, or walk between them continuously. Use **Terrain Geometry Overlay** to inspect true natural collision. Return to the original Hollowreach quest without touching your saved progress.
+
+- [Phase 6 implementation and real-device test checklist](./docs/overworld/PHASE6_HANDOFF.md)
+- [Physical landmass, 12 biomes, 13 landmarks and wilderness source data](./docs/overworld/outdoor_footprint.json)
+- [One-source natural solid art / movement engine](./world_footprint.js)
+- [Phase 6 acceptance limitations and QA](./docs/overworld/PHASE6_QA.md)
+
+This is **not** the finished visually approved 12-region overworld. Climate continuity, detailed 2.5D scenes, richer local landmarks and regional architectural depth come next in Phases 7–9. **The complete playable overworld appearance must be reviewed and explicitly approved after Phase 9, before Phase 10.** Approved player/Warden art and the legacy adventure save are unchanged.
+
+---
+
 # Veilward v1.2.9 — Phase 5 Playable Pixel-Art Terrain Preview
 
 **Actual game update:** A new 16-material / 64-source-tile pixel-art terrain atlas now renders inside the opt-in seamless outdoor preview, composed from the actual Phase 4 collision/road/elevation data. Snow, snowmelt, forest, grass, stone, river/lake water, cliffs, bridges, tree props, lamp posts and shadowing are no longer solely flat-colored debug surfaces. The approved Wanderer and Warden sprites remain unchanged.

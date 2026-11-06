@@ -136,3 +136,9 @@
 }
 #streamStatus{background:rgba(12,28,42,.91);border-color:#c8b28a}
 @media(max-height:430px){#pause.panel{overflow-y:auto;max-height:93vh;padding-bottom:16px}}
+
+
+/* Phase 6: full-region survey remains in the standard iPhone landscape Journey Menu. */
+#materialShowcaseBtn{background:linear-gradient(140deg,#223d4a,#2d3d33)!important;border-color:#afbc93!important}
+#streamStatus{max-width:min(700px,70vw);font-size:10px;letter-spacing:.02em}
+@media(max-width:740px){#streamStatus{max-width:53vw;font-size:9px}}

@@ -1,0 +1,281 @@
+/* VEILWARD 1.3.0 — full outdoor terrain footprint (Phase 6).
+ * A physically traversable 12-region landmass and reproducible region scenery.
+ * All natural blockers are rendered from the very same positions/footprint as
+ * their boot-level collision. No NPC/player art is touched or copied.
+ */
+(function(){
+"use strict";
+const VERSION="1.3.0",TAU=2*Math.PI;
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+function hash(x,y,seed){let n=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(seed|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296}
+function inside(x,y,poly){let yes=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+ const a=poly[i],b=poly[j];if(((a[1]>y)!==(b[1]>y))&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])yes=!yes;
+}return yes}
+function distance(x,y,poly){let d=Infinity;for(let i=1;i<poly.length;i++){
+ const a=poly[i-1],b=poly[i],dx=b[0]-a[0],dy=b[1]-a[1],z=dx*dx+dy*dy,t=z?clamp(((x-a[0])*dx+(y-a[1])*dy)/z,0,1):0;
+ d=Math.min(d,Math.hypot(x-a[0]-dx*t,y-a[1]-dy*t));
+}return d}
+function polygon(ctx,p){ctx.beginPath();p.forEach((v,i)=>i?ctx.lineTo(v[0],v[1]):ctx.moveTo(v[0],v[1]));ctx.closePath()}
+function fill(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.floor(x),Math.floor(y),Math.max(1,Math.ceil(w)),Math.max(1,Math.ceil(h)))}
+function ellipse(ctx,x,y,rx,ry,color){ctx.save();ctx.translate(x,y);ctx.scale(Math.max(1,rx),Math.max(1,ry));ctx.beginPath();ctx.arc(0,0,1,0,TAU);ctx.fillStyle=color;ctx.fill();ctx.restore()}
+function validate(model,geo,source){
+ if(!model||model.schema!=="veilward.world-blueprint.v1"||!geo?.nearRoad)throw Error("Phase 6 footprint requires Phase 4 actual world geometry");
+ if(!source||source.schema!=="veilward.outdoor-footprint.v1"||source.regions.length!==12||source.hubs.length<12)throw Error("Phase 6 landmass source invalid");
+ const ids=new Set(model.nodes.map(n=>n.id));
+ for(const n of [...source.hubs,...source.clearings])if(!ids.has(n.anchor))throw Error("Unknown footprint anchor "+n.anchor);
+ for(const r of source.regions)if(!model.regions.some(x=>x.id===r.id))throw Error("Unknown footprint biome "+r.id);
+ return source
+}
+function create(model,geo,source){
+ validate(model,geo,source);
+ const scale=model.worldDesign.worldUnitScale,seed=source.fieldSampling.seed;
+ const span=source.fieldSampling.cellSizeWorld;
+ const poly=source.landOutline.map(p=>p.map(v=>v*scale));
+ const nodes=Object.fromEntries(model.nodes.map(n=>[n.id,n]));
+ const regions=new Map(source.regions.map(r=>[r.id,r]));
+ const centers=model.regions.map(r=>({...r,opts:regions.get(r.id),x:r.center[0]*scale,y:r.center[1]*scale,worldPolygon:r.influencePolygon.map(p=>p.map(v=>v*scale))}));
+ const hubs=source.hubs.map(h=>({...h,x:nodes[h.anchor].point[0]*scale,y:nodes[h.anchor].point[1]*scale,r:h.radius*scale}));
+ const clearings=[...source.clearings.map(c=>({x:nodes[c.anchor].point[0]*scale,y:nodes[c.anchor].point[1]*scale,r:c.r*scale})),
+   ...hubs.map(h=>({x:h.x,y:h.y,r:h.r}))];
+ const staticSolids=geo.solids;
+ const cachedFields=new Map(),MAX_CACHE=6000;
+ let evaluations=0;
+ function remember(key,result){
+  if(cachedFields.size>=MAX_CACHE){
+   // FIFO eviction: non-player chunk visits never retain the whole 1536-cell world.
+   const first=cachedFields.keys().next().value;cachedFields.delete(first)
+  }
+  cachedFields.set(key,result);return result
+ }
+ function onLand(x,y){return inside(x,y,poly)}
+ function regionAt(x,y){
+  let best=centers[0],score=Infinity;
+  for(const r of centers){
+   const d=Math.hypot(x-r.x,y-r.y);
+   const insideRegion=inside(x,y,r.worldPolygon);
+   const weight=d*(insideRegion?.76:1.15);
+   if(weight<score){score=weight;best=r}
+  }
+  return best
+ }
+ function fieldCell(gx,gy){
+  const key=gx+":"+gy;
+  if(cachedFields.has(key))return cachedFields.get(key);
+  evaluations++;
+  const x=(gx+.5)*span+(hash(gx,gy,seed)-.5)*span*.62;
+  const y=(gy+.5)*span+(hash(gy,gx,seed+3)-.5)*span*.62;
+  if(!onLand(x,y))return remember(key,null);
+  const reg=regionAt(x,y),opts=reg.opts;
+  if(!opts||hash(gx,gy,seed+7)>opts.density)return remember(key,null);
+  let kind=opts.features[Math.floor(hash(gy,gx,seed+17)*opts.features.length)];
+  const solid=source.fieldSampling.solidKinds.includes(kind);
+  const radius=solid?(45+hash(gx,gy,seed+29)*51):35+hash(gx,gy,seed+29)*35;
+  // Real route corridors and named clearings always win over scenery.
+  for(const c of clearings)if(Math.hypot(x-c.x,y-c.y)<c.r+radius+90)return remember(key,null);
+  if(geo.nearRoad(x,y,()=>true,radius+source.fieldSampling.avoidRouteBufferWorld))return remember(key,null);
+  if(geo.waterAt(x,y,radius+25)||geo.obstacle(x,y,radius+source.fieldSampling.avoidExistingPropsWorld))return remember(key,null);
+  const obj={id:"field_"+gx+"_"+gy,x,y,kind,radius,solid,biome:reg.id,variant:hash(gx,gy,seed+40)};
+  return remember(key,obj)
+ }
+ function cells(bounds,pad=120){
+  const result=[];
+  const [x0,y0,x1,y1]=bounds;
+  for(let iy=Math.floor((y0-pad)/span)-1;iy<=Math.floor((y1+pad)/span)+1;iy++)
+   for(let ix=Math.floor((x0-pad)/span)-1;ix<=Math.floor((x1+pad)/span)+1;ix++){
+    const item=fieldCell(ix,iy);if(item&&item.x+item.radius+170>=x0&&item.x-item.radius-170<=x1&&item.y+item.radius+170>=y0&&item.y-item.radius-170<=y1)result.push(item)
+   }
+  return result
+ }
+ function blocked(x,y,r=10){
+  if(!onLand(x,y))return true;
+  const gx=Math.floor(x/span),gy=Math.floor(y/span);
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+   const obj=fieldCell(gx+dx,gy+dy);
+   if(obj?.solid&&Math.hypot(x-obj.x,y-obj.y)<obj.radius+r)return true
+  }
+  return false
+ }
+ function safePoint(x,y){
+  if(!blocked(x,y)&&!geo.blocked(x,y))return{x,y};
+  for(let d=20;d<=700;d+=30)for(let a=0;a<32;a++){
+   const theta=a*TAU/32,nx=x+Math.cos(theta)*d,ny=y+Math.sin(theta)*d;
+   if(!blocked(nx,ny)&&!geo.blocked(nx,ny))return{x:nx,y:ny}
+  }
+  return{x,y}
+ }
+ function field(ctx,f){
+  const {x,y,radius:r,kind,variant:v}=f;
+  if(kind==="flowerbed"||kind==="scrub"||kind==="reeds"){
+   ellipse(ctx,x,y+7,r*.85,r*.22,"rgba(35,56,59,.2)");
+   for(let i=0;i<9;i++){
+    const xx=x+(hash(i,v*100|0,1)-.5)*r*1.3,yy=y+(hash(i,v*100|0,2)-.5)*r*.7;
+    fill(ctx,xx,yy-13,4,15,kind==="reeds"?"#64816d":"#597754");
+    fill(ctx,xx-2,yy-13,5,4,kind==="flowerbed"?(i%3?"#ddd8bb":"#bfa1c5"):"#97a684")
+   }
+   return
+  }
+  ellipse(ctx,x+18,y+10,r*.95,r*.26,"rgba(20,31,49,.33)");
+  if(kind==="pine"||kind==="oak"){
+   fill(ctx,x-r*.16,y-r*.95,r*.33,r*.96,"#544b45");
+   for(let i=3;i>=0;i--){
+    const width=r*(kind==="pine"?1.35-i*.17:1.1-i*.08),
+     yy=y-r*(kind==="pine"?1.28:1.15)+i*r*.23;
+    ellipse(ctx,x,yy,width,r*.38,kind==="pine"?(i%2?"#39545f":"#49656c"):(i%2?"#4b6b53":"#62805d"));
+    for(let q=0;q<7;q++){
+     const xx=x-width*.72+q*width*.2;
+     fill(ctx,xx,yy-r*.18+(q%3)*r*.1,Math.max(4,r*.14),Math.max(3,r*.052),
+      kind==="pine"?(q%2?"#90a5a9":"#b8c4c6"):(q%2?"#89a477":"#b0bb83"))
+    }
+   }
+  }else if(kind==="fallenlog"){
+   fill(ctx,x-r,y-r*.23,r*2,r*.42,"#554949");
+   fill(ctx,x-r,y-r*.25,r*2,r*.13,"#9a8165");
+   for(let i=0;i<5;i++)fill(ctx,x-r+i*r*.44,y-r*.24,6,r*.4,"#473e42")
+  }else if(kind==="crystal"){
+   polygon(ctx,[[x-r*.75,y],[x-r*.3,y-r*1.7],[x+r*.4,y-r*1.4],[x+r*.77,y],[x+r*.25,y+r*.27]]);
+   ctx.fillStyle="#736d9a";ctx.fill();ctx.lineWidth=7;ctx.strokeStyle="#4f4a75";ctx.stroke();
+   fill(ctx,x-r*.12,y-r*1.25,r*.18,r*.92,"#b6b1d3")
+  }else{
+   const stone=kind==="snowstone"?"#8693a8":kind==="ruin"?"#80798e":"#7e7e87";
+   polygon(ctx,[[x-r,y],[x-r*.6,y-r*.72],[x+r*.37,y-r*.86],[x+r,y-r*.1],[x+r*.7,y+r*.37],[x-r*.6,y+r*.27]]);
+   ctx.fillStyle=stone;ctx.fill();ctx.strokeStyle="#424956";ctx.lineWidth=8;ctx.stroke();
+   fill(ctx,x-r*.48,y-r*.67,r*.85,Math.max(5,r*.1),kind==="snowstone"?"#d5dfdf":"#b9b4bd");
+   if(kind==="cairn"||kind==="ruin"){
+    fill(ctx,x-r*.2,y-r*1.15,r*.6,r*.46,"#6f6d7d");
+    fill(ctx,x-r*.22,y-r*1.17,r*.56,Math.max(4,r*.1),"#b0aab4")
+   }
+  }
+ }
+ function draws(ctx,bounds){
+  // Dark blue-gray cliff-boundary line follows the exact physical land outline.
+  const [x0,y0,x1,y1]=bounds;
+  const border=poly.some((p,i)=>{
+   const q=poly[(i+1)%poly.length];
+   return Math.min(p[0],q[0])<=x1+220&&Math.max(p[0],q[0])>=x0-220&&
+    Math.min(p[1],q[1])<=y1+220&&Math.max(p[1],q[1])>=y0-220;
+  });
+  const outside=!onLand((x0+x1)/2,(y0+y1)/2);
+  if(border||outside){
+   const step=96;for(let y=Math.floor(y0/step)*step;y<y1;y+=step)for(let x=Math.floor(x0/step)*step;x<x1;x+=step)
+    if(!onLand(x+step/2,y+step/2)){
+     fill(ctx,x,y,step,step,"#303b55");
+     if(hash(x/step,y/step,seed)>.55)fill(ctx,x+11,y+14,step*.55,9,"#4b5268")
+    }
+   if(border){
+    polygon(ctx,poly);ctx.strokeStyle="#505973";ctx.lineWidth=38;ctx.stroke();
+    polygon(ctx,poly);ctx.strokeStyle="#aeb8c0";ctx.lineWidth=12;ctx.stroke()
+   }
+  }
+  // Altitude contours are visual strata, not new arbitrary barriers.
+  // Physics source still governs steep/non-ramped changes.
+  for(const contour of model.environment.contours){
+   const points=contour.line.map(p=>p.map(v=>v*scale));
+   let xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+   if(Math.max(...xs)<x0-250||Math.min(...xs)>x1+250||Math.max(...ys)<y0-250||Math.min(...ys)>y1+250)continue;
+   ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));
+   ctx.strokeStyle=contour.level>=5?"rgba(220,229,234,.16)":"rgba(69,93,91,.18)";
+   ctx.lineWidth=27;ctx.stroke()
+  }
+ }
+ function ring(ctx,h,color,n=14){
+  for(let i=0;i<n;i++){
+   const a=i*TAU/n,x=h.x+Math.cos(a)*h.r*.38,y=h.y+Math.sin(a)*h.r*.28;
+   fill(ctx,x-14,y-8,24,13,color)
+  }
+ }
+ function smithy(ctx,h){
+  const s=staticSolids.find(o=>o.id===h.solidId);
+  if(!s?.polygon)return;
+  const xs=s.polygon.map(p=>p[0]),ys=s.polygon.map(p=>p[1]);
+  const x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,hh=Math.max(...ys)-y;
+  const roofTop=y-hh*.32;
+  ellipse(ctx,x+w*.47,y+hh*.91,w*.7,hh*.26,"rgba(24,35,50,.4)");
+  fill(ctx,x+7,y+hh*.22,w-14,hh*.78,"#5d4f51");
+  // Dark wood beams, amber windows, door and chimney for a true village anchor.
+  for(let i=0;i<7;i++){
+   const xx=x+14+i*(w-25)/7;
+   fill(ctx,xx,y+hh*.26,9,hh*.72,"#413c45");
+  }
+  fill(ctx,x+w*.12,y+hh*.53,w*.15,hh*.20,"#c99e62");
+  fill(ctx,x+w*.14,y+hh*.55,w*.11,hh*.14,"#f0c37f");
+  fill(ctx,x+w*.68,y+hh*.50,w*.17,hh*.21,"#d1a772");
+  fill(ctx,x+w*.70,y+hh*.53,w*.13,hh*.13,"#f4c785");
+  fill(ctx,x+w*.39,y+hh*.52,w*.22,hh*.48,"#292e38");
+  fill(ctx,x+w*.40,y+hh*.54,w*.19,hh*.45,"#67554b");
+  fill(ctx,x+w*.565,y+hh*.77,9,9,"#d8b984");
+  polygon(ctx,[[x-65,y+hh*.24],[x+w*.46,roofTop-115],[x+w+70,y+hh*.22],[x+w+38,y+hh*.36],[x+w*.48,y+hh*.04],[x-30,y+hh*.39]]);
+  ctx.fillStyle="#495469";ctx.fill();ctx.lineWidth=16;ctx.strokeStyle="#2f3b50";ctx.stroke();
+  for(let k=0;k<8;k++){
+   const yy=roofTop-55+k*(hh*.40/8);
+   fill(ctx,x+55,yy,w*.79,10,k%2?"#75839a":"#8d99af");
+   for(let j=0;j<8;j++)if((j+k)%3!==0)fill(ctx,x+70+j*w*.09,yy+3,16,5,"#c4d1d7")
+  }
+  fill(ctx,x+w*.73,roofTop-105,w*.10,95,"#5e5a64");
+  fill(ctx,x+w*.71,roofTop-105,w*.14,13,"#c8cfd0");
+ }
+ function hubDraw(ctx,bounds){
+  for(const h of hubs){
+   if(h.x+h.r<bounds[0]-200||h.x-h.r>bounds[2]+200||h.y+h.r<bounds[1]-200||h.y-h.r>bounds[3]+200)continue;
+   // Artist-authored hub composition: a textured clearing, not an icon or
+   // solid billboard painted over the existing footpaths.
+   const material=h.kind==="settlement"||h.kind==="monument"?"#a5a9af":
+    h.kind==="arcane"?"#91859f":h.kind==="camp"?"#907f6d":
+    h.kind==="clearing"?"#87977a":"#879084";
+   ctx.save();ctx.globalAlpha=.18;
+   ellipse(ctx,h.x,h.y,h.r*.60,h.r*.35,material);
+   ctx.restore();
+   if(h.kind==="settlement"||h.kind==="monument"||h.kind==="sanctuary"||h.kind==="arcane")
+    ring(ctx,h,h.kind==="arcane"?"#b6afca":"#bdc6c8");
+   if(h.kind==="smithy")smithy(ctx,h);
+   if(h.kind==="camp"||h.kind==="market"){
+    ring(ctx,h,"#796b5e",9);
+    fill(ctx,h.x-23,h.y-30,46,30,"#5f4f4a");
+    fill(ctx,h.x-10,h.y-53,22,33,"#e1ad6b");
+    fill(ctx,h.x-6,h.y-67,12,26,"#f6d7a0")
+   }
+   if(h.kind==="cave"){
+    ellipse(ctx,h.x,h.y-100,240,155,"#414256");
+    ellipse(ctx,h.x,h.y-90,135,112,"#1a2636");
+    for(let i=0;i<5;i++)fill(ctx,h.x-145+i*66,h.y-140,35,18,"#77758c")
+   }
+   if(h.kind==="lodge"||h.kind==="hermit"){
+    fill(ctx,h.x-120,h.y-165,240,126,"#534c46");
+    polygon(ctx,[[h.x-155,h.y-160],[h.x,h.y-285],[h.x+155,h.y-160]]);
+    ctx.fillStyle=h.kind==="lodge"?"#7b8891":"#60725b";ctx.fill();
+    fill(ctx,h.x-35,h.y-110,70,70,"#c3a875")
+   }
+   if(h.kind==="watchtower"||h.kind==="lookout"){
+    for(let i=0;i<5;i++)fill(ctx,h.x-170+i*64,h.y-140+(i%2)*9,42,65,"#8f8a92")
+   }
+  }
+ }
+ function drawScenery(ctx,bounds){
+  for(const obj of cells(bounds))field(ctx,obj);
+  hubDraw(ctx,bounds)
+ }
+ function drawForeground(ctx,player){
+  const bounds=[player.x-300,player.y-280,player.x+300,player.y+250];
+  for(const o of cells(bounds)){
+   if(!["pine","oak"].includes(o.kind)||o.y<=player.y||Math.abs(o.x-player.x)>o.radius*1.2||o.y-player.y>o.radius*1.55)continue;
+   ctx.save();ctx.globalAlpha=.37;
+   ellipse(ctx,o.x,o.y-o.radius*.9,o.radius*.8,o.radius*.45,
+    o.kind==="pine"?"#4b6571":"#537454");ctx.restore()
+  }
+ }
+ function debug(ctx,bounds){
+  for(const item of cells(bounds)){
+   if(!item.solid)continue;
+   ctx.beginPath();ctx.arc(item.x,item.y,item.radius,0,TAU);
+   ctx.lineWidth=5;ctx.strokeStyle="rgba(255,69,75,.73)";ctx.stroke()
+  }
+  polygon(ctx,poly);ctx.lineWidth=7;ctx.strokeStyle="rgba(255,185,68,.95)";ctx.stroke()
+ }
+ function stats(){
+  return{version:VERSION,regions:regions.size,majorHubs:hubs.length,routeClearings:clearings.length,
+   sourceFieldCell:span,outlinePoints:poly.length,cachedFields:cachedFields.size,maximumCachedFields:MAX_CACHE,landmassCollision:true};
+ }
+ return{version:VERSION,source,onLand,regionAt,fieldCell,cells,blocked,safePoint,draws,drawScenery,drawForeground,debug,stats,
+  featureAt:(x,y)=>fieldCell(Math.floor(x/span),Math.floor(y/span))}
+}
+window.VeilwardFootprint={version:VERSION,validate,create,inside};
+})();

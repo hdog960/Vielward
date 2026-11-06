@@ -1,10 +1,10 @@
-/* VEILWARD 1.2.9 — authored 16-material pixel-art atlas, environmental compositing and terrain showcase on Home Screen and Safari.
+/* VEILWARD 1.3.0 — 12-region continuous landmass, authored landmarks and physically grounded wilderness on Home Screen and Safari.
    Use network-first for HTML/scripts, and preserve offline assets. */
-const BUILD="1.2.9";
-const CACHE="veilward-hollowreach-v129-material-atlas";
+const BUILD="1.3.0";
+const CACHE="veilward-hollowreach-v130-world-footprint";
 const FILES=[
- "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_geometry.js?v=1","./terrain_art.js?v=1","./world_stream.js?v=3","./docs/overworld/world_blueprint.json?v=1","./docs/overworld/terrain_geometry.json?v=1","./game.js?v=21","./navigation.js?v=11",
- "./visual.js?v=33","./visual.css?v=13","./manifest.webmanifest?v=129","./icon.svg",
+ "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_geometry.js?v=1","./world_footprint.js?v=1","./terrain_art.js?v=2","./world_stream.js?v=4","./docs/overworld/world_blueprint.json?v=1","./docs/overworld/terrain_geometry.json?v=1","./docs/overworld/outdoor_footprint.json?v=1","./game.js?v=22","./navigation.js?v=11",
+ "./visual.js?v=33","./visual.css?v=14","./manifest.webmanifest?v=130","./icon.svg",
  "./assets/village_v06_clear.jpg?art=23","./assets/wilds_clean.jpg?art=23",
  "./assets/cave_clean.jpg?art=23","./assets/forge.jpg?art=23",
  "./assets/actors_v07.png?art=23",
