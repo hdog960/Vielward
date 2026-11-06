@@ -120,7 +120,7 @@ function create(model,geometry,options={}){
   ctx.save();ctx.imageSmoothingEnabled=true;
   ctx.fillStyle=material==="snow"?"#cbd7e8":material==="road"?"#acacc0":"#a2acc1";
   ctx.fillRect(x,y,size,size);
-  ctx.globalAlpha=.94;
+  ctx.globalAlpha=material==="snow"?.70:.73;
   ctx.drawImage(ground,(cell%4)*32,Math.floor(cell/4)*32,32,32,x,y,size,size);
   ctx.restore();return true
  }
@@ -133,8 +133,8 @@ function create(model,geometry,options={}){
    ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
   // Real illustrated stone textures replace a smooth concrete-tube ribbon.
   // Visual width stays INSIDE the existing collision corridor.
-  stroke("rgba(56,68,91,.38)",e.halfWidth*.95+10);
-  stroke("#d4d9e0",e.halfWidth*.89+2);
+  stroke("rgba(56,68,91,.22)",e.halfWidth*.91+8);
+  stroke("#c8d2e0",e.halfWidth*.84+1);
   if(!stonePattern&&typeof ctx.createPattern==="function"&&
     typeof document!=="undefined"&&document.createElement){
    const tile=document.createElement("canvas");tile.width=32;tile.height=32;
@@ -142,7 +142,10 @@ function create(model,geometry,options={}){
    c.drawImage(ground,32,32,32,32,0,0,32,32);
    stonePattern=ctx.createPattern(tile,"repeat")
   }
-  stroke(stonePattern||"#a7a9af",e.halfWidth*.74);
+  ctx.globalAlpha=.58;
+  stroke(stonePattern||"#a7a9af",e.halfWidth*.60);
+  ctx.globalAlpha=.22;
+  stroke("#d6dce1",e.halfWidth*.26);
   ctx.restore();return true
  }
  function decorateRoute(ctx,e,bounds){

@@ -88,14 +88,14 @@ for(const path of paths)vm.runInNewContext(sources[path],host,{filename:path});
  const html=fs.readFileSync("index.html","utf8"),
   sw=fs.readFileSync("sw.js","utf8"),
   game=fs.readFileSync("game.js","utf8");
- const assets=["world_raster_pilot.js?v=2","assets/hollowreach_pilot_sprites_v1.png?v=1",
+ const assets=["world_raster_pilot.js?v=3","assets/hollowreach_pilot_sprites_v1.png?v=1",
   "assets/hollowreach_bridge_stairs_lamp_v2.png?v=1","assets/hollowreach_ground_painted_v2.webp?v=1",
   "world_stream.js?v=11","terrain_art.js?v=9","world_illustration.js?v=5","game.js?v=30"];
  for(const path of assets){
   assert.ok(html.includes(path)||path.startsWith("assets/"),"Browser loads "+path);
   assert.ok(sw.includes(path),"iPhone service worker caches "+path)
  }
- assert.ok(html.indexOf("world_raster_pilot.js?v=2")<html.indexOf("world_stream.js?v=11"));
+ assert.ok(html.indexOf("world_raster_pilot.js?v=3")<html.indexOf("world_stream.js?v=11"));
  assert.ok(game.includes("await window.VeilwardRasterPilot.load()"),"Real art load precedes streaming");
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"Original game save key untouched");
  assert.ok(sw.includes("veilward-hollowreach-v139-hollowreach-materials"));
