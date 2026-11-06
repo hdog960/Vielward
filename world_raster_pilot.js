@@ -5,11 +5,12 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.11",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.12",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
+const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
 
-let picture=null,detail=null,ground=null,groundPlates=null,pending=null,error=null;
+let picture=null,detail=null,ground=null,neighborhood=null,groundPlates=null,pending=null,error=null;
 const PLATE_CELLS=8,PLATE_CELL=32,PLATE_SIZE=PLATE_CELLS*PLATE_CELL;
 // Hand-selected material variations, used only with the NEW independent
 // authored raster atlas. Never sample, mirror, or tile the reference painting.
@@ -91,14 +92,15 @@ function decode(url,width,height,label){
  })
 }
 function load(){
- if(picture&&detail&&ground)return Promise.resolve(picture);
+ if(picture&&detail&&ground&&neighborhood)return Promise.resolve(picture);
  if(pending)return pending;
  pending=Promise.all([
   decode(URL,288,96,"original winter sprite"),
   decode(DETAIL,216,72,"painted bridge/stairs/lantern"),
-  decode(GROUND,128,128,"painted winter terrain")
+  decode(GROUND,128,128,"painted winter terrain"),
+  decode(NEIGHBORHOOD,288,144,"eight illustrated Hollowreach environment objects")
  ]).then(images=>{
-  [picture,detail,ground]=images;
+  [picture,detail,ground,neighborhood]=images;
   // The material stage is optional ONLY in synthetic test canvases. Normal
   // browsers produce four composited plates from the real source art.
   try{groundPlates=makeGroundPlates(ground)}catch(e){
@@ -109,7 +111,7 @@ function load(){
  return pending
 }
 function create(model,geometry,options={}){
- if(!picture||!detail||!ground)throw Error("All Hollowreach painted atlases must load before streaming world");
+ if(!picture||!detail||!ground||!neighborhood)throw Error("All Hollowreach painted atlases must load before streaming world");
  const footprint=options.footprint,climate=options.climate;
  if(!geometry||!footprint||!climate)throw Error("Hollowreach art requires physical world geometry");
  const region="hollowreach";
@@ -132,20 +134,42 @@ function create(model,geometry,options={}){
   }else ctx.drawImage(picture,index*96,0,96,96,Math.round(x-w/2),Math.round(y-h),w,h);
   ctx.restore();return true
  }
+ function drawNeighborhood(ctx,index,x,y,width,height,flip=false,alpha=1){
+  // Original alpha cutouts: two winter firs, two glacial formations,
+  // snow thicket, timber rail, retaining wall, and hanging lantern.
+  if(!neighborhood||!ctx?.drawImage||index<0||index>7)return false;
+  const w=Math.round(width),h=Math.round(height);
+  ctx.save();ctx.imageSmoothingEnabled=true;
+  ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*alpha;
+  if(flip){
+   ctx.translate(Math.round(x),0);ctx.scale(-1,1);
+   ctx.drawImage(neighborhood,(index%4)*72,Math.floor(index/4)*72,72,72,
+    Math.round(-w/2),Math.round(y-h),w,h)
+  }else ctx.drawImage(neighborhood,(index%4)*72,Math.floor(index/4)*72,72,72,
+    Math.round(x-w/2),Math.round(y-h),w,h);
+  ctx.restore();return true
+ }
+ function winterVariant(o){
+  const n=(Math.round(o.x/29)+Math.round(o.y/43)+(o.id?.length||0))>>>0;
+  return n%2
+ }
  function drawFeature(ctx,o){
   if(!o||!winter(o.x,o.y))return false;
   const r=o.radius||40,flip=(o.variant??0)>.5;
   if(o.kind==="pine"||o.kind==="oak"){
    const h=Math.min(385,Math.max(160,r*3.85));
-   return stamp(ctx,0,o.x,o.y,h*.77,h,flip)
+   return drawNeighborhood(ctx,winterVariant(o),o.x,o.y,h*.73,h,flip)
   }
   if(["boulder","snowstone","cairn","ruin","crystal"].includes(o.kind)){
    const w=Math.min(265,Math.max(88,r*2.8));
-   return stamp(ctx,2,o.x,o.y,w,w*.85,flip)
+   return drawNeighborhood(ctx,2+winterVariant(o),o.x,o.y,w,w*.95,flip)
   }
-  // No more procedural flowers, mud, or bush piles sold as original art in
-  // the pilot. Real painted shrubs will be added as distinct raster assets.
-  if(["scrub","reeds","flowerbed","fallenlog"].includes(o.kind))return true;
+  if(o.kind==="scrub"||o.kind==="flowerbed"){
+   const w=Math.max(50,Math.min(155,r*2.55));
+   return drawNeighborhood(ctx,4,o.x,o.y,w,w*.68,flip)
+  }
+  // No placeholder white flower mats or procedural reeds in winter.
+  if(["reeds","fallenlog"].includes(o.kind))return true;
   return false
  }
  function drawDetail(ctx,index,x,y,w,h,flip=false,alpha=1){
@@ -159,7 +183,7 @@ function create(model,geometry,options={}){
  }
  function drawStatic(ctx,s){
   if(s?.material==="lantern-post"&&winter(s.cx,s.cy))
-   return drawDetail(ctx,2,s.cx,s.cy,80,134);
+   return drawNeighborhood(ctx,7,s.cx,s.cy,108,169);
   if(!s||!["tree-trunk","pine-trunk"].includes(s.material)||!winter(s.cx,s.cy))return false;
   return drawFeature(ctx,{kind:s.material==="pine-trunk"?"pine":"oak",
    x:s.cx,y:s.cy,radius:s.radius,variant:Math.abs(Math.floor(s.cx/73))%2})
@@ -173,8 +197,13 @@ function create(model,geometry,options={}){
   for(const o of objects||[]){
    if(!coveredSetpiece(o))continue;
    if(o.x<bounds[0]-500||o.x>bounds[2]+500||o.y<bounds[1]-500||o.y>bounds[3]+500)continue;
-   if(o.kind==="snow_cottage"&&stamp(ctx,1,o.x,o.y,375,327))count++;
-   if(o.kind==="brazier"&&drawDetail(ctx,2,o.x,o.y,74,121))count++;
+   if(o.kind==="snow_cottage"){
+    const w=Math.min(405,330+o.r*.45),h=Math.min(365,295+o.r*.38);
+    // A covered cottage-front rail sits inside its EXISTING solid footprint.
+    if(stamp(ctx,1,o.x,o.y,w,h,o.seed%2===0))count++;
+    drawNeighborhood(ctx,5,o.x,o.y+o.r*.47,o.r*1.37,o.r*.73,o.seed%2===0,.91)
+   }
+   if(o.kind==="brazier"&&drawNeighborhood(ctx,7,o.x,o.y,89,132))count++;
    if(o.kind==="sign"&&drawDetail(ctx,2,o.x,o.y,66,111))count++;
    if(o.kind==="bridge_post"&&drawDetail(ctx,0,o.x,o.y,230,172))count++
   }
@@ -271,7 +300,7 @@ function create(model,geometry,options={}){
     const x=left+span*(i+.5)/segments;
     const shift=((i%3)-1)*Math.min(16,(foot-top)*.08);
     const height=Math.max(195,Math.min(350,width*.93));
-    stamp(ctx,2,x,foot+shift,width,height,i%2===1,.93)
+    drawNeighborhood(ctx,2+i%2,x,foot+shift,width,height,i%2===1,.95)
   }
   ctx.restore();return true
  }
@@ -282,8 +311,8 @@ function create(model,geometry,options={}){
    if(!["pine","oak"].includes(o.kind)||o.y<=player.y||
     o.y-player.y>o.radius*1.4||Math.abs(o.x-player.x)>o.radius*1.25)continue;
    // Soft canopy occlusion only when a tree lies physically in front of hero.
-   stamp(ctx,0,o.x,o.y,Math.min(385,Math.max(160,o.radius*3.85))*.77,
-    Math.min(385,Math.max(160,o.radius*3.85)),(o.variant??0)>.5,.21)
+   drawNeighborhood(ctx,winterVariant(o),o.x,o.y,Math.min(385,Math.max(160,o.radius*3.85))*.73,
+    Math.min(385,Math.max(160,o.radius*3.85)),(o.variant??0)>.5,.19)
   }
   return true
  }
@@ -316,7 +345,8 @@ function create(model,geometry,options={}){
   return painted
  }
  function stats(){return{version:VERSION,source:"authored raster assets (3 object + 3 infrastructure + 16 ground)",
-  artworkCells:22,pilotRegion:region,materialPlateSize:PLATE_SIZE,
+  artworkCells:30,pilotRegion:region,materialPlateSize:PLATE_SIZE,
+  neighborhoodAtlasReady:!!neighborhood,neighborhoodSprites:8,
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
@@ -324,7 +354,7 @@ function create(model,geometry,options={}){
   handlesHub:coveredHub,covers:winter,stats}
 }
 window.VeilwardRasterPilot={version:VERSION,load,create,
- get ready(){return !!picture&&!!detail&&!!ground},
+ get ready(){return !!picture&&!!detail&&!!ground&&!!neighborhood},
  get materialPlateMode(){return groundPlates?"seam-composed":"single-cell fallback"},
  get error(){return error}};
 })();
