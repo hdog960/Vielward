@@ -124,7 +124,7 @@ ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=5")&
 ok(html.includes('id="materialShowcaseBtn"')&&html.includes("12-Region World Survey")&&body.includes("const showcaseStops"),"full-world survey navigable on iPhone");
 ok(body.includes('const APP_VERSION="1.3.8";'),"actual live game version is 1.3.0");
 ok(body.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure save key preserved");
-ok(body.includes("if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!stream.illustration||!stream.setpieces||!window.VeilwardReview)"),"game refuses partial mismatched world modules");
+ok(body.includes("if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!stream.illustration||!stream.setpieces||!stream.raster||!window.VeilwardReview)"),"game refuses partial mismatched world modules");
 ok(sw.includes("veilward-hollowreach-v138-hollowreach-raster"),"installed Home Screen cache rotated");
 ok(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"'),"approved eight-direction player art never changed");
 ok(source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"distinct Warden Hal sprite never changed");

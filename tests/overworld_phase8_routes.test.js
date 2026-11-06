@@ -124,7 +124,7 @@ for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_route
  yes(html.includes(asset)&&sw.includes(asset),"Safari and PWA both pin new file "+asset);
 yes(html.indexOf("world_routes.js?v=4")<html.indexOf("world_stream.js?v=10"),"browser constructs route engine before real streamer");
 yes(game.includes('const APP_VERSION="1.3.8";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"new build and original user saves intact");
-yes(game.includes('if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!stream.illustration||!stream.setpieces||!window.VeilwardReview)'),"game rejects incomplete physical road runtime");
+yes(game.includes('if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!stream.illustration||!stream.setpieces||!stream.raster||!window.VeilwardReview)'),"game rejects incomplete physical road runtime");
 yes(game.includes('id,name')&&game.includes('crossingStops')&&game.includes('cycleCrossingShowcase')&&game.includes('crossingShowcaseBtn'),"real seven-stop iPhone crossing menu wired");
 yes(html.includes('id="crossingShowcaseBtn"')&&html.includes("Visit Next Crossing"),"crossing tour actually offered inside iPhone Journey Menu");
 yes(sw.includes('veilward-hollowreach-v138-hollowreach-raster'),"installed Home Screen service worker version rotated");
