@@ -1,3 +1,13 @@
+# VEILWARD v1.3.9 — phase 9 original-style terrain and infrastructure pilot
+
+**Visual acceptance still 0% — NOT READY FOR CREATOR REINSPECTION.** Hollowreach now uses new painted terrain materials (snow, stone, paths, rocky cliff transitions) alongside real illustrated cabin, pine, icy rock, lantern, stairs and bridge sprites. This is a prototype of the *asset pipeline*, not a finished full map. The original richly illustrated adventure and all saves are unchanged.
+
+[Play the current technical build](https://hdog960.github.io/Vielward/) · [Art direction and development milestones](./docs/overworld/HOLLOWREACH_MATERIALS_R3.md)
+
+**Phase 10 remains locked.** The next requirement is a coherent finished Hollowreach scene, reviewed against the original golden-reference screenshot before doing all biomes.
+
+---
+
 # VEILWARD v1.3.8 — original-style pixel-art pilot
 
 The extended 12-region world is still **visually unapproved**. Rather than adding more polygon scenery, we have begun integrating genuine authored pixel sprites into **Hollowreach**: snow-laden fir, lit timber cottage and icy cliff cutouts. They sit in the existing physical world with the old travel layout, collision, quests and saves protected. This first three-asset pilot is not yet a complete scene and **not 100% visual acceptance**. The original richly illustrated Hollowreach gameplay is unchanged.

@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.8",TAU=Math.PI*2;
+const VERSION="1.3.9",TAU=Math.PI*2;
 function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
 function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295}
 function rgb(hex){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
@@ -64,10 +64,10 @@ function create(model,options={}){
  const climate=window.VeilwardClimate?window.VeilwardClimate.create(model):null;
  const footprint=options.footprint&&geometry&&window.VeilwardFootprint?
    window.VeilwardFootprint.create(model,geometry,options.footprint,{climate}):null;
- const routeArt=geometry&&window.VeilwardRoutes?
-   window.VeilwardRoutes.create(model,geometry,{climate}):null;
  const raster=geometry&&footprint&&climate&&window.VeilwardRasterPilot?.ready?
    window.VeilwardRasterPilot.create(model,geometry,{footprint,climate}):null;
+ const routeArt=geometry&&window.VeilwardRoutes?
+   window.VeilwardRoutes.create(model,geometry,{climate,raster}):null;
  const setpieces=geometry&&footprint&&climate&&window.VeilwardSetpieces?
    window.VeilwardSetpieces.create(model,geometry,{footprint,climate}):null;
  const illustration=geometry&&footprint&&climate&&window.VeilwardIllustration?

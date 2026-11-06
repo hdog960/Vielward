@@ -10,7 +10,7 @@ const C={village:{ground:"#8293a0",pale:"#c0ccdd",dark:"#4d6879",path:"#a4aab1",
  wilds:{ground:"#496b4f",pale:"#7c9770",dark:"#294b3c",path:"#a49172",label:"Greenwood · Eastern Trail"},
  cave:{ground:"#4b5156",pale:"#727777",dark:"#292e3a",path:"#555961",label:"The Smuggler's Hollow"},
 forge:{ground:"#493e3f",pale:"#ae9383",dark:"#292630",path:"#817078",label:"Hollowreach · Joren's Forge"}};
-const APP_VERSION="1.3.8";
+const APP_VERSION="1.3.9";
 const SAVE="veilward-hollowreach-v01";
 const Q=window.VeilwardQuest;
 const DEFAULT={zone:"village",x:925,y:620,artVersion:2,navVersion:4,sceneVersion:6,hp:100,mp:70,st:100,hpMax:100,mpMax:70,lv:1,xp:0,gold:26,quest:0,kills:0,herbs:0,supplies:false,loot:false,weapon:"Worn Steel Sword",armor:"Traveler's Mantle",potions:3,herbHarvested:[],defeatedEnemies:[],suppliesRecovered:false,suppliesDelivered:false,caveBanditCleared:false,scarAttuned:false,questVersion:1,skills:{blade:1,sorcery:1,survival:1},lastSave:0};
@@ -77,7 +77,7 @@ function openReviewAtlas(){
  const panel=$("worldReview");panel.style.display="block";
  const map=$("reviewMap");
  review.paintOverview(map);
- $("reviewSummary").textContent="HOLLOWREACH RASTER PILOT · 3 hand-painted transparent environmental sprites replace blocky objects in one winter area. Other 11 regions remain technical previews. Creator art acceptance: 0%.";
+ $("reviewSummary").textContent="HOLLOWREACH ART RECOVERY · 22 new raster assets for terrain and scenery in the pilot area. All 12 original regions connected. Creator approval remains 0%; this is not ready for reinspection.";
  const grid=$("reviewRegionGrid");grid.innerHTML="";
  const epoch=++reviewState.epoch;
  // Create the 12 cards first; render one authentic world-art thumbnail per
@@ -126,7 +126,7 @@ function showWorldPreviewStatus(show){
  const crossings=$("crossingShowcaseBtn");if(crossings)crossings.style.display=show?"block":"none";
  const reviewButton=$("reviewAtlasBtn");if(reviewButton)reviewButton.style.display=show?"block":"none";
  const option=$("worldPreviewBtn");
- if(option)option.textContent=show?"Return to Hollowreach Adventure":"Hollowreach Raster Pilot (Art Unfinished)";
+ if(option)option.textContent=show?"Return to Hollowreach Adventure":"Hollowreach Illustrated Environment (Still Unapproved)";
 }
 async function toggleWorldPreview(){
  if(worldPreview.enabled){
@@ -161,7 +161,7 @@ async function toggleWorldPreview(){
    worldPreview.enabled=true;worldPreview.lastDt=.016;worldPreview.showcaseIndex=-1;worldPreview.crossingIndex=-1;
   clearJoystick();closeAll();showWorldPreviewStatus(true);
   $("location").textContent="STREAMING PREVIEW · "+stream.regionName();
-  notify("Hollowreach raster-art pilot loaded · Full illustrated environment still in development");
+  notify("Hollowreach art materials updated · Creator appearance approval still pending");
  }catch(error){
   console.error("Veilward outdoor preview failed safely",error);
   notify("World preview could not load; the existing adventure is unaffected");
@@ -179,7 +179,7 @@ function tickWorldPreview(dt){
  s.move(x,y,dt);
  worldTime+=dt;
  const label=$("streamStatus"),state=s.stats();
- if(label)label.textContent="HOLLOWREACH RASTER PILOT · ART UNAPPROVED • "+s.regionName()+
+ if(label)label.textContent="HOLLOWREACH ILLUSTRATED ART PILOT · NOT YET ACCEPTED • "+s.regionName()+
   " • Altitude "+state.elevation?.toFixed(1)+" • Snow "+Math.round((state.climate?.snow??0)*100)+"% • "+state.material+
   " • "+state.cachedTiles+" streamed chunks";
  $("location").textContent="OVERWORLD PREVIEW · "+s.regionName();

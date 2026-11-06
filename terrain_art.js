@@ -7,7 +7,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.8",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
+const VERSION="1.3.9",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
 const PALETTES={
  snow:{base:"#acbcd0",dark:"#788da9",light:"#e4eced",mid:"#bfcdd9",spark:"#f6f5e8",motif:"drift"},
  frost:{base:"#8fa3b8",dark:"#627590",light:"#cedadd",mid:"#adbbc9",spark:"#e9ece8",motif:"shale"},
@@ -156,6 +156,7 @@ function create(model,geometry,options={}){
   return [(i%COLUMNS)*TILE,Math.floor(i/COLUMNS)*TILE,TILE,TILE]
  }
  function stamp(ctx,material,gx,gy,x,y,size=WORLD_CELL){
+  if(raster?.paintGroundCell(ctx,material,gx,gy,x,y,size))return;
   const src=atlasRect(material,tileVariant(gx,gy));
   ctx.drawImage(atlas,...src,x,y,size,size)
  }
@@ -171,7 +172,7 @@ function create(model,geometry,options={}){
    material:materialAt(worldX,worldY),variant:tileVariant(Math.floor(worldX/WORLD_CELL),Math.floor(worldY/WORLD_CELL))}
  }
  function climateDetails(ctx,c,material){
-  if(!climate||["river","lake","cliff","arcane","stone","road","timber"].includes(material))return;
+  if(!climate||raster?.covers(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5)||["river","lake","cliff","arcane","stone","road","timber"].includes(material))return;
   const sample=climate.sample(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5);
   // Snowflecks, wet moss and plants repeat consistently across chunk edges.
   // Small pixel clusters break the large 96-unit material checkerboard.
@@ -340,6 +341,7 @@ function create(model,geometry,options={}){
    const pts=s.polygon||(s.shape==="segment"?[s.a,s.b]:[[s.cx,s.cy]]);
    if(!inBounds(pts,bounds,600))continue;
    const x=s.cx,y=s.cy,r=s.radius;
+   if(raster?.drawStatic(ctx,s))continue;
    if(s.material==="cliff-face"&&raster?.drawCliff(ctx,s))continue;
    if(s.material==="cliff-face"&&setpieces?.drawCliff(ctx,s))continue;
    if(s.material==="tree-trunk"||s.material==="pine-trunk"){

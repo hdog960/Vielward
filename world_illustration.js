@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.8",PI=Math.PI;
+const V="1.3.9",PI=Math.PI;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 function hash(a,b,c=0){let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
 function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
@@ -153,7 +153,7 @@ function create(model,geometry,options={}){
    for(let ix=Math.floor(b[0]/cell)-1;ix<=Math.ceil(b[2]/cell);ix++){
     const x=ix*cell+hash(ix,iy,1)*cell;
     const y=iy*cell+hash(ix,iy,2)*cell;
-    if(!footprint.onLand(x,y)||geometry.waterAt(x,y,0))continue;
+    if(!footprint.onLand(x,y)||geometry.waterAt(x,y,0)||raster?.covers(x,y))continue;
     const c=climate.sample(x,y),n=hash(ix,iy,52);
     const size=24+hash(ix,iy,26)*25;
     if(c.snow>.52){

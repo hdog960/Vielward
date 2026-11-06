@@ -4,7 +4,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.6",TAU=Math.PI*2;
+const VERSION="1.3.9",TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const palettes={
  alpine:{rim:"#687c8a",bed:"#adafa8",center:"#d7d6c7",shade:"#62758a",detail:"#f0e8d4"},
@@ -32,7 +32,7 @@ function closeTo(bounds,a,b,pad){
 function create(model,geometry,options={}){
  if(!geometry||geometry.roads.length!==65||geometry.roads.filter(e=>e.crossing).length!==7)
   throw Error("Phase 8 requires the existing full physical 65-road / 7-crossing map");
- const roads=geometry.roads,climate=options.climate||null;
+ const roads=geometry.roads,climate=options.climate||null,raster=options.raster||null;
  const nodes=Object.fromEntries(model.nodes.map(n=>[n.id,n]));
  const degree=new Map(model.nodes.map(n=>[n.id,0]));
  for(const e of roads){degree.set(e.from,degree.get(e.from)+1);degree.set(e.to,degree.get(e.to)+1)}
@@ -77,6 +77,7 @@ function create(model,geometry,options={}){
   ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke()
  }
  function ribbon(ctx,e,bounds){
+  if(raster?.paintedRoad(ctx,e))return;
   const first=e.path[0],last=e.path[e.path.length-1];
   const colors=palette((first[0]+last[0])/2,(first[1]+last[1])/2);
   const wide=e.kind==="street"||e.kind==="road"||e.kind==="old-road",stair=e.kind==="stairs"||e.slope==="stairs",steep=e.kind==="switchback"||e.slope==="switchback";
@@ -255,6 +256,7 @@ function create(model,geometry,options={}){
    for(const [a,b] of e.parts)if(closeTo(bounds,a,b,160)){visible=true;break}
    if(!visible)continue;
    if(e.crossing)deck(ctx,e,bounds);else ribbon(ctx,e,bounds);
+   raster?.decorateRoute(ctx,e,bounds);
    painted++
   }
   junctions(ctx,bounds);return painted
@@ -275,7 +277,7 @@ function create(model,geometry,options={}){
   }
  }
  function stats(){return{version:VERSION,...categorized,railGuards:"source-coupled bridge rail clearance",
-  climatePaths:!!climate,waterCrossingOnly:true}}
+  climatePaths:!!climate,authoredWinterRoads:!!raster,waterCrossingOnly:true}}
  return{version:VERSION,roads,crossings,stats,nearestRoad,edgeGuard,draw,drawDebug}
 }
 window.VeilwardRoutes={version:VERSION,create,deckTypes};

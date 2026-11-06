@@ -5,34 +5,43 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.8",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
-let picture=null,pending=null,error=null;
-function load(){
- if(picture)return Promise.resolve(picture);
- if(pending)return pending;
- pending=new Promise((resolve,reject)=>{
-  if(typeof Image!=="function"){reject(Error("No image decoder for pilot art"));return}
+const VERSION="1.3.9",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
+const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
+
+let picture=null,detail=null,ground=null,pending=null,error=null;
+function decode(url,width,height,label){
+ return new Promise((resolve,reject)=>{
+  if(typeof Image!=="function"){reject(Error("Cannot decode "+label));return}
   const img=new Image();img.decoding="async";
-  img.onload=()=>{
-   if(img.naturalWidth!==288||img.naturalHeight!==96){
-    error=Error("Hollowreach authored sprites must be 3 x 96 pixels");pending=null;reject(error);return
-   }
-   picture=img;error=null;resolve(img)
-  };
-  img.onerror=()=>{error=Error("Hollowreach authored sprite PNG unavailable");pending=null;reject(error)};
-  img.src=URL
- });
+  img.onload=()=>img.naturalWidth===width&&img.naturalHeight===height?
+   resolve(img):reject(Error("Wrong "+label+" dimensions: "+img.naturalWidth+"×"+img.naturalHeight));
+  img.onerror=()=>reject(Error("Missing "+label+" painted sprite atlas"));
+  img.src=url
+ })
+}
+function load(){
+ if(picture&&detail&&ground)return Promise.resolve(picture);
+ if(pending)return pending;
+ pending=Promise.all([
+  decode(URL,288,96,"original winter sprite"),
+  decode(DETAIL,216,72,"painted bridge/stairs/lantern"),
+  decode(GROUND,128,128,"painted winter terrain")
+ ]).then(images=>{
+  [picture,detail,ground]=images;error=null;return picture
+ },e=>{error=e;pending=null;throw e});
  return pending
 }
 function create(model,geometry,options={}){
- if(!picture)throw Error("Hollowreach raster image must load before constructing world");
+ if(!picture||!detail||!ground)throw Error("All Hollowreach painted atlases must load before streaming world");
  const footprint=options.footprint,climate=options.climate;
  if(!geometry||!footprint||!climate)throw Error("Hollowreach art requires physical world geometry");
  const region="hollowreach";
  const winter=(x,y)=>footprint.regionAt(x,y)?.id===region;
  const nodes=new Map(model.nodes.map(n=>[n.id,n]));
  function regionOfAnchor(id){return nodes.get(id)?.region}
- const coveredSetpiece=o=>!!o&&regionOfAnchor(o.anchor)===region;
+ const supported=new Set(["snow_cottage","brazier","bridge_post","sign"]);
+ const coveredSetpiece=o=>!!o&&supported.has(o.kind)&&regionOfAnchor(o.anchor)===region;
  const coveredHub=h=>!!h&&regionOfAnchor(h.anchor)===region;
  function stamp(ctx,index,x,y,width,height,flip=false,alpha=1){
   if(!ctx?.drawImage)return false;
@@ -63,7 +72,18 @@ function create(model,geometry,options={}){
   if(["scrub","reeds","flowerbed","fallenlog"].includes(o.kind))return true;
   return false
  }
+ function drawDetail(ctx,index,x,y,w,h,flip=false,alpha=1){
+  if(!ctx?.drawImage)return false;
+  ctx.save();ctx.imageSmoothingEnabled=true;
+  ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*alpha;
+  if(flip){ctx.translate(Math.round(x),0);ctx.scale(-1,1);
+   ctx.drawImage(detail,index*72,0,72,72,Math.round(-w/2),Math.round(y-h),Math.round(w),Math.round(h))}
+  else ctx.drawImage(detail,index*72,0,72,72,Math.round(x-w/2),Math.round(y-h),Math.round(w),Math.round(h));
+  ctx.restore();return true
+ }
  function drawStatic(ctx,s){
+  if(s?.material==="lantern-post"&&winter(s.cx,s.cy))
+   return drawDetail(ctx,2,s.cx,s.cy,80,134);
   if(!s||!["tree-trunk","pine-trunk"].includes(s.material)||!winter(s.cx,s.cy))return false;
   return drawFeature(ctx,{kind:s.material==="pine-trunk"?"pine":"oak",
    x:s.cx,y:s.cy,radius:s.radius,variant:Math.abs(Math.floor(s.cx/73))%2})
@@ -77,9 +97,67 @@ function create(model,geometry,options={}){
   for(const o of objects||[]){
    if(!coveredSetpiece(o))continue;
    if(o.x<bounds[0]-500||o.x>bounds[2]+500||o.y<bounds[1]-500||o.y>bounds[3]+500)continue;
-   if(o.kind==="snow_cottage"&&stamp(ctx,1,o.x,o.y,375,327))count++
+   if(o.kind==="snow_cottage"&&stamp(ctx,1,o.x,o.y,375,327))count++;
+   if(o.kind==="brazier"&&drawDetail(ctx,2,o.x,o.y,74,121))count++;
+   if(o.kind==="sign"&&drawDetail(ctx,2,o.x,o.y,66,111))count++;
+   if(o.kind==="bridge_post"&&drawDetail(ctx,0,o.x,o.y,230,172))count++
   }
   return count
+ }
+
+ function groundIndex(material,gx,gy){
+  const row=material==="road"||material==="dirt"?1:
+   ["stone","frost","cliff","ruin"].includes(material)?2:
+   material==="thaw"?3:0;
+  let n=Math.imul(gx+317,73428767)^Math.imul(gy-29,192486581)^row*0x45d9f3b;
+  n=(n^(n>>>16))>>>0;
+  return row*4+(n%4)
+ }
+ function paintGroundCell(ctx,material,gx,gy,x,y,size){
+  if(!winter(x+size*.5,y+size*.5)||
+    !["snow","frost","stone","cliff","road","dirt","thaw","ruin"].includes(material))return false;
+  const cell=groundIndex(material,gx,gy);
+  ctx.save();ctx.imageSmoothingEnabled=true;
+  ctx.fillStyle=material==="snow"?"#cbd7e8":material==="road"?"#acacc0":"#a2acc1";
+  ctx.fillRect(x,y,size,size);
+  ctx.globalAlpha=.94;
+  ctx.drawImage(ground,(cell%4)*32,Math.floor(cell/4)*32,32,32,x,y,size,size);
+  ctx.restore();return true
+ }
+ let stonePattern=null;
+ function paintedRoad(ctx,e){
+  const m=e.path[Math.floor(e.path.length/2)];
+  if(!m||!winter(m[0],m[1])||e.crossing)return false;
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  function stroke(color,width){ctx.beginPath();e.path.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));
+   ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
+  // Real illustrated stone textures replace a smooth concrete-tube ribbon.
+  // Visual width stays INSIDE the existing collision corridor.
+  stroke("rgba(56,68,91,.38)",e.halfWidth*.95+10);
+  stroke("#d4d9e0",e.halfWidth*.89+2);
+  if(!stonePattern&&typeof ctx.createPattern==="function"&&
+    typeof document!=="undefined"&&document.createElement){
+   const tile=document.createElement("canvas");tile.width=32;tile.height=32;
+   const c=tile.getContext("2d");
+   c.drawImage(ground,32,32,32,32,0,0,32,32);
+   stonePattern=ctx.createPattern(tile,"repeat")
+  }
+  stroke(stonePattern||"#a7a9af",e.halfWidth*.74);
+  ctx.restore();return true
+ }
+ function decorateRoute(ctx,e,bounds){
+  if(e.crossing&&e.kind==="bridge"){
+   const center=e.path[Math.floor(e.path.length/2)];
+   if(center&&winter(center[0],center[1])&&e.total<820)
+    drawDetail(ctx,0,center[0],center[1],e.halfWidth*2.15,e.halfWidth*1.56)
+  }
+  if(e.kind!=="stairs"&&e.slope!=="stairs")return;
+  for(const [a,b,,len] of e.parts){
+   const x=(a[0]+b[0])/2,y=(a[1]+b[1])/2;
+   if(!winter(x,y)||x<bounds[0]-350||x>bounds[2]+350||
+    y<bounds[1]-350||y>bounds[3]+350)continue;
+   drawDetail(ctx,1,x,y,Math.max(170,e.halfWidth*1.6),Math.min(300,Math.max(160,len*.6)))
+  }
  }
  function drawCliff(ctx,s){
   if(!s||s.material!=="cliff-face"||!s.polygon?.length)return false;
@@ -103,12 +181,12 @@ function create(model,geometry,options={}){
   }
   return true
  }
- function stats(){return{version:VERSION,source:"authored transparent pixel-raster PNG",
-  artworkCells:3,pilotRegion:region,geometryChanged:false,
+ function stats(){return{version:VERSION,source:"authored raster assets (3 object + 3 infrastructure + 16 ground)",
+  artworkCells:22,pilotRegion:region,geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
- return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,
-  drawCliff,drawForeground,handlesSetpiece:coveredSetpiece,
+ return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
+  drawCliff,drawForeground,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
-window.VeilwardRasterPilot={version:VERSION,load,create,get ready(){return !!picture},get error(){return error}};
+window.VeilwardRasterPilot={version:VERSION,load,create,get ready(){return !!picture&&!!detail&&!!ground},get error(){return error}};
 })();

@@ -17,7 +17,7 @@ const makeCanvas=()=>({width:0,height:0,getContext:()=>ctx2d()});
 const host={console:{log(){},warn(){},error(){}}};host.window=host;
 vm.runInNewContext(source["world_stream.js"],host);
 const World=host.VeilwardWorldStream;
-ok(!!World&&World.version==="1.3.8","streaming module loaded");
+ok(!!World&&World.version==="1.3.9","streaming module loaded");
 ok(World.validate(blueprint)===blueprint,"real Phase 2 geography validated");
 eq(blueprint.worldDesign.chunkPlan.totalPlannedCells,1536,"logical grid not allocated eagerly");
 const stream=World.create(blueprint,{canvasFactory:makeCanvas,maxTiles:18});
@@ -79,14 +79,14 @@ ok(stream.stats().tilesBuilt>built,"view reloads after tile eviction");
 const sample=World.colorAt(blueprint,16500,18000).join(",");
 eq(World.colorAt(blueprint,16500,18000).join(","),sample,"tile coloring deterministic");
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
-for(const asset of ["world_review.js?v=4","world_routes.js?v=4","world_climate.js?v=4","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=8","world_stream.js?v=10","game.js?v=29","visual.css?v=15","docs/overworld/world_blueprint.json?v=1","manifest.webmanifest?v=138"]){
+for(const asset of ["world_review.js?v=4","world_routes.js?v=6","world_climate.js?v=4","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=9","world_stream.js?v=11","game.js?v=30","visual.css?v=15","docs/overworld/world_blueprint.json?v=1","manifest.webmanifest?v=139"]){
  ok((asset.includes("world_blueprint.json")?game.includes(asset):html.includes(asset))&&sw.includes(asset),
   "Runtime/worker asset version parity "+asset);
 }
-ok(html.indexOf("world_stream.js?v=10")<html.indexOf("game.js?v=29"),"world module before game.js");
+ok(html.indexOf("world_stream.js?v=11")<html.indexOf("game.js?v=30"),"world module before game.js");
 ok(html.includes('id="worldPreviewBtn"')&&html.includes('id="streamStatus"'),"preview menu and status exist");
-ok(sw.includes("veilward-hollowreach-v138-hollowreach-raster"),"PWA cache rotated");
-ok(game.includes('const APP_VERSION="1.3.8";'),"runtime app version bumped");
+ok(sw.includes("veilward-hollowreach-v139-hollowreach-materials"),"PWA cache rotated");
+ok(game.includes('const APP_VERSION="1.3.9";'),"runtime app version bumped");
 ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original save key retained");
 ok(game.includes("if(worldPreview.enabled){renderWorldPreview();return}"),"preview renderer is isolated");
 ok(game.includes("if(worldPreview.enabled){tickWorldPreview(dt);return}"),"preview tick is isolated");
@@ -110,8 +110,12 @@ function gameSession(){
  const ctx={document,localStorage,navigator:{},location:{search:""},innerWidth:1536,innerHeight:708,
   Image:class RasterImageMock{
    constructor(){this.naturalWidth=0;this.naturalHeight=0;this.onload=null}
-   set src(path){assert.ok(path.includes("hollowreach_pilot_sprites_v1.png"));
-    this.naturalWidth=288;this.naturalHeight=96;this.onload?.()}
+   set src(path){
+    const dims=path.includes("hollowreach_pilot_sprites_v1.png")?[288,96]:
+      path.includes("hollowreach_bridge_stairs_lamp_v2.png")?[216,72]:
+      path.includes("hollowreach_ground_painted_v2.webp")?[128,128]:null;
+    assert.ok(dims,"Unexpected artist sprite "+path);
+    [this.naturalWidth,this.naturalHeight]=dims;this.onload?.()}
   },
   console:{warn(){},log(){},error(){}},performance:{now(){return 500}},
   addEventListener(){},requestAnimationFrame(fn){if(fn.name!=="frame")Promise.resolve().then(()=>fn(16))},
