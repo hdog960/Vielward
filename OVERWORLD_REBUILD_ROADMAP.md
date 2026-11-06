@@ -1,6 +1,8 @@
-## MANDATORY COURSE CORRECTION — ART RESET R3 (v1.3.7)
 
-Creator feedback: the expanded map was being filled with **blocky trash**, not progressing toward the original established art style. This is correct. The original's authored dense 32-bit-style painting, elevation and roof/wood/stone detail is the locked visual contract. **Suspend further procedural environment decoration.** This R3 source-material pilot references the existing approved painted scenes for the actual raster material atlas and disables R2 polygons/obstacles in the normal preview, but it is **not visually approved**. Build proper isolated/painted pixel assets and a highly detailed Hollowreach/Greenwood proof slice before any further biome expansion. No Phase 10 work. See `docs/overworld/ART_RESET_R3.md`.
+
+## OVERRIDING ART-GATE CORRECTION — 2026-11-06
+The original Hollowreach/Greenwood artwork is the ONLY accepted visual standard. Creator rejected current extended-world geometry art at **0% visual acceptance**; adding polygon cottages, noisy ground, primitive firs and blocky stone was a failed visual strategy, not progress. A source-image swatch repetition experiment also failed real screenshot review and was rolled back. **NO NEW PROCEDURAL PLACEHOLDER DECORATION** should be presented as future authored art. The 12-region road/connectivity/collision work is approved, but the visually rejected `v1.3.6` overworld remains a TECHNICAL MAP TEST ONLY. Preserve the detailed original scene rendering, sprite sets and all saves. The next art work is true authored raster environment sprites/terrain tiles, beginning with ONE complete Hollowreach and ONE Greenwood pilot at the exact quality of `assets/village_v06_clear.jpg` and `assets/wilds_clean.jpg`, with actual gameplay captures and explicit creator signoff. Phase 10 LOCKED. See `docs/overworld/ART_DIRECTION_RESET.md`.
+
 
 # VEILWARD — CONTINUOUS OVERWORLD REBUILD ROADMAP
 **Status: APPROVED BY CREATOR — DEVELOPMENT MAY PROCEED PHASE-BY-PHASE UPON INSTRUCTION**  

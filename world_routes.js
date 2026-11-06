@@ -4,7 +4,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.7",TAU=Math.PI*2;
+const VERSION="1.3.6",TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const palettes={
  alpine:{rim:"#687c8a",bed:"#adafa8",center:"#d7d6c7",shade:"#62758a",detail:"#f0e8d4"},
@@ -32,7 +32,7 @@ function closeTo(bounds,a,b,pad){
 function create(model,geometry,options={}){
  if(!geometry||geometry.roads.length!==65||geometry.roads.filter(e=>e.crossing).length!==7)
   throw Error("Phase 8 requires the existing full physical 65-road / 7-crossing map");
- const roads=geometry.roads,climate=options.climate||null,sourceMaterials=options.sourceMaterials||null;
+ const roads=geometry.roads,climate=options.climate||null;
  const nodes=Object.fromEntries(model.nodes.map(n=>[n.id,n]));
  const degree=new Map(model.nodes.map(n=>[n.id,0]));
  for(const e of roads){degree.set(e.from,degree.get(e.from)+1);degree.set(e.to,degree.get(e.to)+1)}
@@ -87,9 +87,7 @@ function create(model,geometry,options={}){
   // traversable corridor, leaving softly broken shoulders and side greenery.
   strokePath(ctx,e.path,"rgba(39,47,57,.24)",e.halfWidth*1.14+15);
   strokePath(ctx,e.path,colors.rim,e.halfWidth*1.03+7);
-  // Real pixel paint sampled from our approved snowy and woodland scenes.
-  const material=climate?.sample((first[0]+last[0])/2,(first[1]+last[1])/2).snow>.40?"road":"dirt";
-  strokePath(ctx,e.path,sourceMaterials?.pattern(ctx,material)||colors.bed,e.halfWidth*.86);
+  strokePath(ctx,e.path,colors.bed,e.halfWidth*.86);
   strokePath(ctx,e.path,colors.center,e.halfWidth*(wide?.44:.27));
   for(const [a,b,prior,len] of e.parts){
    if(!len||!closeTo(bounds,a,b,120))continue;
@@ -149,7 +147,7 @@ function create(model,geometry,options={}){
   // widths, 7% landings and edgeGuard rail positions are unchanged.
   strokePath(ctx,e.path,"rgba(23,35,47,.65)",e.halfWidth*1.78+19);
   strokePath(ctx,e.path,style.dark,e.halfWidth*1.73+7);
-  strokePath(ctx,e.path,sourceMaterials?.pattern(ctx,style.kind==="planks"?"timber":"stone")||style.bed,e.halfWidth*1.53);
+  strokePath(ctx,e.path,style.bed,e.halfWidth*1.53);
   const full=e.total;
   for(const [a,b,prior,len] of e.parts){
    if(!len||!closeTo(bounds,a,b,170))continue;
@@ -277,7 +275,7 @@ function create(model,geometry,options={}){
   }
  }
  function stats(){return{version:VERSION,...categorized,railGuards:"source-coupled bridge rail clearance",
-  climatePaths:!!climate,sourcePaint:!!sourceMaterials,waterCrossingOnly:true}}
+  climatePaths:!!climate,waterCrossingOnly:true}}
  return{version:VERSION,roads,crossings,stats,nearestRoad,edgeGuard,draw,drawDebug}
 }
 window.VeilwardRoutes={version:VERSION,create,deckTypes};

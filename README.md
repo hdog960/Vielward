@@ -1,12 +1,8 @@
-# VEILWARD v1.3.7 — ORIGINAL ART DIRECTION RESET
+# Veilward — Art direction protected, no false visual acceptance
 
-**The original illustrated Hollowreach and Greenwood scenes are still our NON-NEGOTIABLE visual target.** The creator rejected the procedural overworld's flat materials, tube roads and polygon huts. We are not calling that a different art direction or a finished style.
+**The original illustrated Hollowreach/Greenwood game remains our standard.** The v1.3.6 12-region exterior is still a visually REJECTED topology test (0% art approval), and **Phase 10 is locked**. After reviewing actual screenshots, the v1.3.7 idea of repeating source-painting swatches was rejected and rolled back rather than released as an artistic improvement. A production-quality landscape/sprite atlas is still required, first for a complete Hollowreach pilot and then Greenwood. Original adventure environments and progress are unchanged.
 
-The latest playable build is a **source-material pilot**, NOT accepted rebuilt environments. It uses reusable texture swatches sampled from the actual original painted `village_v06_clear.jpg` and `wilds_clean.jpg` art, rather than the random confetti-like 32px atlas. The live R2 block-cottages and stalls (and their colliders) are disabled in this mode. The source paintings continue to power the **unchanged original Hollowreach adventure** with the same approved heroes, NPCs, quests and local save.
-
-[Play Veilward](https://hdog960.github.io/Vielward/) · [Artist-source reset plan and limitations](./docs/overworld/ART_RESET_R3.md) · [Actual material source code](./world_source_materials.js).
-
-**Visual acceptance remains 0% and Phase 10 is locked.** Detailed sprite sheets for actual three-quarter terrain, cliffs, buildings and foreground vegetation, plus direct on-device comparison, are still REQUIRED.
+[Art-direction correction and mandatory new asset workflow](./docs/overworld/ART_DIRECTION_RESET.md) · [Play the preserved game](https://hdog960.github.io/Vielward/) · [Real-world vs approved-source browser screenshots](https://github.com/hdog960/Vielward/actions/workflows/visual-qa.yml)
 
 ---
 

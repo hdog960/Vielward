@@ -18,10 +18,10 @@ const host={console:{log(){},warn(){},error(){}}};host.window=host;
 for(const mod of ["world_geometry.js","world_climate.js","world_footprint.js","terrain_art.js","world_stream.js"])
  vm.runInNewContext(sources[mod],host,{filename:mod});
 const C=host.VeilwardClimate,G=host.VeilwardGeometry,F=host.VeilwardFootprint,A=host.VeilwardTerrainArt,W=host.VeilwardWorldStream;
-eq(C.version,"1.3.7","continuous global climate module loaded");
-eq(F.version,"1.3.7","scenery uses climate");
-eq(A.version,"1.3.7","terrain artist uses climate");
-eq(W.version,"1.3.7","stream creates climate");
+eq(C.version,"1.3.6","continuous global climate module loaded");
+eq(F.version,"1.3.6","scenery uses climate");
+eq(A.version,"1.3.6","terrain artist uses climate");
+eq(W.version,"1.3.6","stream creates climate");
 const climate=C.create(model),geo=G.create(model,geometryData);
 const land=F.create(model,geo,footprintData,{climate});
 const art=A.create(model,geo,{climate,footprint:land,canvasFactory:factory});
@@ -107,15 +107,15 @@ for(const road of geo.roads){
  }
 }
 const html=sources["index.html"],sw=sources["sw.js"],game=sources["game.js"];
-for(const path of ["world_review.js?v=4","world_routes.js?v=5","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=8","world_stream.js?v=10","game.js?v=29","manifest.webmanifest?v=137"]){
+for(const path of ["world_review.js?v=4","world_routes.js?v=4","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=7","world_stream.js?v=9","game.js?v=28","manifest.webmanifest?v=136"]){
  ok(html.includes(path)&&sw.includes(path),"HTML and iPhone service worker cache share asset revision "+path)
 }
 ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_climate.js?v=4")&&
    html.indexOf("world_climate.js?v=4")<html.indexOf("world_footprint.js?v=5")&&
-   html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=8")&&
-   html.indexOf("terrain_art.js?v=8")<html.indexOf("world_stream.js?v=10"),"browser climate module load order correct");
-ok(game.includes('const APP_VERSION="1.3.7";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"player save preserved with correct new build version");
-ok(sw.includes("veilward-hollowreach-v137-source-material-reset"),"new Home Screen build cache rotated");
+   html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=7")&&
+   html.indexOf("terrain_art.js?v=7")<html.indexOf("world_stream.js?v=9"),"browser climate module load order correct");
+ok(game.includes('const APP_VERSION="1.3.6";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"player save preserved with correct new build version");
+ok(sw.includes("veilward-hollowreach-v136-setpieces-r2"),"new Home Screen build cache rotated");
 ok(sources["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"'),"approved hero preserved");
 ok(sources["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved Warden preserved");
 console.log("Veilward Phase 7 PASS:",checks,"climate, foliage, atlas continuity, route geometry and PWA checks.");

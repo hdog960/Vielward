@@ -8,7 +8,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.7",PI=Math.PI,TAU=PI*2;
+const VERSION="1.3.6",PI=Math.PI,TAU=PI*2;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const rnd=(a,b,c=0)=>{let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296};
 function rect(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
