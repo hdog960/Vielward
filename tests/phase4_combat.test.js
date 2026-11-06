@@ -93,7 +93,7 @@ for(const enemy of [
 ]){
  ok(nav.canWalk(enemy[0],enemy[1],enemy[2],7),"placed enemies are on actual playable floor");
 }
-ok(/const APP_VERSION="1\.2\.[5-9]";/.test(contents.game),"Phase 4 combat still integrated");
+ok(/const APP_VERSION="1\.(?:2\.[5-9]|[3-9]\.\d+)";/.test(contents.game),"Phase 4 combat still integrated");
 ok(contents.game.includes('const SAVE="veilward-hollowreach-v01";'),"original save key preserved");
 ok(contents.game.includes("combat.enemyStep(e,p,dt,window.VeilwardNav)"),"live loop uses combat timing");
 ok(contents.game.includes("combat.swordCanHit(p,e,window.VeilwardNav)"),"live sword uses facing/LOS");

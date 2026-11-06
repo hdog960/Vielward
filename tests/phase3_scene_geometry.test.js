@@ -122,7 +122,7 @@ for(const [zone,name,origin,destination]of expectedRoutes){
  check(Math.hypot(player.x-destination[0],player.y-destination[1])<=13,name+" destination mismatch");
 }
 // Gameplay and assets are part of the same acceptance gate.
-check(/const APP_VERSION="1\.2\.[4-9]";/.test(gameplay),"Phase 3 geometry persists in current build");
+check(/const APP_VERSION="1\.(?:2\.[4-9]|[3-9]\.\d+)";/.test(gameplay),"Phase 3 geometry persists in current build");
 check(gameplay.includes('const SAVE="veilward-hollowreach-v01";'),"saved journey key preserved");
 check(gameplay.includes('x:790,y:1090,to:"wilds"'),"village exit moved to real snow");
 check(gameplay.includes('x:170,y:795,to:"wilds"'),"cave exit moved to actual bridge mouth");
