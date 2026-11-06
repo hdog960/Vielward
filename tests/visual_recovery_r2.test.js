@@ -4,7 +4,7 @@
 "use strict";
 const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/strict");
 const files=["world_geometry.js","world_climate.js","world_footprint.js","world_routes.js",
- "world_setpieces.js","world_illustration.js","terrain_art.js","world_stream.js",
+ "world_setpieces.js","world_raster_pilot.js","world_illustration.js","terrain_art.js","world_stream.js",
  "world_review.js","game.js","index.html","sw.js","visual.js","package.json"];
 const source=Object.fromEntries(files.map(p=>[p,fs.readFileSync(p,"utf8")]));
 const model=JSON.parse(fs.readFileSync("docs/overworld/world_blueprint.json","utf8"));
@@ -24,12 +24,12 @@ for(const file of files.filter(p=>/^(world_|terrain_art)/.test(p)))
  vm.runInNewContext(source[file],host,{filename:file});
 const stream=host.VeilwardWorldStream.create(model,{geometry:gd,footprint:fd,canvasFactory:canvas}),
  scene=stream.setpieces,review=host.VeilwardReview.create(model,stream);
-eq(host.VeilwardSetpieces.version,"1.3.6","versioned authored region setpiece module loads");
-eq(stream.version,"1.3.6","actual streaming world loads new composition");
-eq(stream.art.version,"1.3.6","real terrain compositor paints R2");
-eq(stream.illustration.version,"1.3.6","three-quarter foreground artist integrates region setpieces");
+eq(host.VeilwardSetpieces.version,"1.3.8","versioned authored region setpiece module loads");
+eq(stream.version,"1.3.8","actual streaming world loads new composition");
+eq(stream.art.version,"1.3.8","real terrain compositor paints R2");
+eq(stream.illustration.version,"1.3.8","three-quarter foreground artist integrates region setpieces");
 eq(stream.routeArt.version,"1.3.6","physical seven-crossing art uses richer deck texture");
-eq(scene?.version,"1.3.6","R2 piece renderer is not optional in the live runtime");
+eq(scene?.version,"1.3.8","R2 piece renderer is not optional in the live runtime");
 eq(stream.stats().setpieces.placed,scene.objects.length,"runtime composition diagnostic is genuine");
 ok(scene.objects.length>=26,"at least 26 physically validated setpieces appear in the real map");
 eq(scene.stats().sourceAnchors,13,"all thirteen true landmark groups represented");
@@ -103,25 +103,25 @@ ok(paint.images>400&&paint.fills>1000&&paint.paths>1000,
  "real material/prop/roads rendered rather than documented without compositing");
 ok(source["world_routes.js"].includes("Board-end grain")&&
  source["world_routes.js"].includes("Layered parapet"),"bridge material grammar enhanced while rail collision stays original");
-ok(source["terrain_art.js"].includes("setpieces.draw(ctx,bounds)")&&
+ok(source["terrain_art.js"].includes("setpieces.draw(ctx,bounds,o=>")&&
  source["terrain_art.js"].includes("setpieces?.drawCliff(ctx,s)"),
  "R2 compositions and source cliff faces are part of gameplay paintChunk");
-ok(source["world_stream.js"].includes("setpieces?.blocked(x,y,10)"),
+ok(source["world_stream.js"].includes("setpieces?.blocked(x,y,10,o=>"),
  "new physical fixture collision is checked by the actual player movement engine");
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
-for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_setpieces.js?v=1",
- "world_illustration.js?v=3","terrain_art.js?v=7","world_routes.js?v=4",
- "world_stream.js?v=9","world_review.js?v=4","game.js?v=28",
- "manifest.webmanifest?v=136"])
+for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_setpieces.js?v=2",
+ "world_illustration.js?v=4","terrain_art.js?v=8","world_routes.js?v=4",
+ "world_stream.js?v=10","world_review.js?v=4","game.js?v=29",
+ "manifest.webmanifest?v=138"])
  ok(html.includes(asset)&&sw.includes(asset),"Safari and iPhone PWA cache exactly same R2 source "+asset);
-ok(html.indexOf("world_setpieces.js?v=1")<html.indexOf("world_illustration.js?v=3")&&
- html.indexOf("world_illustration.js?v=3")<html.indexOf("world_stream.js?v=9"),
+ok(html.indexOf("world_setpieces.js?v=2")<html.indexOf("world_illustration.js?v=4")&&
+ html.indexOf("world_illustration.js?v=4")<html.indexOf("world_stream.js?v=10"),
  "order builds solid fixtures and artist before stream boot");
-ok(game.includes('const APP_VERSION="1.3.6";')&&
+ok(game.includes('const APP_VERSION="1.3.8";')&&
  game.includes('const SAVE="veilward-hollowreach-v01";'),"preserved legacy save and correct R2 build");
 ok(game.includes('!stream.setpieces')&&game.includes("show&&worldPreview.debug"),
  "real preview requires full R2 art and keeps debug diagnostics off gameplay screen");
-ok(sw.includes("veilward-hollowreach-v136-setpieces-r2"),"iPhone offline cache invalidates R1 scene art");
+ok(sw.includes("veilward-hollowreach-v138-hollowreach-raster"),"iPhone offline cache invalidates R1 scene art");
 ok(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&
  source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved hero and Warden sprite assets unchanged");
 console.log("Veilward R2 SOURCE PASS",assertions,"assertions,",scene.objects.length,"physical compositions,",

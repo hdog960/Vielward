@@ -8,7 +8,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.6",PI=Math.PI,TAU=PI*2;
+const VERSION="1.3.8",PI=Math.PI,TAU=PI*2;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const rnd=(a,b,c=0)=>{let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296};
 function rect(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
@@ -82,8 +82,9 @@ function create(model,geometry,options={}){
   const o={...item,x,y,id:item.anchor+"-"+item.kind+"-"+item.seed,climate:climate.sample(x,y)};
   if(safe(o,built))built.push(o);else rejected.push(o.id);
  }
- function collision(x,y,r=10){
+ function collision(x,y,r=10,skip){
   for(const o of built){
+   if(skip?.(o))continue;
    // Low mushroom borders are visual groundcover, never an invisible wall.
    if(o.kind==="mushroom_ring")continue;
    const dx=x-o.x,dy=y-o.y;
@@ -324,9 +325,10 @@ function create(model,geometry,options={}){
   market_stall:stall,forge_stall:stall,well,
   woodpile,sign,brazier,obelisk,stone_wall:wall,mushroom_ring:ring,bridge_post:post
  };
- function draw(c,bounds){
+ function draw(c,bounds,skip){
   let drawn=0;
   for(const o of built){
+   if(skip?.(o))continue;
    if(o.x<bounds[0]-400||o.x>bounds[2]+400||o.y<bounds[1]-450||o.y>bounds[3]+360)continue;
    drawers[o.kind](c,o);drawn++
   }

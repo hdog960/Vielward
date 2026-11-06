@@ -1,3 +1,13 @@
+# VEILWARD v1.3.8 — original-style pixel-art pilot
+
+The extended 12-region world is still **visually unapproved**. Rather than adding more polygon scenery, we have begun integrating genuine authored pixel sprites into **Hollowreach**: snow-laden fir, lit timber cottage and icy cliff cutouts. They sit in the existing physical world with the old travel layout, collision, quests and saves protected. This first three-asset pilot is not yet a complete scene and **not 100% visual acceptance**. The original richly illustrated Hollowreach gameplay is unchanged.
+
+[Play Veilward](https://hdog960.github.io/Vielward/) · [Pilot source/next milestones](./docs/overworld/HOLLOWREACH_RASTER_PILOT.md) · [Sprite atlas](./assets/hollowreach_pilot_sprites_v1.png)
+
+**Phase 9 remains on hold for art; Phase 10 is locked** until the creator approves the complete illustrated overworld.
+
+---
+
 # Veilward — Art direction protected, no false visual acceptance
 
 **The original illustrated Hollowreach/Greenwood game remains our standard.** The v1.3.6 12-region exterior is still a visually REJECTED topology test (0% art approval), and **Phase 10 is locked**. After reviewing actual screenshots, the v1.3.7 idea of repeating source-painting swatches was rejected and rolled back rather than released as an artistic improvement. A production-quality landscape/sprite atlas is still required, first for a complete Hollowreach pilot and then Greenwood. Original adventure environments and progress are unchanged.

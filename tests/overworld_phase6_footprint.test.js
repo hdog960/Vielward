@@ -116,16 +116,16 @@ stream.renderForeground(ctx(),stream.player);
 stream.renderDebug(ctx(),1536,708,.78);
 ok(stream.stats().footprint?.maximumCachedFields===6000,"field feature cache is memory bounded on iPhone");
 const body=source["game.js"],html=source["index.html"],sw=source["sw.js"];
-for(const asset of ["world_review.js?v=4","world_routes.js?v=4","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=7","world_stream.js?v=9","game.js?v=28","visual.css?v=15","manifest.webmanifest?v=136"])
+for(const asset of ["world_review.js?v=4","world_routes.js?v=4","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=8","world_stream.js?v=10","game.js?v=29","visual.css?v=15","manifest.webmanifest?v=138"])
  ok(html.includes(asset)&&sw.includes(asset),"HTML and PWA worker version parity "+asset);
 ok(body.includes("outdoor_footprint.json?v=1")&&sw.includes("outdoor_footprint.json?v=1"),"authoritative world data is fetched by the live game and pre-cached offline");
-ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=5")&&html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=7")&&html.indexOf("terrain_art.js?v=7")<html.indexOf("world_stream.js?v=9"),
+ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=5")&&html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=8")&&html.indexOf("terrain_art.js?v=8")<html.indexOf("world_stream.js?v=10"),
  "browser loads geometry, footprint, art and streamer in dependency order");
 ok(html.includes('id="materialShowcaseBtn"')&&html.includes("12-Region World Survey")&&body.includes("const showcaseStops"),"full-world survey navigable on iPhone");
-ok(body.includes('const APP_VERSION="1.3.6";'),"actual live game version is 1.3.0");
+ok(body.includes('const APP_VERSION="1.3.8";'),"actual live game version is 1.3.0");
 ok(body.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure save key preserved");
 ok(body.includes("if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!stream.illustration||!stream.setpieces||!window.VeilwardReview)"),"game refuses partial mismatched world modules");
-ok(sw.includes("veilward-hollowreach-v136-setpieces-r2"),"installed Home Screen cache rotated");
+ok(sw.includes("veilward-hollowreach-v138-hollowreach-raster"),"installed Home Screen cache rotated");
 ok(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"'),"approved eight-direction player art never changed");
 ok(source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"distinct Warden Hal sprite never changed");
 console.log("Veilward Phase 6 PASS:",checks,"footprint, reachable regions, scenery, physics, source/compositing and PWA checks;",routeSteps,"sampled walk steps.");

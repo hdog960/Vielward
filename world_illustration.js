@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.6",PI=Math.PI;
+const V="1.3.8",PI=Math.PI;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 function hash(a,b,c=0){let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
 function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
@@ -14,7 +14,7 @@ function oval(ctx,x,y,rx,ry,col){ctx.save();ctx.translate(x,y);ctx.scale(Math.ma
 function line(ctx,a,b,color,w){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineWidth=w;ctx.strokeStyle=color;ctx.stroke()}
 function inView(x,y,b,pad=400){return x>b[0]-pad&&x<b[2]+pad&&y>b[1]-pad&&y<b[3]+pad}
 function create(model,geometry,options={}){
- const footprint=options.footprint,climate=options.climate,setpieces=options.setpieces||null,unit=model.worldDesign.worldUnitScale;
+ const footprint=options.footprint,climate=options.climate,setpieces=options.setpieces||null,raster=options.raster||null,unit=model.worldDesign.worldUnitScale;
  if(!footprint||!climate||!geometry?.roads)throw Error("Illustrated environment requires the actual land, climate and solid sources");
  const anchors=Object.fromEntries(model.nodes.map(n=>[n.id,n.point.map(q=>q*unit)]));
  const hubs=footprint.source.hubs.map(h=>({...h,x:anchors[h.anchor][0],y:anchors[h.anchor][1],r:h.radius*unit}));
@@ -135,6 +135,7 @@ function create(model,geometry,options={}){
   for(let i=0;i<5;i++)line(ctx,[x-r*.65+i*r*.34,y-27-i*2],[x-r*.63+i*r*.34,y-22-i*2],"#b99a79",3)
  }
  function drawFeature(ctx,o){
+  if(raster?.drawFeature(ctx,o))return;
   switch(o.kind){
    case "pine":pine(ctx,o);break;
    case "oak":oak(ctx,o);break;
@@ -315,6 +316,7 @@ function create(model,geometry,options={}){
    .sort((a,b)=>a.y-b.y);
   for(const f of features)drawFeature(ctx,f);
   for(const h of hubs)if(inView(h.x,h.y,bounds,h.r+460)){
+   if(raster?.drawHub(ctx,h))continue;
    // The new detailed Coldpine cottage supersedes the old schematic lodge;
    // never paint two mutually incompatible buildings on one footprint.
    if(h.kind==="lodge"&&setpieces?.objects.some(o=>o.anchor==="colp_lodge"&&o.kind==="snow_cottage"))continue;
@@ -324,6 +326,7 @@ function create(model,geometry,options={}){
  }
  function drawStatic(ctx,s){
   if(s.material!=="pine-trunk"&&s.material!=="tree-trunk")return false;
+  if(raster?.drawStatic(ctx,s))return true;
   const pineType=s.material==="pine-trunk",x=s.cx,y=s.cy;
   if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(s.radius))return false;
   drawFeature(ctx,{id:s.id,x,y,radius:s.radius,kind:pineType?"pine":"oak",
@@ -331,6 +334,7 @@ function create(model,geometry,options={}){
   return true
  }
  function foreground(ctx,player){
+  if(raster?.drawForeground(ctx,player))return;
   for(const o of [...footprint.cells([player.x-320,player.y-320,player.x+320,player.y+240],175),
   ...footprint.groves([player.x-320,player.y-320,player.x+320,player.y+240],175)]){
    if(!["pine","oak"].includes(o.kind)||o.y<=player.y||Math.abs(o.x-player.x)>o.radius*1.4||o.y-player.y>o.radius*2)continue;
@@ -339,7 +343,7 @@ function create(model,geometry,options={}){
    ctx.restore()
   }
  }
- function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces}}
+ function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster}}
  return{version:V,drawGround,drawFeatures,drawStatic,drawForeground:foreground,stats}
 }
 window.VeilwardIllustration={version:V,create};

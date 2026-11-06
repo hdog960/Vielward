@@ -4,6 +4,8 @@ on:
     paths:
       - "scripts/visual_capture.mjs"
       - ".github/workflows/visual-qa.yml"
+      - "world_raster_pilot.js"
+      - "assets/hollowreach_pilot_sprites_v1.png"
       - "world_setpieces.js"
       - "world_illustration.js"
       - "terrain_art.js"
@@ -33,6 +35,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: veilward-visual-recovery-r2
+          name: veilward-hollowreach-authored-art-pilot
           path: artifacts/*.jpg
           if-no-files-found: warn
