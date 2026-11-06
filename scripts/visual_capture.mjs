@@ -12,7 +12,10 @@ try{
  const page=await browser.newPage({viewport:{width:1136,height:640},deviceScaleFactor:1,hasTouch:true});
  const errs=[];page.on("pageerror",err=>errs.push(String(err)));
  page.setDefaultTimeout(45000);
- await page.goto("http://127.0.0.1:"+port+"/",{waitUntil:"domcontentloaded"});
+ // The installed PWA service worker can navigate clients once on activation.
+ // Supply the known build selector up front so it cannot destroy the
+ // image-inspection execution context mid-check.
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.6",{waitUntil:"domcontentloaded"});
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
  // "after" screenshot by placing the source backdrop behind world sprites.
