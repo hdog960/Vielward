@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.12",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.13",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
@@ -256,13 +256,34 @@ function create(model,geometry,options={}){
  function paintedRoad(ctx,e){
   const m=e.path[Math.floor(e.path.length/2)];
   if(!m||!winter(m[0],m[1])||e.crossing)return false;
+  // R7: a worn snowbound lane follows the EXACT original route, never a new
+  // invented walking corridor. Tiny visual bends stay well within its bounds.
+  const center=[];
+  for(const [a,b,prior,len] of e.parts){
+   if(len<1)continue;
+   const dx=(b[0]-a[0])/len,dy=(b[1]-a[1])/len,
+    nx=-dy,ny=dx,n=Math.max(1,Math.ceil(len/70));
+   for(let i=0;i<=n;i++){
+    if(center.length&&i===0)continue;
+    const t=i/n,dist=prior+t*len;
+    const bend=Math.sin(Math.PI*t)*(Math.sin(dist*.019+e.id.length*.71)*4+
+     Math.sin(dist*.041+e.id.length*.27)*2);
+    center.push([a[0]+dx*len*t+nx*bend,a[1]+dy*len*t+ny*bend])
+   }
+  }
+  if(center.length<2)return false;
   ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
-  function stroke(color,width){ctx.beginPath();e.path.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));
-   ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
-  // Real illustrated stone textures replace a smooth concrete-tube ribbon.
-  // Visual width stays INSIDE the existing collision corridor.
-  stroke("rgba(56,68,91,.11)",e.halfWidth*.84+6);
-  stroke("#c2ccd8",e.halfWidth*.76);
+  function stroke(color,width,opacity=1){
+   ctx.globalAlpha=opacity;
+   ctx.beginPath();
+   center.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+   ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()
+  }
+  // Bleed the illustrated road material into the snow with layered, low-
+  // contrast shoulders, not an uninterrupted white-edged concrete ribbon.
+  stroke("#8797ac",e.halfWidth*1.23,.075);
+  stroke("#dbe1e5",e.halfWidth*1.02,.17);
+  stroke("#91a0b0",e.halfWidth*.84,.19);
   if(!stonePattern&&typeof ctx.createPattern==="function"&&
     typeof document!=="undefined"&&document.createElement){
    const tile=groundPlates?.[1]||document.createElement("canvas");
@@ -273,11 +294,10 @@ function create(model,geometry,options={}){
    }
    stonePattern=ctx.createPattern(tile,"repeat")
   }
-  ctx.globalAlpha=.64;
-  stroke(stonePattern||"#a7a9af",e.halfWidth*.57);
-  ctx.globalAlpha=.13;
-  stroke("#d6dce1",e.halfWidth*.16);
-  ctx.restore();return true
+  stroke(stonePattern||"#a7acb6",e.halfWidth*.60,.51);
+  stroke("#d9e0e5",e.halfWidth*.20,.13);
+  ctx.restore();
+  return true
  }
  function decorateRoute(ctx,e,bounds){
   if(e.crossing&&e.kind==="bridge"){
@@ -355,13 +375,84 @@ function create(model,geometry,options={}){
   }
   return painted
  }
+ function handlesWinterSolid(s){
+  if(!s)return false;
+  if(["pine-trunk","tree-trunk","lantern-post"].includes(s.material))
+   return Number.isFinite(s.cx)&&winter(s.cx,s.cy);
+  if(s.material==="cliff-face"&&s.polygon?.length){
+   const cx=s.polygon.reduce((total,p)=>total+p[0],0)/s.polygon.length;
+   const cy=s.polygon.reduce((total,p)=>total+p[1],0)/s.polygon.length;
+   return winter(cx,cy)
+  }
+  return false
+ }
+ function drawWinterScene(ctx,bounds,objects=[]){
+  // A SINGLE physical feet-Y painter order for authored firs, cliffs,
+  // cottages, lanterns and source-defined geometry. Previously cottages
+  // were all rendered on top of every tree regardless of actual position.
+  const tasks=[];
+  const visible=(x,y,pad=440)=>x>=bounds[0]-pad&&x<=bounds[2]+pad&&
+    y>=bounds[1]-pad&&y<=bounds[3]+pad;
+  const seen=new Set();
+  const features=[...footprint.cells(bounds,460),...footprint.groves(bounds,460)];
+  for(const o of features){
+   if(!winter(o.x,o.y)||!visible(o.x,o.y))continue;
+   if(seen.has(o.id))continue;seen.add(o.id);
+   tasks.push({y:o.y,id:"a"+o.id,paint:()=>drawFeature(ctx,o)})
+  }
+  for(const h of footprint.source.hubs){
+   if(regionOfAnchor(h.anchor)!==region||h.kind!=="smithy")continue;
+   const n=nodes.get(h.anchor);if(!n)continue;
+   const x=n.point[0]*model.worldDesign.worldUnitScale;
+   const y=n.point[1]*model.worldDesign.worldUnitScale;
+   if(visible(x,y,530))tasks.push({y,id:"h"+h.anchor,
+    paint:()=>drawHub(ctx,{...h,x,y})})
+  }
+  for(const o of objects){
+   if(!coveredSetpiece(o)||!visible(o.x,o.y,540))continue;
+   tasks.push({y:o.y,id:"o"+o.id,paint:()=>drawSetpieces(ctx,bounds,[o])})
+  }
+  for(const s of geometry.solids||[]){
+   if(!handlesWinterSolid(s))continue;
+   const points=s.polygon||null;
+   const x=points?points.reduce((a,p)=>a+p[0],0)/points.length:s.cx;
+   const y=points?Math.max(...points.map(p=>p[1])):s.cy;
+   if(!visible(x,y,650))continue;
+   tasks.push({y,id:"s"+s.id,paint:()=>s.material==="cliff-face"?
+     drawCliff(ctx,s):drawStatic(ctx,s)})
+  }
+  tasks.sort((a,b)=>a.y-b.y||a.id.localeCompare(b.id));
+  for(const task of tasks)task.paint();
+  return tasks.length
+ }
+ function drawVillageGround(ctx,bounds){
+  // One softly worn, source-anchored gathering apron, NOT a separate prop,
+  // false doorway, impassable floor or painted full-scene backdrop.
+  if(typeof ctx.createRadialGradient!=="function")return false;
+  const n=nodes.get("village");if(!n)return false;
+  const x=n.point[0]*model.worldDesign.worldUnitScale;
+  const y=n.point[1]*model.worldDesign.worldUnitScale;
+  const radius=330;
+  if(x+radius<bounds[0]||x-radius>bounds[2]||
+    y+radius<bounds[1]||y-radius>bounds[3])return false;
+  ctx.save();
+  ctx.translate(x,y);ctx.scale(1,.65);
+  const glow=ctx.createRadialGradient(0,0,28,0,0,radius);
+  glow.addColorStop(0,"rgba(126,141,157,.16)");
+  glow.addColorStop(.48,"rgba(177,189,202,.075)");
+  glow.addColorStop(1,"rgba(194,207,219,0)");
+  ctx.fillStyle=glow;
+  ctx.fillRect(-radius,-radius,radius*2,radius*2);
+  ctx.restore();return true
+ }
  function stats(){return{version:VERSION,source:"authored raster assets (3 object + 3 infrastructure + 16 ground)",
   artworkCells:30,pilotRegion:region,materialPlateSize:PLATE_SIZE,
   neighborhoodAtlasReady:!!neighborhood,neighborhoodSprites:8,
+  winterDepthSorted:true,physicalRoadWeathering:true,
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
-  drawCliff,drawForeground,drawVillageAtmosphere,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
+  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
 window.VeilwardRasterPilot={version:VERSION,load,create,
