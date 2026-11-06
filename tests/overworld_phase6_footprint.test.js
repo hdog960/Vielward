@@ -23,8 +23,8 @@ for(const p of ["world_geometry.js","world_footprint.js","terrain_art.js","world
  vm.runInNewContext(source[p],host,{filename:p});
 const G=host.VeilwardGeometry,F=host.VeilwardFootprint,A=host.VeilwardTerrainArt,W=host.VeilwardWorldStream;
 eq(F.version,"1.3.6","new real outdoor footprint module");
-eq(W.version,"1.3.12","streamer upgraded");
-eq(A.version,"1.3.12","actual art compositor upgraded");
+eq(W.version,"1.3.13","streamer upgraded");
+eq(A.version,"1.3.13","actual art compositor upgraded");
 eq(model.regions.length,12,"12 approved regions");
 eq(landData.regions.length,12,"12 source-composed region rules");
 eq(landData.hubs.length,13,"13 authored landmark hubs");
@@ -116,13 +116,13 @@ stream.renderForeground(ctx(),stream.player);
 stream.renderDebug(ctx(),1536,708,.78);
 ok(stream.stats().footprint?.maximumCachedFields===6000,"field feature cache is memory bounded on iPhone");
 const body=source["game.js"],html=source["index.html"],sw=source["sw.js"];
-for(const asset of ["world_review.js?v=4","world_routes.js?v=7","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=11","world_stream.js?v=12","game.js?v=33","visual.css?v=15","manifest.webmanifest?v=1312"])
+for(const asset of ["world_review.js?v=4","world_routes.js?v=8","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=12","world_stream.js?v=13","game.js?v=34","visual.css?v=15","manifest.webmanifest?v=1313"])
  ok(html.includes(asset)&&sw.includes(asset),"HTML and PWA worker version parity "+asset);
 ok(body.includes("outdoor_footprint.json?v=1")&&sw.includes("outdoor_footprint.json?v=1"),"authoritative world data is fetched by the live game and pre-cached offline");
-ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=5")&&html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=11")&&html.indexOf("terrain_art.js?v=11")<html.indexOf("world_stream.js?v=12"),
+ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=5")&&html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=12")&&html.indexOf("terrain_art.js?v=12")<html.indexOf("world_stream.js?v=13"),
  "browser loads geometry, footprint, art and streamer in dependency order");
 ok(html.includes('id="materialShowcaseBtn"')&&html.includes("12-Region World Survey")&&body.includes("const showcaseStops"),"full-world survey navigable on iPhone");
-ok(body.includes('const APP_VERSION="1.3.12";'),"actual live game version is 1.3.0");
+ok(body.includes('const APP_VERSION="1.3.13";'),"actual live game version is 1.3.0");
 ok(body.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure save key preserved");
 ok(body.includes("if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!stream.illustration||!stream.setpieces||!stream.raster||!window.VeilwardReview)"),"game refuses partial mismatched world modules");
 ok(sw.includes("veilward-hollowreach-v1312-raster-neighborhood"),"installed Home Screen cache rotated");
