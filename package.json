@@ -4,7 +4,7 @@
   "private": true,
   "description": "Static iPhone action-RPG vertical slice (no runtime packages)",
   "scripts": {
-    "test": "node tests/phase3_scene_geometry.test.js && node tests/phase4_combat.test.js && node tests/phase5_quest.test.js && npm run audit:world && npm run audit:topology && npm run audit:streaming && npm run audit:geometry && npm run audit:art && npm run audit:footprint && npm run audit:climate && npm run audit:routes && npm run audit:review && npm run audit:recovery && npm run audit:setpieces && npm run audit:raster-pilot && npm run audit:winter-materials && npm run audit:composition && npm run audit:winter-plate",
+    "test": "node tests/phase3_scene_geometry.test.js && node tests/phase4_combat.test.js && node tests/phase5_quest.test.js && npm run audit:world && npm run audit:topology && npm run audit:streaming && npm run audit:geometry && npm run audit:art && npm run audit:footprint && npm run audit:climate && npm run audit:routes && npm run audit:review && npm run audit:recovery && npm run audit:setpieces && npm run audit:raster-pilot && npm run audit:winter-materials && npm run audit:composition && npm run audit:winter-plate && npm run audit:neighborhood-art",
     "check": "node --check game.js && node --check quest.js && node --check combat.js && node --check navigation.js && node --check visual.js && node --check sw.js && node --check world_geometry.js && node --check world_stream.js && node --check terrain_art.js && node --check world_footprint.js && node --check world_climate.js && node --check world_routes.js && node --check world_review.js && node --check world_illustration.js && node --check world_setpieces.js && node --check world_raster_pilot.js",
     "audit:world": "node tests/overworld_phase1_audit.test.js",
     "audit:topology": "node tests/overworld_phase2_topology.test.js",
@@ -21,6 +21,7 @@
     "audit:raster-pilot": "node tests/hollowreach_raster_pilot.test.js",
     "audit:winter-materials": "node tests/hollowreach_materials_r3.test.js",
     "audit:composition": "node tests/hollowreach_composition_r4.test.js",
-    "audit:winter-plate": "node tests/hollowreach_winter_plate_r5.test.js"
+    "audit:winter-plate": "node tests/hollowreach_winter_plate_r5.test.js",
+    "audit:neighborhood-art": "node tests/hollowreach_neighborhood_r6.test.js"
   }
 }
