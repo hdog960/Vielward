@@ -45,11 +45,11 @@ for(const path of paths)vm.runInNewContext(S[path],sandbox,{filename:path});
  const pilot=sandbox.VeilwardRasterPilot;
  await pilot.load();assert.ok(pilot.ready,"all 3 real painted atlases loaded");
  const world=sandbox.VeilwardWorldStream.create(model,{geometry:geometryData,footprint:landData,canvasFactory:canvas});
- assert.equal(world.version,"1.3.10");
- assert.equal(world.art.version,"1.3.10");
- assert.equal(world.routeArt.version,"1.3.10");
- assert.equal(world.illustration.version,"1.3.10");
- assert.equal(world.raster.version,"1.3.10");
+ assert.equal(world.version,"1.3.11");
+ assert.equal(world.art.version,"1.3.11");
+ assert.equal(world.routeArt.version,"1.3.11");
+ assert.equal(world.illustration.version,"1.3.11");
+ assert.equal(world.raster.version,"1.3.11");
  assert.equal(world.raster.stats().artworkCells,22,"3+3+16 painted objects, infrastructure and terrain");
  assert.equal(world.raster.stats().creatorApproved,false);
  assert.equal(world.raster.stats().fullBackgroundPasted,false);
@@ -88,15 +88,15 @@ for(const path of paths)vm.runInNewContext(S[path],sandbox,{filename:path});
  const html=fs.readFileSync("index.html","utf8"),sw=fs.readFileSync("sw.js","utf8");
  for(const asset of ["assets/hollowreach_bridge_stairs_lamp_v2.png?v=1",
  "assets/hollowreach_ground_painted_v2.webp?v=1",
- "world_raster_pilot.js?v=4","world_routes.js?v=6",
- "world_illustration.js?v=5","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31"]){
+ "world_raster_pilot.js?v=5","world_routes.js?v=7",
+ "world_illustration.js?v=6","terrain_art.js?v=11","world_stream.js?v=12","game.js?v=32"]){
   assert.ok(sw.includes(asset),"all iPhone offline assets precached "+asset);
   if(!asset.startsWith("assets/"))assert.ok(html.includes(asset),"game references same updated code "+asset)
  }
- assert.ok(sw.includes("veilward-hollowreach-v1310-hollowreach-composition"));
+ assert.ok(sw.includes("veilward-hollowreach-v1311-winter-seam-composition"));
  const game=fs.readFileSync("game.js","utf8");
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure saved unchanged");
- assert.ok(game.includes('const APP_VERSION="1.3.10";'));
+ assert.ok(game.includes('const APP_VERSION="1.3.11";'));
  console.log("ART MATERIALS R3 PASS",ops,
  "22 authored image elements, real roads and all 48 travel anchors preserved; ART NOT ACCEPTED.");
 })().catch(e=>{console.error(e);process.exit(1)});
