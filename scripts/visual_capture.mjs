@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.12",{waitUntil:"domcontentloaded"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.13",{waitUntil:"domcontentloaded"});
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
  // "after" screenshot by placing the source backdrop behind world sprites.
@@ -69,8 +69,8 @@ try{
   neighborhoodAtlas:!!window.VeilwardRasterPilot?.ready,
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.12"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas)
-  throw Error("Incomplete v1.3.12 visual preview "+JSON.stringify(state));
+ if(state.build!=="v1.3.13"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas)
+  throw Error("Incomplete v1.3.13 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
@@ -86,7 +86,7 @@ async function settle(page){
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_neighborhood_r6.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_scene_depth_r7.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.
