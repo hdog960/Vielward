@@ -139,13 +139,17 @@ function create(model,geometry,options={}){
   // snow thicket, timber rail, retaining wall, and hanging lantern.
   if(!neighborhood||!ctx?.drawImage||index<0||index>7)return false;
   const w=Math.round(width),h=Math.round(height);
+  // Crop transparent cell margins around the tall firs: keep the actual
+  // winter canopy proportion rather than shrinking it into a narrow pole.
+  const srcX=(index%4)*72+(index<2?10:0),
+   srcY=Math.floor(index/4)*72,srcW=index<2?52:72;
   ctx.save();ctx.imageSmoothingEnabled=true;
   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*alpha;
   if(flip){
    ctx.translate(Math.round(x),0);ctx.scale(-1,1);
-   ctx.drawImage(neighborhood,(index%4)*72,Math.floor(index/4)*72,72,72,
+   ctx.drawImage(neighborhood,srcX,srcY,srcW,72,
     Math.round(-w/2),Math.round(y-h),w,h)
-  }else ctx.drawImage(neighborhood,(index%4)*72,Math.floor(index/4)*72,72,72,
+  }else ctx.drawImage(neighborhood,srcX,srcY,srcW,72,
     Math.round(x-w/2),Math.round(y-h),w,h);
   ctx.restore();return true
  }
@@ -198,10 +202,17 @@ function create(model,geometry,options={}){
    if(!coveredSetpiece(o))continue;
    if(o.x<bounds[0]-500||o.x>bounds[2]+500||o.y<bounds[1]-500||o.y>bounds[3]+500)continue;
    if(o.kind==="snow_cottage"){
-    const w=Math.min(405,330+o.r*.45),h=Math.min(365,295+o.r*.38);
-    // A covered cottage-front rail sits inside its EXISTING solid footprint.
-    if(stamp(ctx,1,o.x,o.y,w,h,o.seed%2===0))count++;
-    drawNeighborhood(ctx,5,o.x,o.y+o.r*.47,o.r*1.37,o.r*.73,o.seed%2===0,.91)
+    // Three distinct existing solid footprints receive distinct proportions
+    // and a connected painted porch edge, not a detached fence in the square.
+    const type=o.seed%3,flipped=type===1,
+     w=Math.min(415,330+o.r*.45+(type-1)*19),
+     h=Math.min(380,295+o.r*.38+(type===2?15:0));
+    if(stamp(ctx,1,o.x,o.y,w,h,flipped))count++;
+    const accent=type===1?6:5,side=type===1?-.40:.40;
+    drawNeighborhood(ctx,accent,o.x+o.r*side,o.y-o.r*.06,
+     o.r*(type===1?.72:.96),o.r*(type===1?.61:.67),flipped,.89);
+    if(type!==2)drawNeighborhood(ctx,4,o.x-o.r*.62,o.y-o.r*.06,
+     o.r*.66,o.r*.42,type===1,.9)
    }
    if(o.kind==="brazier"&&drawNeighborhood(ctx,7,o.x,o.y,89,132))count++;
    if(o.kind==="sign"&&drawDetail(ctx,2,o.x,o.y,66,111))count++;
