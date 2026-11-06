@@ -13,6 +13,25 @@ try{
  const errs=[];page.on("pageerror",err=>errs.push(String(err)));
  page.setDefaultTimeout(45000);
  await page.goto("http://127.0.0.1:"+port+"/",{waitUntil:"domcontentloaded"});
+ // Capture the approved illustrated scenes from the original authored assets,
+ // for a truthful source-to-playable-world comparison. Never fabricate an
+ // "after" screenshot by placing the source backdrop behind world sprites.
+ for(const [key,filename] of [["VILLAGE","village_v06_clear.jpg"],["FOREST","wilds_clean.jpg"]]){
+  const shot=await page.evaluate(async file=>{
+   const image=new Image();image.src="./assets/"+file;
+   await image.decode();
+   const canvas=document.createElement("canvas");canvas.width=900;canvas.height=584;
+   const c=canvas.getContext("2d");
+   c.drawImage(image,0,0,canvas.width,canvas.height);
+   return {width:image.naturalWidth,height:image.naturalHeight,data:canvas.toDataURL("image/jpeg",.48).split(",")[1]};
+  },filename);
+  const bytes=Buffer.from(shot.data,"base64");
+  writeFileSync("artifacts/reference_"+key.toLowerCase()+".jpg",bytes);
+  console.log("APPROVED_REFERENCE_"+key+"_DIMENSIONS "+shot.width+"x"+shot.height);
+  for(let i=0;i<shot.data.length;i+=3800)
+   console.log("APPROVED_REFERENCE_"+key+"_PART:"+shot.data.slice(i,i+3800));
+ }
+
  await page.waitForFunction(()=>document.querySelector("#beginBtn")?.textContent?.includes("ENTER HOLLOWREACH"),null,{timeout:60000});
  await page.click("#beginBtn");
  await page.click("#pauseBtn");
