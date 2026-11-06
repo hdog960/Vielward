@@ -18,7 +18,7 @@ try{
  await page.click("#pauseBtn");
  await page.click("#worldPreviewBtn");
  await page.waitForFunction(()=>document.querySelector("#reviewAtlasBtn")?.style?.display==="block",null,{timeout:60000});
- await sleep(1200);
+ await settle(page);
  await capture(page,"HOLLOWREACH");
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
@@ -26,17 +26,17 @@ try{
  await sleep(1700);
  await capture(page,"ATLAS");
  await page.locator('.reviewRegion[aria-label="Explore Greenwood"]').click();
- await sleep(1100);
+ await settle(page);
  await capture(page,"GREENWOOD");
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
  await page.locator('.reviewRegion[aria-label="Explore Coldpine Ridge"]').click();
- await sleep(1100);
+ await settle(page);
  await capture(page,"COLDPINE");
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
  await page.locator('.reviewRegion[aria-label="Explore Frostbridge River"]').click();
- await sleep(1150);
+ await settle(page);
  await capture(page,"FROSTBRIDGE");
  const state=await page.evaluate(()=>({build:document.querySelector("#buildVersion")?.textContent,
   regions:document.querySelectorAll(".reviewRegion").length,
@@ -51,6 +51,12 @@ try{
 }finally{
  if(browser)await browser.close();
  server.kill();
+}
+async function settle(page){
+ // The normal game shows a temporary travel toast for 2.7s. Capture the
+ // same clean scene a player sees after it goes away, not a HUD banner.
+ await page.waitForFunction(()=>document.querySelector("#toast")?.style.display==="none",null,{timeout:10000});
+ await sleep(650);
 }
 async function capture(page,name){
  const original={width:1136,height:640};
