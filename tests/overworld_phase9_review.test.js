@@ -21,7 +21,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js","wor
  vm.runInNewContext(source[p],host,{filename:p});
 const W=host.VeilwardWorldStream,Review=host.VeilwardReview,stream=W.create(model,{geometry:gd,footprint:fd,canvasFactory:canvas});
 const review=Review.create(model,stream),u=model.worldDesign.worldUnitScale;
-eq(Review.version,"1.3.6","review module ready");
+eq(Review.version,"1.3.7","review module ready");
 eq(review.stats().regions,12,"all twelve actual regions in atlas");
 eq(review.stats().roads,65,"real complete source path graph in atlas");
 eq(review.stats().crossings,7,"all authored physical crossings in atlas");
@@ -125,15 +125,15 @@ for(const id of review.regions.map(r=>r.id)){
 }
 yes(rendered.images>250&&rendered.paths>250&&rendered.clips>0,"all in-world snapshots, props, source roads and foregrounds actually draw");
 const html=source["index.html"],game=source["game.js"],sw=source["sw.js"],css=source["visual.css"];
-for(const item of ["world_review.js?v=4","visual.css?v=15","game.js?v=28","manifest.webmanifest?v=136"])
+for(const item of ["world_review.js?v=4","visual.css?v=15","game.js?v=29","manifest.webmanifest?v=137"])
  yes(html.includes(item)&&sw.includes(item),"Safari and iPhone PWA share versioned Phase 9 "+item);
-yes(html.indexOf("world_stream.js?v=9")<html.indexOf("world_review.js?v=4")&&html.indexOf("world_review.js?v=4")<html.indexOf("game.js?v=28"),"world atlas loads after authoritative streamer and before game");
+yes(html.indexOf("world_stream.js?v=10")<html.indexOf("world_review.js?v=4")&&html.indexOf("world_review.js?v=4")<html.indexOf("game.js?v=29"),"world atlas loads after authoritative streamer and before game");
 for(const id of ["reviewAtlasBtn","worldReview","reviewMap","reviewRegionGrid","closeReviewBtn"])
  yes(html.includes('id="'+id+'"')&&game.includes(id),"real interactive iPhone review UI wired "+id);
 yes(game.includes("review.paintRegion")&&game.includes("review.paintOverview")&&game.includes("jumpReviewRegion"),"review cards render real in-game art and physically teleport to source anchors for walking");
 yes(css.includes(".reviewThumb")&&css.includes("touch-action:pan-y"),"landscape iPhone atlas is scrollable and uses pixelated source snapshots");
-yes(game.includes('const SAVE="veilward-hollowreach-v01";')&&game.includes('const APP_VERSION="1.3.6";'),"original adventure saved progress preserved in review build");
-yes(sw.includes("veilward-hollowreach-v136-setpieces-r2"),"installed iPhone app rotates 1.3.6 cache");
+yes(game.includes('const SAVE="veilward-hollowreach-v01";')&&game.includes('const APP_VERSION="1.3.7";'),"original adventure saved progress preserved in review build");
+yes(sw.includes("veilward-hollowreach-v137-source-material-reset"),"installed iPhone app rotates 1.3.7 cache");
 yes(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&
  source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"golden reference character sprites remain protected");
 yes(source["OVERWORLD_REBUILD_ROADMAP.md"].includes("### MANDATORY CHECKPOINT"),"creator signoff after Phase 9 remains a hard stop");

@@ -61,9 +61,10 @@ try{
   regions:document.querySelectorAll(".reviewRegion").length,
   illustration:!!window.VeilwardIllustration,
   setpieces:!!window.VeilwardSetpieces,
+  sourceArtwork:!!window.VeilwardSourceMaterials?.ready,
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.6"||state.regions!==12||!state.illustration||!state.setpieces)
+ if(state.build!=="v1.3.7"||state.regions!==12||!state.illustration||!state.setpieces||!state.sourceArtwork)
   throw Error("Incomplete v1.3.6 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
@@ -80,7 +81,7 @@ async function settle(page){
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_r2.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_r3.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.

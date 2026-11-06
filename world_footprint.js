@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.6",TAU=2*Math.PI;
+const VERSION="1.3.7",TAU=2*Math.PI;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 function hash(x,y,seed){let n=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(seed|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296}
 function inside(x,y,poly){let yes=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){

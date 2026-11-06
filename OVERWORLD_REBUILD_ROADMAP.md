@@ -1,3 +1,7 @@
+## MANDATORY COURSE CORRECTION — ART RESET R3 (v1.3.7)
+
+Creator feedback: the expanded map was being filled with **blocky trash**, not progressing toward the original established art style. This is correct. The original's authored dense 32-bit-style painting, elevation and roof/wood/stone detail is the locked visual contract. **Suspend further procedural environment decoration.** This R3 source-material pilot references the existing approved painted scenes for the actual raster material atlas and disables R2 polygons/obstacles in the normal preview, but it is **not visually approved**. Build proper isolated/painted pixel assets and a highly detailed Hollowreach/Greenwood proof slice before any further biome expansion. No Phase 10 work. See `docs/overworld/ART_RESET_R3.md`.
+
 # VEILWARD — CONTINUOUS OVERWORLD REBUILD ROADMAP
 **Status: APPROVED BY CREATOR — DEVELOPMENT MAY PROCEED PHASE-BY-PHASE UPON INSTRUCTION**  
 **Prepared:** November 5, 2026  

@@ -1,3 +1,15 @@
+# VEILWARD v1.3.7 — ORIGINAL ART DIRECTION RESET
+
+**The original illustrated Hollowreach and Greenwood scenes are still our NON-NEGOTIABLE visual target.** The creator rejected the procedural overworld's flat materials, tube roads and polygon huts. We are not calling that a different art direction or a finished style.
+
+The latest playable build is a **source-material pilot**, NOT accepted rebuilt environments. It uses reusable texture swatches sampled from the actual original painted `village_v06_clear.jpg` and `wilds_clean.jpg` art, rather than the random confetti-like 32px atlas. The live R2 block-cottages and stalls (and their colliders) are disabled in this mode. The source paintings continue to power the **unchanged original Hollowreach adventure** with the same approved heroes, NPCs, quests and local save.
+
+[Play Veilward](https://hdog960.github.io/Vielward/) · [Artist-source reset plan and limitations](./docs/overworld/ART_RESET_R3.md) · [Actual material source code](./world_source_materials.js).
+
+**Visual acceptance remains 0% and Phase 10 is locked.** Detailed sprite sheets for actual three-quarter terrain, cliffs, buildings and foreground vegetation, plus direct on-device comparison, are still REQUIRED.
+
+---
+
 # VEILWARD v1.3.6 — VISUAL RECOVERY R2 (ART ACCEPTANCE STILL 0%)
 
 **Playable visual development:** 29 physically validated fantasy village, forest, bridge and highland compositions were added on the EXISTING 12-region source map. Source-accurate rock faces now have cliff-strata shading; all seven bridges have finer wood and stone construction; normal travel no longer has the obstructive debug label. The previously accepted 48 locations, 65 roads and 7 crossings, saves, quests and original approved sprites are preserved.

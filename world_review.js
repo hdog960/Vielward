@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.6";
+const VERSION="1.3.7";
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const REGION_NOTES={
  hollowreach:"Snowbound village • the western starting hub",

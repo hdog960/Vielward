@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.6",CELL=96;
+const VERSION="1.3.7",CELL=96;
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const PROFILES=Object.freeze({
  hollowreach:{snow:.96,wet:.24,pine:.76,forest:.18,meadow:0,wetland:0,rock:.18,arcane:0,canyon:0,road:0},

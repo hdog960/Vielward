@@ -7,7 +7,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.6",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
+const VERSION="1.3.7",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
 const PALETTES={
  snow:{base:"#acbcd0",dark:"#788da9",light:"#e4eced",mid:"#bfcdd9",spark:"#f6f5e8",motif:"drift"},
  frost:{base:"#8fa3b8",dark:"#627590",light:"#cedadd",mid:"#adbbc9",spark:"#e9ece8",motif:"shale"},
@@ -90,7 +90,9 @@ function makeAtlas(factory){
 function create(model,geometry,options={}){
  if(!model||!geometry||!geometry.roads)throw Error("Terrain art requires the authoritative world geometry");
  const factory=options.canvasFactory||(()=>document.createElement("canvas"));
- const atlas=makeAtlas(factory),unit=model.worldDesign.worldUnitScale;
+ const sourceMaterials=options.sourceMaterials||null;
+ const atlas=sourceMaterials?.atlas||makeAtlas(factory),atlasTile=sourceMaterials?96:TILE;
+ const unit=model.worldDesign.worldUnitScale;
  const footprint=options.footprint||null;
   const climate=options.climate||null;
  const routeArt=options.routeArt||null;
@@ -152,7 +154,7 @@ function create(model,geometry,options={}){
  function tileVariant(gx,gy){return Math.floor(hash(gx,gy,45)*VARIANTS)}
  function atlasRect(name,variant){
   const m=Math.max(0,MATERIALS.indexOf(name)),i=m*VARIANTS+((variant%VARIANTS+VARIANTS)%VARIANTS);
-  return [(i%COLUMNS)*TILE,Math.floor(i/COLUMNS)*TILE,TILE,TILE]
+  return [(i%COLUMNS)*atlasTile,Math.floor(i/COLUMNS)*atlasTile,atlasTile,atlasTile]
  }
  function stamp(ctx,material,gx,gy,x,y,size=WORLD_CELL){
   const src=atlasRect(material,tileVariant(gx,gy));
@@ -199,7 +201,7 @@ function create(model,geometry,options={}){
   for(const c of cells){
    const material=materialAt(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5);
    stamp(ctx,material,c.gx,c.gy,c.x,c.y);
-   climateDetails(ctx,c,material)
+   if(!sourceMaterials)climateDetails(ctx,c,material)
   }
   // Rock/ice/river/grass transition edges use the SAME world grid on either
   // side of streaming chunk boundaries; no per-chunk seed or white mattes.
@@ -246,7 +248,7 @@ function create(model,geometry,options={}){
      if(s.material==="stone-snow"&&snow<.35)surface="stone";
     }
     stamp(ctx,surface,c.gx,c.gy,c.x,c.y);
-    climateDetails(ctx,c,surface)
+    if(!sourceMaterials)climateDetails(ctx,c,surface)
    }
    ctx.restore();
   }
@@ -392,7 +394,7 @@ function create(model,geometry,options={}){
   drawBase(ctx,bounds);
   if(footprint)footprint.draws(ctx,bounds);
   drawSurfaces(ctx,bounds);
-  if(illustration)illustration.drawGround(ctx,bounds);
+  if(illustration&&!sourceMaterials)illustration.drawGround(ctx,bounds);
   if(routeArt)routeArt.draw(ctx,bounds);else drawRoads(ctx,bounds);
   if(illustration)illustration.drawFeatures(ctx,bounds);
   else if(footprint)footprint.drawScenery(ctx,bounds);
@@ -416,8 +418,8 @@ function create(model,geometry,options={}){
  }
  function diagnostics(){return{version:VERSION,atlasWidth:atlas.width,atlasHeight:atlas.height,
   materials:MATERIALS.length,variants:VARIANTS,sourceTilePixels:TILE,worldCellSize:WORLD_CELL,
-  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,illustrationEnabled:!!illustration,setpiecesEnabled:!!setpieces,usesAuthoritativeSolids:true}}
- return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,illustration,setpieces,paintChunk,paintForeground,
+  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,illustrationEnabled:!!illustration,setpiecesEnabled:!!setpieces,sourceArtwork:!!sourceMaterials,usesAuthoritativeSolids:true}}
+ return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,illustration,setpieces,sourceMaterials,paintChunk,paintForeground,
   materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,diagnostics}
 }
 window.VeilwardTerrainArt={version:VERSION,create,palettes:PALETTES,materials:MATERIALS,
