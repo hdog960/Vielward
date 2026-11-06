@@ -107,7 +107,7 @@ for(const road of geo.roads){
  }
 }
 const html=sources["index.html"],sw=sources["sw.js"],game=sources["game.js"];
-for(const path of ["world_review.js?v=4","world_routes.js?v=6","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31","manifest.webmanifest?v=139"]){
+for(const path of ["world_review.js?v=4","world_routes.js?v=6","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31","manifest.webmanifest?v=1310"]){
  ok(html.includes(path)&&sw.includes(path),"HTML and iPhone service worker cache share asset revision "+path)
 }
 ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_climate.js?v=4")&&

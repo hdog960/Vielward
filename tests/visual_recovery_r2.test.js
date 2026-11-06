@@ -112,7 +112,7 @@ const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
 for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_setpieces.js?v=2",
  "world_illustration.js?v=5","terrain_art.js?v=10","world_routes.js?v=6",
  "world_stream.js?v=11","world_review.js?v=4","game.js?v=31",
- "manifest.webmanifest?v=139"])
+ "manifest.webmanifest?v=1310"])
  ok(html.includes(asset)&&sw.includes(asset),"Safari and iPhone PWA cache exactly same R2 source "+asset);
 ok(html.indexOf("world_setpieces.js?v=2")<html.indexOf("world_illustration.js?v=5")&&
  html.indexOf("world_illustration.js?v=5")<html.indexOf("world_stream.js?v=11"),

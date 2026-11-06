@@ -125,7 +125,7 @@ for(const id of review.regions.map(r=>r.id)){
 }
 yes(rendered.images>250&&rendered.paths>250&&rendered.clips>0,"all in-world snapshots, props, source roads and foregrounds actually draw");
 const html=source["index.html"],game=source["game.js"],sw=source["sw.js"],css=source["visual.css"];
-for(const item of ["world_review.js?v=4","visual.css?v=15","game.js?v=31","manifest.webmanifest?v=139"])
+for(const item of ["world_review.js?v=4","visual.css?v=15","game.js?v=31","manifest.webmanifest?v=1310"])
  yes(html.includes(item)&&sw.includes(item),"Safari and iPhone PWA share versioned Phase 9 "+item);
 yes(html.indexOf("world_stream.js?v=11")<html.indexOf("world_review.js?v=4")&&html.indexOf("world_review.js?v=4")<html.indexOf("game.js?v=31"),"world atlas loads after authoritative streamer and before game");
 for(const id of ["reviewAtlasBtn","worldReview","reviewMap","reviewRegionGrid","closeReviewBtn"])

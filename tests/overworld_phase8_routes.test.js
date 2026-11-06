@@ -120,7 +120,7 @@ for(const stop of ["village","bridge_w","ford_w","falls_w","mossmere_w","island"
 stream.renderDebug(context(),1024,600,.78);
 yes(paint.paths>20&&paint.images>0&&paint.stroke>20,"new road renderer and overlay execute in simulated Canvas");
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
-for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_routes.js?v=6","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31","manifest.webmanifest?v=139"])
+for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_routes.js?v=6","terrain_art.js?v=10","world_stream.js?v=11","game.js?v=31","manifest.webmanifest?v=1310"])
  yes(html.includes(asset)&&sw.includes(asset),"Safari and PWA both pin new file "+asset);
 yes(html.indexOf("world_routes.js?v=6")<html.indexOf("world_stream.js?v=11"),"browser constructs route engine before real streamer");
 yes(game.includes('const APP_VERSION="1.3.10";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"new build and original user saves intact");

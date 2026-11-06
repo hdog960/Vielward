@@ -87,7 +87,7 @@ const pack=S["index.html"],sw=S["sw.js"],game=S["game.js"];
 for(const name of ["world_climate.js?v=4","world_footprint.js?v=5",
  "world_illustration.js?v=5","terrain_art.js?v=10","world_routes.js?v=6",
  "world_stream.js?v=11","world_review.js?v=4","game.js?v=31",
- "manifest.webmanifest?v=139"]){
+ "manifest.webmanifest?v=1310"]){
  ok(pack.includes(name)&&sw.includes(name),"iPhone and HTML pin identical rebuilt art asset "+name)
 }
 ok(pack.indexOf("world_illustration.js?v=5")<pack.indexOf("terrain_art.js?v=10")&&
