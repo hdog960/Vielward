@@ -181,7 +181,9 @@ function tickWorldPreview(dt){
   " • "+state.cachedTiles+" streamed chunks";
  $("location").textContent="OVERWORLD PREVIEW · "+s.regionName();
  const item=s.nearbyInteraction();
- setHint(item?"✋ Inspect "+item.name:"☰ Journey Menu → Review World Map or Visit Region");
+ // Keep the scenery unobstructed during free exploration; only display
+  // an interaction cue when the player's boots are close to a real object.
+  setHint(item?"✋ Inspect "+item.name:"");
 }
 function renderWorldPreview(){
  const s=worldPreview.stream;if(!s)return;

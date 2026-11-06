@@ -26,7 +26,7 @@ const PLACEMENTS=[
  W("joren",-160,160,"snow_cottage",80,39),
  W("joren",350,300,"forge_stall",75,43),
  // High alpine architecture, retaining the existing memorial and cliff solids.
- W("colp_lodge",-160,240,"snow_cottage",90,51),
+ W("colp_lodge",-160,160,"snow_cottage",90,51),
  W("colp_lodge",350,300,"woodpile",40,52),
  W("colp_lodge",-160,-500,"sign",22,53),
  W("northwatch_plaza",-470,-140,"obelisk",51,61),
@@ -42,8 +42,8 @@ const PLACEMENTS=[
  W("thaw_camp",350,300,"woodpile",35,82),
  W("thaw_camp",500,-250,"sign",20,83),
  // Greenwood's shelter, stacked felling logs and flower-garden edge.
- W("greenwood_hearth",160,320,"forest_cottage",92,91),
- W("greenwood_hearth",-400,160,"woodpile",46,92),
+ W("greenwood_hearth",-400,160,"forest_cottage",92,91),
+ W("greenwood_hearth",350,300,"woodpile",46,92),
  W("greenwood_hearth",-260,280,"mushroom_ring",40,93),
  W("greenwood_hearth",300,-430,"sign",22,94),
  W("falls_overlook",-400,360,"stone_wall",60,101),
