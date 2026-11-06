@@ -25,8 +25,8 @@ for(const file of ["world_geometry.js","world_climate.js","world_footprint.js","
  vm.runInNewContext(source[file],host,{filename:file});
 const G=host.VeilwardGeometry,C=host.VeilwardClimate,F=host.VeilwardFootprint,R=host.VeilwardRoutes,A=host.VeilwardTerrainArt,W=host.VeilwardWorldStream;
 eq(R.version,"1.3.6","dedicated road network is versioned");
-eq(W.version,"1.3.6","real streamer includes new roads");
-eq(A.version,"1.3.6","terrain renderer composes new roads");
+eq(W.version,"1.3.8","real streamer includes new roads");
+eq(A.version,"1.3.8","terrain renderer composes new roads");
 const geo=G.create(model,geometryData),climate=C.create(model);
 const routes=R.create(model,geo,{climate}),land=F.create(model,geo,footprintData,{climate});
 const art=A.create(model,geo,{canvasFactory:factory,climate,footprint:land,routeArt:routes});

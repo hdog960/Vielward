@@ -23,8 +23,8 @@ for(const p of ["world_geometry.js","world_footprint.js","terrain_art.js","world
  vm.runInNewContext(source[p],host,{filename:p});
 const G=host.VeilwardGeometry,F=host.VeilwardFootprint,A=host.VeilwardTerrainArt,W=host.VeilwardWorldStream;
 eq(F.version,"1.3.6","new real outdoor footprint module");
-eq(W.version,"1.3.6","streamer upgraded");
-eq(A.version,"1.3.6","actual art compositor upgraded");
+eq(W.version,"1.3.8","streamer upgraded");
+eq(A.version,"1.3.8","actual art compositor upgraded");
 eq(model.regions.length,12,"12 approved regions");
 eq(landData.regions.length,12,"12 source-composed region rules");
 eq(landData.hubs.length,13,"13 authored landmark hubs");

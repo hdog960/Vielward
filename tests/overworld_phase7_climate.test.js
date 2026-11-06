@@ -20,8 +20,8 @@ for(const mod of ["world_geometry.js","world_climate.js","world_footprint.js","t
 const C=host.VeilwardClimate,G=host.VeilwardGeometry,F=host.VeilwardFootprint,A=host.VeilwardTerrainArt,W=host.VeilwardWorldStream;
 eq(C.version,"1.3.6","continuous global climate module loaded");
 eq(F.version,"1.3.6","scenery uses climate");
-eq(A.version,"1.3.6","terrain artist uses climate");
-eq(W.version,"1.3.6","stream creates climate");
+eq(A.version,"1.3.8","terrain artist uses climate");
+eq(W.version,"1.3.8","stream creates climate");
 const climate=C.create(model),geo=G.create(model,geometryData);
 const land=F.create(model,geo,footprintData,{climate});
 const art=A.create(model,geo,{climate,footprint:land,canvasFactory:factory});
