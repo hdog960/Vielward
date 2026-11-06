@@ -25,10 +25,10 @@ for(const file of files.filter(p=>/^(world_|terrain_art)/.test(p)))
 const stream=host.VeilwardWorldStream.create(model,{geometry:gd,footprint:fd,canvasFactory:canvas}),
  scene=stream.setpieces,review=host.VeilwardReview.create(model,stream);
 eq(host.VeilwardSetpieces.version,"1.3.8","versioned authored region setpiece module loads");
-eq(stream.version,"1.3.11","actual streaming world loads new composition");
-eq(stream.art.version,"1.3.11","real terrain compositor paints R2");
-eq(stream.illustration.version,"1.3.11","three-quarter foreground artist integrates region setpieces");
-eq(stream.routeArt.version,"1.3.11","physical seven-crossing art uses richer deck texture");
+eq(stream.version,"1.3.12","actual streaming world loads new composition");
+eq(stream.art.version,"1.3.12","real terrain compositor paints R2");
+eq(stream.illustration.version,"1.3.12","three-quarter foreground artist integrates region setpieces");
+eq(stream.routeArt.version,"1.3.12","physical seven-crossing art uses richer deck texture");
 eq(scene?.version,"1.3.8","R2 piece renderer is not optional in the live runtime");
 eq(stream.stats().setpieces.placed,scene.objects.length,"runtime composition diagnostic is genuine");
 ok(scene.objects.length>=26,"at least 26 physically validated setpieces appear in the real map");
@@ -111,17 +111,17 @@ ok(source["world_stream.js"].includes("setpieces?.blocked(x,y,10,o=>"),
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
 for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_setpieces.js?v=2",
  "world_illustration.js?v=6","terrain_art.js?v=11","world_routes.js?v=7",
- "world_stream.js?v=12","world_review.js?v=4","game.js?v=32",
- "manifest.webmanifest?v=1311"])
+ "world_stream.js?v=12","world_review.js?v=4","game.js?v=33",
+ "manifest.webmanifest?v=1312"])
  ok(html.includes(asset)&&sw.includes(asset),"Safari and iPhone PWA cache exactly same R2 source "+asset);
 ok(html.indexOf("world_setpieces.js?v=2")<html.indexOf("world_illustration.js?v=6")&&
  html.indexOf("world_illustration.js?v=6")<html.indexOf("world_stream.js?v=12"),
  "order builds solid fixtures and artist before stream boot");
-ok(game.includes('const APP_VERSION="1.3.11";')&&
+ok(game.includes('const APP_VERSION="1.3.12";')&&
  game.includes('const SAVE="veilward-hollowreach-v01";'),"preserved legacy save and correct R2 build");
 ok(game.includes('!stream.setpieces')&&game.includes("show&&worldPreview.debug"),
  "real preview requires full R2 art and keeps debug diagnostics off gameplay screen");
-ok(sw.includes("veilward-hollowreach-v1311-winter-seam-composition"),"iPhone offline cache invalidates R1 scene art");
+ok(sw.includes("veilward-hollowreach-v1312-raster-neighborhood"),"iPhone offline cache invalidates R1 scene art");
 ok(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&
  source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved hero and Warden sprite assets unchanged");
 console.log("Veilward R2 SOURCE PASS",assertions,"assertions,",scene.objects.length,"physical compositions,",
