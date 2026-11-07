@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.15",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.16",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -96,6 +96,28 @@ try{
  console.log("R9_SOURCE_BACKED_SHELTERBELT "+JSON.stringify(shelterbelt));
  await sleep(1300);
  await capture(page,"HOLLOWREACH_SHELTERBELT");
+ // R10: capture the ACTUAL stone-and-snow retaining walls from a walkable
+ // Western passage without changing the game's save or production code.
+ const wallView=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const walls=s.geometry.solids.filter(w=>w.material==="retaining-wall");
+  const target={x:282*60-335,y:305*60+22};
+  if(walls.length!==2||s.raster.stats().retainingWallSegments!==2)
+   throw Error("Physical Hollowreach R10 walls are absent");
+  let view=null;
+  for(let rad=0;rad<=420&&!view;rad+=35)for(let k=0;k<20;k++){
+   const a=k*Math.PI*2/20,x=target.x+rad*Math.cos(a),
+    y=target.y+rad*Math.sin(a);
+   if(!s.blocked(x,y)){view={x,y};break}
+  }
+  if(!view)throw Error("No walkable village alley camera viewpoint");
+  s.jumpToNode("village");s.player.x=view.x;s.player.y=view.y;
+  s.player.moving=false;s.warm(view.x,view.y,1950,1150);
+  return {wallIDs:walls.map(w=>w.id),view}
+ });
+ console.log("R10_SOURCE_BACKED_RETAINING_WALLS "+JSON.stringify(wallView));
+ await sleep(1300);
+ await capture(page,"HOLLOWREACH_WALLS");
  await page.evaluate(()=>window.__veilwardCaptureStream.jumpToNode("village"));
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
@@ -123,10 +145,11 @@ try{
   plateMode:window.VeilwardRasterPilot?.materialPlateMode,
   neighborhoodAtlas:!!window.VeilwardRasterPilot?.ready,
   foregroundRoofDepth:window.__veilwardCaptureStream?.raster?.stats()?.frontmostCottageOcclusion===true,
+  stonewalls:window.__veilwardCaptureStream?.raster?.stats()?.retainingWallSegments===2,
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.15"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth)
-  throw Error("Incomplete v1.3.15 visual preview "+JSON.stringify(state));
+ if(state.build!=="v1.3.16"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls)
+  throw Error("Incomplete v1.3.16 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
@@ -142,7 +165,7 @@ async function settle(page){
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_shelterbelt_r9.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_stonewalls_r10.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.
