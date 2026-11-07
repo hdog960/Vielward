@@ -17,7 +17,7 @@ const makeCanvas=()=>({width:0,height:0,getContext:()=>ctx2d()});
 const host={console:{log(){},warn(){},error(){}}};host.window=host;
 vm.runInNewContext(source["world_stream.js"],host);
 const World=host.VeilwardWorldStream;
-ok(!!World&&World.version==="1.3.15","streaming module loaded");
+ok(!!World&&World.version==="1.3.16","streaming module loaded");
 ok(World.validate(blueprint)===blueprint,"real Phase 2 geography validated");
 eq(blueprint.worldDesign.chunkPlan.totalPlannedCells,1536,"logical grid not allocated eagerly");
 const stream=World.create(blueprint,{canvasFactory:makeCanvas,maxTiles:18});
@@ -79,14 +79,14 @@ ok(stream.stats().tilesBuilt>built,"view reloads after tile eviction");
 const sample=World.colorAt(blueprint,16500,18000).join(",");
 eq(World.colorAt(blueprint,16500,18000).join(","),sample,"tile coloring deterministic");
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
-for(const asset of ["world_review.js?v=4","world_routes.js?v=10","world_climate.js?v=4","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=15","world_stream.js?v=15","game.js?v=36","visual.css?v=15","docs/overworld/world_blueprint.json?v=1","manifest.webmanifest?v=1315"]){
+for(const asset of ["world_review.js?v=4","world_routes.js?v=11","world_climate.js?v=4","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=16","world_stream.js?v=16","game.js?v=37","visual.css?v=15","docs/overworld/world_blueprint.json?v=1","manifest.webmanifest?v=1316"]){
  ok((asset.includes("world_blueprint.json")?game.includes(asset):html.includes(asset))&&sw.includes(asset),
   "Runtime/worker asset version parity "+asset);
 }
-ok(html.indexOf("world_stream.js?v=15")<html.indexOf("game.js?v=36"),"world module before game.js");
+ok(html.indexOf("world_stream.js?v=16")<html.indexOf("game.js?v=37"),"world module before game.js");
 ok(html.includes('id="worldPreviewBtn"')&&html.includes('id="streamStatus"'),"preview menu and status exist");
-ok(sw.includes("veilward-hollowreach-v1315-west-spruce-occlusion"),"PWA cache rotated");
-ok(game.includes('const APP_VERSION="1.3.15";'),"runtime app version bumped");
+ok(sw.includes("veilward-hollowreach-v1316-stone-retaining-walls"),"PWA cache rotated");
+ok(game.includes('const APP_VERSION="1.3.16";'),"runtime app version bumped");
 ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original save key retained");
 ok(game.includes("if(worldPreview.enabled){renderWorldPreview();return}"),"preview renderer is isolated");
 ok(game.includes("if(worldPreview.enabled){tickWorldPreview(dt);return}"),"preview tick is isolated");
