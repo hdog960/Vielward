@@ -719,6 +719,46 @@
       ],
       "material": "cliff-face",
       "height": 2
+    },
+    {
+      "id": "hollowreach_west_spruce_upper",
+      "name": "Hollowreach upper shelterbelt spruce",
+      "shape": "circle",
+      "x": 269.83,
+      "y": 298.33,
+      "r": 2.3,
+      "material": "pine-trunk",
+      "height": 4
+    },
+    {
+      "id": "hollowreach_west_spruce_gate",
+      "name": "Hollowreach upper square shelterbelt spruce",
+      "shape": "circle",
+      "x": 272.5,
+      "y": 303,
+      "r": 2,
+      "material": "pine-trunk",
+      "height": 4
+    },
+    {
+      "id": "hollowreach_west_spruce_court",
+      "name": "Hollowreach western village shelterbelt spruce",
+      "shape": "circle",
+      "x": 271,
+      "y": 307.83,
+      "r": 1.9,
+      "material": "pine-trunk",
+      "height": 4
+    },
+    {
+      "id": "hollowreach_west_spruce_lower",
+      "name": "Hollowreach southern shelterbelt spruce",
+      "shape": "circle",
+      "x": 273.17,
+      "y": 311.92,
+      "r": 2.1,
+      "material": "pine-trunk",
+      "height": 4
     }
   ],
   "interactions": [
