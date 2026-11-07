@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.13",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.14",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
@@ -253,7 +253,7 @@ function create(model,geometry,options={}){
   ctx.restore();return true
  }
  let stonePattern=null;
- function paintedRoad(ctx,e){
+ function paintedRoad(ctx,e,bounds){
   const m=e.path[Math.floor(e.path.length/2)];
   if(!m||!winter(m[0],m[1])||e.crossing)return false;
   // R7: a worn snowbound lane follows the EXACT original route, never a new
@@ -296,6 +296,39 @@ function create(model,geometry,options={}){
   }
   stroke(stonePattern||"#a7acb6",e.halfWidth*.60,.51);
   stroke("#d9e0e5",e.halfWidth*.20,.13);
+  // Brushed snow berms are aligned to the EXACT existing physical route;
+  // continuous roadside brush strokes visually connect the route to the
+  // weathered winter ground without adding unwalkable decorative fences.
+  const villageNode=nodes.get("village");
+  const localCenter=villageNode?.point.map(v=>v*model.worldDesign.worldUnitScale);
+  if(localCenter){
+   for(const [a,b,prior,len] of e.parts){
+    if(!len)continue;
+    const segments=Math.ceil(len/108),dx=(b[0]-a[0])/len,
+     dy=(b[1]-a[1])/len,nx=-dy,ny=dx;
+    for(let i=0;i<=segments;i++){
+     const u=i/segments,wx=a[0]+(b[0]-a[0])*u,wy=a[1]+(b[1]-a[1])*u;
+     if(Math.hypot(wx-localCenter[0],wy-localCenter[1])>2050)continue;
+     if(bounds&&(wx<bounds[0]-130||wx>bounds[2]+130||
+       wy<bounds[1]-130||wy>bounds[3]+130))continue;
+     const n=Math.sin((prior+len*u)*.033+e.id.length*.59);
+     if(n<-.4)continue;
+     for(const sign of [-1,1]){
+      const side=e.halfWidth*.52+12,xx=wx+nx*side*sign,yy=wy+ny*side*sign;
+      if(geometry.waterAt(xx,yy,0)||geometry.obstacle(xx,yy,0))continue;
+      const ww=22+12*(1+n),hh=7+3.5*(1+n);
+      ctx.save();ctx.translate(xx,yy);ctx.scale(ww,hh);
+      ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
+      ctx.fillStyle="rgba(64,92,122,.15)";ctx.fill();
+      ctx.restore();
+      ctx.save();ctx.translate(xx-4,yy-5);ctx.scale(ww*.94,hh*.83);
+      ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
+      ctx.fillStyle="rgba(226,236,239,.43)";ctx.fill();
+      ctx.restore()
+     }
+    }
+   }
+  }
   ctx.restore();
   return true
  }
@@ -320,19 +353,51 @@ function create(model,geometry,options={}){
   if(!winter(cx,cy))return false;
   const left=Math.min(...pts.map(p=>p[0])),right=Math.max(...pts.map(p=>p[0])),
     top=Math.min(...pts.map(p=>p[1])),foot=Math.max(...pts.map(p=>p[1]));
-  const span=right-left,segments=Math.max(1,Math.min(30,Math.ceil(span/155)));
-  const width=Math.min(340,Math.max(195,span/segments*1.4));
-  // The art follows and is clipped by the ORIGINAL impassable cliff polygon.
-  // No single stretched boulder, extra colliders, or detached shape overlays.
+  const span=right-left,segments=Math.max(1,Math.min(40,Math.ceil(span/148)));
+  const width=Math.min(330,Math.max(185,span/segments*1.45));
   ctx.save();ctx.beginPath();
   pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
   ctx.closePath();ctx.clip();
+  // An escarpment is one source-backed rock mass, not independent sticker props:
+  // stagger painted glacial rock beneath a continuous snow cornice. Everything
+  // is clipped to the same impassable polygon that the player collides with.
+  ctx.fillStyle="#394c63";ctx.fillRect(left,top,right-left,foot-top);
   for(let i=0;i<segments;i++){
-    const x=left+span*(i+.5)/segments;
-    const shift=((i%3)-1)*Math.min(16,(foot-top)*.08);
-    const height=Math.max(195,Math.min(350,width*.93));
-    drawNeighborhood(ctx,2+i%2,x,foot+shift,width,height,i%2===1,.95)
+   const x=left+span*(i+.5)/segments;
+   const shift=((i%3)-1)*Math.min(12,(foot-top)*.06);
+   const height=Math.max(195,Math.min(350,width*.95));
+   drawNeighborhood(ctx,2+i%2,x,foot+shift,width,height,i%2===1,.98)
   }
+  // Deep cracks run through (not outside) the actual rock collider.
+  for(let i=0;i<segments*2;i++){
+   const x=left+(i+.42)*span/(segments*2),fract=Math.sin(i*7.37+cx*.013);
+   const y=top+(foot-top)*(.36+.36*((fract+1)*.5));
+   ctx.beginPath();ctx.moveTo(x-12,y-28);ctx.lineTo(x+fract*12,y-3);
+   ctx.lineTo(x+fract*8+4,y+18);
+   ctx.strokeStyle="rgba(31,48,67,.31)";ctx.lineWidth=3.5;ctx.stroke()
+  }
+  // Top snow is a continuous terrace lip across source edge 0→1.
+  const a=pts[0],b=pts[1],dx=b[0]-a[0],dy=b[1]-a[1];
+  const ledgeLength=Math.hypot(dx,dy),steps=Math.max(3,Math.ceil(ledgeLength/48));
+  ctx.beginPath();
+  for(let i=0;i<=steps;i++){
+   const t=i/steps,px=a[0]+dx*t,py=a[1]+dy*t;
+   const drift=Math.sin(t*Math.PI*6+cx*.019)*3.5+Math.cos(t*Math.PI*13)*2;
+   i?ctx.lineTo(px,py+24+drift):ctx.moveTo(px,py+24+drift)
+  }
+  for(let i=steps;i>=0;i--){
+   const t=i/steps,px=a[0]+dx*t,py=a[1]+dy*t;
+   const drift=Math.sin(t*Math.PI*5+cx*.011)*3;
+   ctx.lineTo(px,py+4+drift)
+  }
+  ctx.closePath();ctx.fillStyle="rgba(204,224,236,.91)";ctx.fill();
+  ctx.beginPath();
+  for(let i=0;i<=steps;i++){
+   const t=i/steps,px=a[0]+dx*t,py=a[1]+dy*t;
+   const drift=Math.sin(t*Math.PI*5+cx*.011)*3;
+   i?ctx.lineTo(px,py+4+drift):ctx.moveTo(px,py+4+drift)
+  }
+  ctx.strokeStyle="rgba(248,251,246,.89)";ctx.lineWidth=7;ctx.stroke();
   ctx.restore();return true
  }
  function drawForeground(ctx,player){
@@ -425,30 +490,83 @@ function create(model,geometry,options={}){
   for(const task of tasks)task.paint();
   return tasks.length
  }
- function drawVillageGround(ctx,bounds){
-  // One softly worn, source-anchored gathering apron, NOT a separate prop,
-  // false doorway, impassable floor or painted full-scene backdrop.
-  if(typeof ctx.createRadialGradient!=="function")return false;
-  const n=nodes.get("village");if(!n)return false;
-  const x=n.point[0]*model.worldDesign.worldUnitScale;
-  const y=n.point[1]*model.worldDesign.worldUnitScale;
-  const radius=330;
-  if(x+radius<bounds[0]||x-radius>bounds[2]||
-    y+radius<bounds[1]||y-radius>bounds[3])return false;
-  ctx.save();
-  ctx.translate(x,y);ctx.scale(1,.65);
-  const glow=ctx.createRadialGradient(0,0,28,0,0,radius);
-  glow.addColorStop(0,"rgba(126,141,157,.16)");
-  glow.addColorStop(.48,"rgba(177,189,202,.075)");
-  glow.addColorStop(1,"rgba(194,207,219,0)");
-  ctx.fillStyle=glow;
-  ctx.fillRect(-radius,-radius,radius*2,radius*2);
-  ctx.restore();return true
+ function drawVillageGround(ctx,bounds,objects=[]){
+  // A source-authored square and connected cottage thresholds: NO painted
+  // background, invented route, changed collider or free-floating art cards.
+  const node=nodes.get("village");if(!node)return false;
+  const unit=model.worldDesign.worldUnitScale,x=node.point[0]*unit,y=node.point[1]*unit;
+  const reach=720;
+  if(x+reach<bounds[0]||x-reach>bounds[2]||
+    y+reach<bounds[1]||y-reach>bounds[3])return false;
+  function oval(px,py,rx,ry,color){
+   ctx.save();ctx.translate(px,py);ctx.scale(rx,ry);
+   ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
+   ctx.fillStyle=color;ctx.fill();ctx.restore()
+  }
+  // Cool recessed snow in a continuous gathering apron, feathered at edges.
+  if(typeof ctx.createRadialGradient==="function"){
+   ctx.save();ctx.translate(x,y);ctx.scale(1,.67);
+   const g=ctx.createRadialGradient(0,0,35,0,0,475);
+   g.addColorStop(0,"rgba(82,106,128,.22)");
+   g.addColorStop(.38,"rgba(115,135,152,.18)");
+   g.addColorStop(.69,"rgba(177,197,214,.075)");
+   g.addColorStop(1,"rgba(213,228,240,0)");
+   ctx.fillStyle=g;ctx.fillRect(-480,-480,960,960);ctx.restore()
+  }
+  // Hand-laid winter flagstones: coherent bands and missing stones, not
+  // isolated random pixel confetti. Most are partly submerged in snow.
+  const stoneColors=["rgba(89,110,132,.29)","rgba(111,126,142,.28)",
+   "rgba(146,160,175,.28)","rgba(85,104,124,.24)"];
+  for(let gy=-5;gy<=5;gy++)for(let gx=-7;gx<=7;gx++){
+   const key=(gx*53+gy*101),h=Math.sin(key*2.17+19)*43758.5453;
+   const f=h-Math.floor(h);
+   const px=x+gx*51+(gy%2)*24+(f-.5)*13;
+   const py=y+gy*43+(f-.5)*9;
+   const rr=Math.pow((px-x)/415,2)+Math.pow((py-y)/290,2);
+   if(rr>1||f<.11||geometry.waterAt(px,py,0)||geometry.obstacle(px,py,3))continue;
+   const ww=29+f*16,hh=10+f*7,skew=(f-.5)*6;
+   ctx.beginPath();ctx.moveTo(px-ww*.49,py-hh*.28);
+   ctx.lineTo(px-ww*.26+skew,py-hh*.6);
+   ctx.lineTo(px+ww*.47,py-hh*.23);
+   ctx.lineTo(px+ww*.5,py+hh*.39);
+   ctx.lineTo(px-ww*.27,py+hh*.5);ctx.closePath();
+   ctx.fillStyle=stoneColors[Math.abs(key)%stoneColors.length];
+   ctx.fill();
+   ctx.beginPath();ctx.moveTo(px-ww*.34,py-hh*.22);
+   ctx.lineTo(px+ww*.23,py-hh*.15);
+   ctx.strokeStyle="rgba(236,242,244,.26)";ctx.lineWidth=3;ctx.stroke()
+  }
+  // Architecture ground shadows and worn entry landings tie real cottages to
+  // the square. Use only existing placed, collision-backed cottage footprints.
+  for(const o of objects){
+   if(!coveredSetpiece(o)||o.kind!=="snow_cottage")continue;
+   if(Math.abs(o.x-x)>1800||Math.abs(o.y-y)>1450)continue;
+   if(o.x+235<bounds[0]||o.x-235>bounds[2]||
+     o.y+240<bounds[1]||o.y-300>bounds[3])continue;
+   oval(o.x+15,o.y+14,o.r*1.7,o.r*.67,"rgba(45,64,84,.13)");
+   oval(o.x-5,o.y+o.r*.62,o.r*1.36,o.r*.59,"rgba(116,138,159,.12)");
+   const side=o.seed%2?1:-1;
+   // Two staggered bands of entrance paving immediately OUTSIDE the structure.
+   for(let k=0;k<9;k++){
+    const px=o.x+(k-4)*28+side*3,py=o.y+o.r*.60+(k%3)*24;
+    if(geometry.obstacle(px,py,3)||geometry.waterAt(px,py,3))continue;
+    oval(px,py,12+(k%3)*3,5+(k%2)*2,
+     k%2?"rgba(116,132,151,.27)":"rgba(223,233,236,.23)")
+   }
+   // A few contiguous drift lobes around the cottage foundation.
+   for(const k of [-1,0,1]){
+    const xx=o.x+k*o.r*.75,yy=o.y+o.r*.16+(k%2)*11;
+    oval(xx,yy+9,o.r*.42,o.r*.18,"rgba(69,100,134,.13)");
+    oval(xx-4,yy,o.r*.44,o.r*.16,"rgba(235,241,240,.38)")
+   }
+  }
+  return true
  }
  function stats(){return{version:VERSION,source:"authored raster assets (3 object + 3 infrastructure + 16 ground)",
   artworkCells:30,pilotRegion:region,materialPlateSize:PLATE_SIZE,
   neighborhoodAtlasReady:!!neighborhood,neighborhoodSprites:8,
   winterDepthSorted:true,physicalRoadWeathering:true,
+  winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
