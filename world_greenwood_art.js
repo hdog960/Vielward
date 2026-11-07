@@ -386,7 +386,8 @@ function create({footprint,geometry,model}={}){
      ctx.fillRect(x-w*.83,y-w*.83,w*1.66,w*1.66)
     }
     ctx.translate(x,y);
-    ctx.rotate((hash(salt,j,309)-.5)*.28);
+    // Some headless canvas test contexts omit rotate; browsers support it.
+    ctx.rotate?.((hash(salt,j,309)-.5)*.28);
     ctx.scale(hash(j,salt,311)>.51?-1:1,1);
     ctx.globalAlpha=.38+hash(salt,j,313)*.21;
     ctx.imageSmoothingEnabled=true;
