@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.17",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.18",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -139,6 +139,27 @@ try{
  console.log("R10_SOURCE_BACKED_RETAINING_WALLS "+JSON.stringify(wallView));
  await sleep(1300);
  await capture(page,"HOLLOWREACH_WALLS");
+ // R12: photograph a genuinely walkable view of the connected west-cliff
+ // and four collision-backed spruce roots, not an art mockup.
+ const landscape=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  if(!s?.raster?.stats()?.sourceRootedLandscape||
+    !s.raster.stats().paintedStoneFlagstones||
+    !s.raster.stats().crispRasterSprites)
+   throw Error("R12 art is not in the actual game renderer");
+  const goal={x:276*60,y:300*60};let view=null;
+  for(let r=0;r<700&&!view;r+=40)for(let k=0;k<24;k++){
+   const a=k*Math.PI*2/24,x=goal.x+r*Math.cos(a),
+    y=goal.y+r*Math.sin(a);
+   if(!s.blocked(x,y)){view={x,y};break}
+  }
+  if(!view)throw Error("No playable R12 source-slope camera point");
+  s.player.x=view.x;s.player.y=view.y;s.player.moving=false;
+  s.warm(view.x,view.y,2100,1450);return view
+ });
+ console.log("R12_SOURCE_ROOTED_WINTER_SLOPE "+JSON.stringify(landscape));
+ await sleep(1400);
+ await capture(page,"HOLLOWREACH_R12_LANDSCAPE");
  await page.evaluate(()=>window.__veilwardCaptureStream.jumpToNode("village"));
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
@@ -170,12 +191,14 @@ try{
   villageHouses:window.__veilwardCaptureStream?.setpieces?.objects?.filter(o=>
    o.anchor==="village"&&o.kind==="snow_cottage").length,
   winterBootTrails:window.__veilwardCaptureStream?.raster?.stats()?.sourceBoundWinterFootpaths===true,
+  rootedLandscape:window.__veilwardCaptureStream?.raster?.stats()?.sourceRootedLandscape===true,
+  paintedFlagstones:window.__veilwardCaptureStream?.raster?.stats()?.paintedStoneFlagstones===true,
   wallHorizontal:(window.__veilwardCaptureStream?.geometry?.solids||[]).filter(o=>
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.17"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails)
-  throw Error("Incomplete v1.3.17 visual preview "+JSON.stringify(state));
+ if(state.build!=="v1.3.18"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones)
+  throw Error("Incomplete v1.3.18 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
@@ -191,7 +214,7 @@ async function settle(page){
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_snowpaths_r11.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_landscape_r12.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.
