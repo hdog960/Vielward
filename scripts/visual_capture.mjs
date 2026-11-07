@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.28",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.29",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -391,6 +391,22 @@ try{
  });
  console.log("R20_WALKABLE_HERMIT_APPROACH "+JSON.stringify(hermitView));
  await sleep(1600);await capture(page,"GREENWOOD_R20_HERMIT_FLOOR");
+ // R21 source image must be decoded AND rendered at the unchanged
+ // hermit waypoint in actual browser gameplay, not concept artwork.
+ const refuge=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const sprite=window.VeilwardGreenwoodSanctuary;
+  if(!sprite?.ready||sprite?.stats()?.sourceWidth!==512||
+    s?.illustration?.stats()?.greenwoodSanctuaryIllustration!==true)
+   throw Error("R21 authentic illustrated hermit refuge not active");
+  s.jumpToNode("hermit");
+  if(s.blocked(s.player.x,s.player.y))
+   throw Error("R21 painterly house obscured the original walkable anchor");
+  s.warm(s.player.x,s.player.y,2250,1500);
+  return {x:s.player.x,y:s.player.y,sourcePixels:sprite.stats().sourceWidth}
+ });
+ console.log("R21_PAINTED_HERMIT_LIVE "+JSON.stringify(refuge));
+ await sleep(1550);await capture(page,"GREENWOOD_R21_HERMIT_COTTAGE");
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
  await page.locator('.reviewRegion[aria-label="Explore Coldpine Ridge"]').click();
@@ -418,6 +434,7 @@ try{
   sourceFansR16:window.__veilwardCaptureStream?.raster?.stats()?.sourceLinkedSnowFans===true,
   greenwoodR17:window.__veilwardCaptureStream?.illustration?.stats()?.greenwoodAtlasSprites===15,
   greenwoodR18:window.VeilwardGreenwoodArt?.paintedReady===true,
+  greenwoodR21:window.VeilwardGreenwoodSanctuary?.ready===true,
   greenwoodR20:window.VeilwardGreenwoodArt?.create({
    footprint:window.__veilwardCaptureStream?.footprint,
    geometry:window.__veilwardCaptureStream?.geometry
@@ -436,10 +453,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.28"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
-  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||
+ if(state.build!=="v1.3.29"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||!state.greenwoodR21||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.28 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.29 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{

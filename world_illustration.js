@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.28",PI=Math.PI;
+const V="1.3.29",PI=Math.PI;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 function hash(a,b,c=0){let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
 function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
@@ -308,8 +308,12 @@ function create(model,geometry,options={}){
     const xx=x-172+i*48;
     poly(ctx,[[xx-24,y-132],[xx,y-176-(i%2)*15],[xx+29,y-122]],"#73798a")
    }
+  }else if(kind==="hermit"&&window.VeilwardGreenwoodSanctuary?.stamp(
+    ctx,x,y-88,424,424)){
+   // R21: source-painted moss roof, stone chimney and timber refuge.
+   // The actual marker is still rooted to the existing hermit waypoint.
   }else if(kind==="lodge"||kind==="hermit"){
-   // Small deep woods refuge offset above the safe node.
+   // Safe fallback while RGBA original is not available: no blank cottage.
    const yy=y-165;
    poly(ctx,[[x-116,yy-20],[x+111,yy-20],[x+103,yy+91],[x-119,yy+91]],"#54483f");
    poly(ctx,[[x-151,yy-15],[x,yy-154],[x+144,yy-16],[x,yy+8]],kind==="lodge"?"#53677a":"#516654");
@@ -355,7 +359,7 @@ function create(model,geometry,options={}){
    ctx.restore()
   }
  }
- function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster,greenwoodAtlasSprites:greenwood?.stats().totalSprites||0,greenwoodOriginalAnchors:!!greenwood}}
+ function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster,greenwoodAtlasSprites:greenwood?.stats().totalSprites||0,greenwoodOriginalAnchors:!!greenwood,greenwoodSanctuaryIllustration:!!window.VeilwardGreenwoodSanctuary?.ready}}
  return{version:V,drawGround,drawFeatures,drawStatic,drawForeground:foreground,stats}
 }
 window.VeilwardIllustration={version:V,create};
