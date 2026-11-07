@@ -90,12 +90,12 @@ for(const path of paths)vm.runInNewContext(S[path],sandbox,{filename:path});
  for(const asset of ["assets/hollowreach_bridge_stairs_lamp_v2.png?v=1",
  "assets/hollowreach_ground_painted_v2.webp?v=1",
   "assets/hollowreach_neighborhood_r6.png?v=1",
- "world_raster_pilot.js?v=10","world_routes.js?v=10",
- "world_illustration.js?v=9","terrain_art.js?v=14","world_stream.js?v=15","game.js?v=36"]){
+ "world_raster_pilot.js?v=11","world_routes.js?v=10",
+ "world_illustration.js?v=9","terrain_art.js?v=15","world_stream.js?v=15","game.js?v=36"]){
   assert.ok(sw.includes(asset),"all iPhone offline assets precached "+asset);
   if(!asset.startsWith("assets/"))assert.ok(html.includes(asset),"game references same updated code "+asset)
  }
- assert.ok(sw.includes("veilward-hollowreach-v1315-west-spruce-verge"));
+ assert.ok(sw.includes("veilward-hollowreach-v1315-west-spruce-occlusion"));
  const game=fs.readFileSync("game.js","utf8");
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure saved unchanged");
  assert.ok(game.includes('const APP_VERSION="1.3.15";'));
