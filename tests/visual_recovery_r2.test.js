@@ -110,7 +110,7 @@ ok(source["world_stream.js"].includes("setpieces?.blocked(x,y,10,o=>"),
  "new physical fixture collision is checked by the actual player movement engine");
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
 for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_setpieces.js?v=2",
- "world_illustration.js?v=9","terrain_art.js?v=14","world_routes.js?v=10",
+ "world_illustration.js?v=9","terrain_art.js?v=15","world_routes.js?v=10",
  "world_stream.js?v=15","world_review.js?v=4","game.js?v=36",
  "manifest.webmanifest?v=1315"])
  ok(html.includes(asset)&&sw.includes(asset),"Safari and iPhone PWA cache exactly same R2 source "+asset);
@@ -121,7 +121,7 @@ ok(game.includes('const APP_VERSION="1.3.15";')&&
  game.includes('const SAVE="veilward-hollowreach-v01";'),"preserved legacy save and correct R2 build");
 ok(game.includes('!stream.setpieces')&&game.includes("show&&worldPreview.debug"),
  "real preview requires full R2 art and keeps debug diagnostics off gameplay screen");
-ok(sw.includes("veilward-hollowreach-v1315-west-spruce-verge"),"iPhone offline cache invalidates R1 scene art");
+ok(sw.includes("veilward-hollowreach-v1315-west-spruce-occlusion"),"iPhone offline cache invalidates R1 scene art");
 ok(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&
  source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved hero and Warden sprite assets unchanged");
 console.log("Veilward R2 SOURCE PASS",assertions,"assertions,",scene.objects.length,"physical compositions,",
