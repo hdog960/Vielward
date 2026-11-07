@@ -19,7 +19,7 @@ function eq(a,b,msg){assert.equal(a,b,msg);checks++}
 const host={console:{warn(){},log(){},error(){}}};host.window=host;
 vm.runInNewContext(source,host);vm.runInNewContext(streaming,host);
 const G=host.VeilwardGeometry,W=host.VeilwardWorldStream;
-ok(G.version==="1.2.8"&&W.version==="1.3.14","Phase 4 modules both installed");
+ok(G.version==="1.2.8"&&W.version==="1.3.15","Phase 4 modules both installed");
 eq(G.validate(map,data),data,"source blueprint and geometry schema supported");
 eq(data.groundDefaults.footRadiusWorld,10,"collision footprint is separate from actor sprite size");
 ok(data.groundDefaults.footAnchor.includes("boots"),"sprite ground-foot contract explicit");
@@ -27,7 +27,7 @@ const g=G.create(map,data),stats=g.stats();
 eq(stats.roads,65,"all planned routes compiled");
 eq(stats.crossings,7,"all physical bridges/fords compiled");
 eq(stats.surfaces,7,"terrain floor polygons compiled");
-eq(stats.solids,33,"33 physical blockers after adding three safe village terraces");
+eq(stats.solids,37,"37 physical blockers with four source-backed shelterbelt trees");
 eq(stats.cliffs,7,"7 grounded cliff-face collider polygons");
 eq(stats.interactions,11,"11 inspectable landmarks authored");
 ok(stats.indexedCells>30&&stats.indexedCells<1000,"sparse road cell indexing avoids eager whole-world allocation");
@@ -102,7 +102,7 @@ const ctx=()=>({
 });
 const s=W.create(map,{geometry:data,canvasFactory:()=>({width:0,height:0,getContext:ctx}),maxTiles:18});
 ok(!!s.geometry,"actual streaming world receives authored geometry");
-eq(s.geometry.stats().solids,33,"runtime uses identical obstacle data");
+eq(s.geometry.stats().solids,37,"runtime uses identical obstacle data");
 const first=s.render(ctx(),1536,708,.78,.016);
 ok(first.camera.x<=s.player.x&&s.player.x<=first.camera.x+first.viewWidth,"camera begins centered around actual boots");
 ok(s.stats().elevation!==null&&s.stats().elevation>=1,"streaming stats report real ground height");
@@ -124,11 +124,11 @@ ok(visual.arc>0,"streaming engine debug draws foot anchor on actual view");
 for(let i=0;i<32;i++){s.player.x=(i+10.5)*1500;s.player.y=18000;s.render(ctx(),1536,708,.78,.05);
  ok(s.stats().cachedTiles<=18,"terrain cache bounded during authored rendering "+i)}
 ok(s.stats().estimatedCachedRGBABytes<=18*375*375*4,"geometry does not exceed previous canvas cache budget");
-for(const file of ["world_review.js?v=4","world_routes.js?v=9","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=13","world_stream.js?v=14","game.js?v=35","visual.css?v=15","manifest.webmanifest?v=1314"]){
+for(const file of ["world_review.js?v=4","world_routes.js?v=10","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=14","world_stream.js?v=15","game.js?v=36","visual.css?v=15","manifest.webmanifest?v=1315"]){
  ok(html.includes(file)&&sw.includes(file),"iPhone HTML / PWA cache agrees: "+file);
 }
-ok(game.includes('terrain_geometry.json?v=2')&&sw.includes('terrain_geometry.json?v=2'),"actual game fetch and offline cache agree on geometry document");
-ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_stream.js?v=14")&&html.indexOf("world_stream.js?v=14")<html.indexOf("game.js?v=35"),"module load order ensures terrain before streamed game");
+ok(game.includes('terrain_geometry.json?v=3')&&sw.includes('terrain_geometry.json?v=3'),"actual game fetch and offline cache agree on geometry document");
+ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_stream.js?v=15")&&html.indexOf("world_stream.js?v=15")<html.indexOf("game.js?v=36"),"module load order ensures terrain before streamed game");
 ok(html.includes('id="geometryDebugBtn"')&&html.includes("Terrain Geometry Overlay"),"iPhone menu debug overlay is connected");
 ok(game.includes("if(worldPreview.debug)s.renderDebug")&&game.includes("s.nearbyInteraction()"),"actual game draws debug/landmark inspection");
 ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original iPhone save key intact");
