@@ -120,28 +120,51 @@ function shrubs(ctx,variant){
  }
 }
 let atlas=null,painted=null,paintedError=null,paintedPromise=null;
-const PAINTED_SRC="./assets/greenwood_forest_painted_r18.avif?v=1",PAINTED_SIZE=128;
-// Four independently authored, isolated 128px Greenwood illustrations:
-// mature oak, evergreen pine, fern bed, mossy rock. No painted backdrop.
+const PAINTED_SIZE=128,PAINTED_FILES=[
+ "./assets/greenwood_oak_r18.avif?v=1",
+ "./assets/greenwood_pine_r18.avif?v=1",
+ "./assets/greenwood_ferns_r18.avif?v=1",
+ "./assets/greenwood_rock_r18.avif?v=1"
+];
+// Four separate, SHA-checked 128-pixel painted source images are assembled
+// into a compact cached atlas only after all four actually decode.
 function loadPainted(){
  if(painted)return Promise.resolve(true);
  if(paintedPromise)return paintedPromise;
- if(typeof Image!=="function")return Promise.resolve(false);
- paintedPromise=new Promise(resolve=>{
+ if(typeof Image!=="function"||typeof document==="undefined")
+  return Promise.resolve(false);
+ paintedPromise=Promise.all(PAINTED_FILES.map(src=>new Promise(resolve=>{
   const img=new Image();img.decoding="async";
-  img.onload=()=>{
-   if(img.naturalWidth===PAINTED_SIZE*4&&img.naturalHeight===PAINTED_SIZE){
-    painted=img;paintedError=null;resolve(true)
-   }else{
-    paintedError="Unexpected Greenwood illustrated sprite dimensions";
-    console.warn(paintedError);resolve(false)
+  img.onload=()=>resolve(img.naturalWidth===PAINTED_SIZE&&
+   img.naturalHeight===PAINTED_SIZE?img:null);
+  img.onerror=()=>resolve(null);
+  try{img.src=src}catch(_){resolve(null)}
+ }))).then(images=>{
+  if(images.some(im=>!im)){
+   paintedError="One or more independent Greenwood paintings unavailable; native art remains active";
+   console.warn(paintedError);return false
+  }
+  try{
+   const canvas=document.createElement("canvas");
+   canvas.width=PAINTED_SIZE*4;canvas.height=PAINTED_SIZE;
+   const ctx=canvas.getContext("2d",{willReadFrequently:true});
+   if(!ctx)throw Error("No 2D context for Greenwood art");
+   ctx.imageSmoothingEnabled=false;
+   images.forEach((im,i)=>ctx.drawImage(im,i*PAINTED_SIZE,0));
+   // A valid decoded file can still be empty! Enforce nontransparent
+   // source paintings before replacing the previous working forest.
+   if(ctx.getImageData){
+    const rgba=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+    const counts=[0,0,0,0];
+    for(let i=0;i<rgba.length;i+=4)if(rgba[i+3]>50)
+     counts[Math.floor((i/4)%canvas.width/PAINTED_SIZE)]++;
+    if(counts.some(n=>n<1400))throw Error("Blank source cell: "+counts.join(","));
    }
-  };
-  img.onerror=()=>{
-   paintedError="Illustrated Greenwood unavailable; keeping established native art";
-   console.warn(paintedError);resolve(false)
-  };
-  try{img.src=PAINTED_SRC}catch(err){paintedError=String(err);resolve(false)}
+   painted=canvas;paintedError=null;return true
+  }catch(err){
+   paintedError="Greenwood painted atlas rejected: "+String(err);
+   console.warn(paintedError);return false
+  }
  });
  return paintedPromise
 }
@@ -290,5 +313,6 @@ function create({footprint,geometry}={}){
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},
+ get paintedSource(){return painted},
  get paintedError(){return paintedError}};
 })();
