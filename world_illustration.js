@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.16",PI=Math.PI;
+const V="1.3.17",PI=Math.PI;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 function hash(a,b,c=0){let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
 function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
