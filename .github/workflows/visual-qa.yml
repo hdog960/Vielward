@@ -8,6 +8,7 @@ on:
       - "world_architecture_atlas.js"
       - "assets/hollowreach_pilot_sprites_v1.png"
       - "world_setpieces.js"
+      - "world_greenwood_art.js"
       - "world_illustration.js"
       - "terrain_art.js"
       - "world_routes.js"

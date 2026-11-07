@@ -284,6 +284,38 @@ try{
  });
  console.log("R17_SOURCE_GREENWOOD_GLADE "+JSON.stringify(woodlandReview));
  await sleep(1350);await capture(page,"GREENWOOD_R17_FOLIAGE");
+ // R17b: the crossroads clearing is deliberately free of solid trees.
+ // Visit a real SOURCE oak/pine root so we visually inspect the new sprites.
+ const groveView=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const n=s.model.nodes.find(o=>o.id==="greenwood_hearth"),
+    x=n.point[0]*60,y=n.point[1]*60;
+  const bounds=[x-5000,y-5000,x+5000,y+5000];
+  const trees=[...s.footprint.cells(bounds,400),
+    ...s.footprint.groves(bounds,400)].filter(o=>
+     ["oak","pine"].includes(o.kind)&&
+     s.footprint.regionAt(o.x,o.y)?.id==="greenwood");
+  trees.sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y));
+  if(!trees.length)throw Error("R17b Greenwood has no existing tree roots to inspect");
+  let target=null,view=null;
+  for(const root of trees){
+   const minDist=Math.max(150,root.radius*1.45);
+   for(let rad=minDist;rad<minDist+600&&!view;rad+=40)
+    for(let k=0;k<24;k++){
+     const a=k*Math.PI/12,xx=root.x+Math.cos(a)*rad,
+       yy=root.y+Math.sin(a)*rad;
+     if(!s.blocked(xx,yy)){view={x:xx,y:yy};target=root;break}
+    }
+   if(view)break
+  }
+  if(!view)throw Error("No valid boot point near a real Greenwood tree");
+  s.player.x=view.x;s.player.y=view.y;s.player.moving=false;
+  s.warm(view.x,view.y,2300,1650);
+  return {view,root:{id:target.id,kind:target.kind,r:target.radius,
+   x:target.x,y:target.y}}
+ });
+ console.log("R17B_SOURCE_GREENWOOD_TREE "+JSON.stringify(groveView));
+ await sleep(1400);await capture(page,"GREENWOOD_R17_ROOTED_TREE");
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
  await page.locator('.reviewRegion[aria-label="Explore Coldpine Ridge"]').click();
