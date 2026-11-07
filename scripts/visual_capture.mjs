@@ -414,10 +414,13 @@ try{
   const f=s.framing(720,405,.78);
   if(f.focus<.98||f.zoom>.575||f.anchorY<.75)
    throw Error("R22 adaptive hermit composition not active");
-  const imageTop=(s.player.y-(88+424))*f.zoom;
+  // Convert the original refuge's roof offset to SCREEN-space. The
+  // absolute world Y coordinate is not comparable to a viewport pixel.
   const playerFoot=405*f.anchorY;
-  if(playerFoot-imageTop<284||playerFoot>340)
-   throw Error("R22 hero/cottage framing not within vertical safe area");
+  const roofTop=playerFoot-(88+424)*f.zoom;
+  if(roofTop<12||roofTop>65||playerFoot<290||playerFoot>340)
+   throw Error("R22 hero/cottage framing not within vertical safe area: "+
+     JSON.stringify({roofTop,playerFoot}));
   return f
  });
  console.log("R22_HERMIT_TALL_ROOF_COMPOSITION "+JSON.stringify(composition));
