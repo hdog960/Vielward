@@ -38,7 +38,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  const world=sandbox.VeilwardWorldStream.create(model,{
   geometry:geo,footprint,canvasFactory:canvas
  });
- assert.equal(world.version,"1.3.29");
+ assert.equal(world.version,"1.3.30");
  assert.equal(world.geometry.stats().solids,39);
  assert.equal(world.routeArt.stats().roads,65);
  assert.equal(world.routeArt.stats().crossings,7);
@@ -67,7 +67,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.ok(read("world_raster_pilot.js").includes("drawVillageTerrainSpine(ctx,bounds);"));
  assert.ok(read("world_raster_pilot.js").includes("ctx.drawImage(ground,(Math.abs(key)%4)*32,64"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1329-illustrated-hermit"));
- assert.ok(read("index.html").includes("world_raster_pilot.js?v=25"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1330-hermit-scenic-framing"));
+ assert.ok(read("index.html").includes("world_raster_pilot.js?v=26"));
  console.log("R12 PASS: continuous cliff-to-grove snow terrain, painted stone, sharp raster, 39 solids, 48 nodes, 65 routes, 7 crossings, save protected");
 })().catch(e=>{console.error(e);process.exitCode=1});
