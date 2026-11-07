@@ -33,8 +33,8 @@ for(const f of files)vm.runInNewContext(fs.readFileSync(f,"utf8"),host,{filename
 (async()=>{
  await host.VeilwardRasterPilot.load();
  const world=host.VeilwardWorldStream.create(model,{geometry,footprint,canvasFactory:canvas});
- assert.equal(world.version,"1.3.26");
- assert.equal(world.raster.version,"1.3.26");
+ assert.equal(world.version,"1.3.27");
+ assert.equal(world.raster.version,"1.3.27");
  assert.equal(world.raster.stats().creatorApproved,false);
  assert.equal(world.routeArt.stats().roads,65);
  assert.equal(world.routeArt.stats().crossings,7);
@@ -56,8 +56,8 @@ for(const f of files)vm.runInNewContext(fs.readFileSync(f,"utf8"),host,{filename
  const all=model.nodes.map(n=>world.blocked(n.point[0]*60,n.point[1]*60));
  assert.ok(all.every(v=>v===false),"All 48 outdoor anchors remain walkable");
  const sw=fs.readFileSync("sw.js","utf8"),html=fs.readFileSync("index.html","utf8");
- assert.ok(sw.includes("veilward-hollowreach-v1326-woodland-verges"));
- assert.ok(html.includes("world_raster_pilot.js?v=22"));
- assert.ok(html.includes("terrain_art.js?v=26"));
+ assert.ok(sw.includes("veilward-hollowreach-v1327-feathered-woodland"));
+ assert.ok(html.includes("world_raster_pilot.js?v=23"));
+ assert.ok(html.includes("terrain_art.js?v=27"));
  console.log("R4 PASS: painted cliff composition, source lighting, true tree depth, roads and caches");
 })().catch(e=>{console.error(e);process.exitCode=1});

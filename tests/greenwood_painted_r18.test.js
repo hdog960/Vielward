@@ -58,7 +58,7 @@ for(const file of ["world_geometry.js","world_climate.js","world_footprint.js",
  const world=host.VeilwardWorldStream.create(model,{
   geometry:terrain,footprint,canvasFactory:canvas
  });
- assert.equal(world.version,"1.3.26");
+ assert.equal(world.version,"1.3.27");
  assert.equal(world.geometry.stats().solids,39);
  assert.equal(model.nodes.length,48);
  assert.equal(world.routeArt.stats().roads,65);
@@ -78,9 +78,9 @@ for(const file of ["world_geometry.js","world_climate.js","world_footprint.js",
  }
  const b=read("sw.js"),html=read("index.html");
  for(const [kind] of assets)assert.ok(b.includes("greenwood_"+kind+"_r18.avif?v=1"));
- assert.ok(html.includes("world_greenwood_art.js?v=3"));
+ assert.ok(html.includes("world_greenwood_art.js?v=4"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
- assert.ok(b.includes("veilward-hollowreach-v1326-woodland-verges"));
+ assert.ok(b.includes("veilward-hollowreach-v1327-feathered-woodland"));
  assert.equal(world.raster.stats().creatorApproved,false);
  console.log("R18 PASS: 4 bit-for-bit certified original painted Greenwood AVIF sources, 12 regions, 39 solids, 48 anchors, 65 routes, 7 crossings, save preserved; art NOT approved");
 })().catch(e=>{console.error(e);process.exitCode=1});

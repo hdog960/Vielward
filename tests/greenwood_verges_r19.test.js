@@ -13,7 +13,9 @@ function ctx(){
   save(){},restore(){},translate(){},scale(){},stroke(){},arc(){},
   fillRect(){},clearRect(){},lineCap:"round",lineJoin:"round",
   get fills(){return c._fills||0},set fills(v){c._fills=v},
-  createRadialGradient(){return{addColorStop(){}}}
+  createRadialGradient(){return{addColorStop(){}}},
+  createLinearGradient(){c.gradients++;return{addColorStop(){}}},
+  get gradients(){return c._gradients||0},set gradients(v){c._gradients=v}
  };
  contexts.push(c);return c;
 }
@@ -27,7 +29,7 @@ host.Image=ImageStub;host.window=host;
 vm.runInNewContext(src,host,{filename:"world_greenwood_art.js"});
 (async()=>{
  const painter=host.VeilwardGreenwoodArt;
- assert.equal(painter.version,"1.3.26");
+ assert.equal(painter.version,"1.3.27");
  assert.equal(await painter.loadPainted(),true);
  const original={path:[[0,0],[320,0]],halfWidth:54,crossing:false};
  const forbidden={path:[[900,0],[1200,0]],halfWidth:54,crossing:false};
@@ -45,6 +47,8 @@ vm.runInNewContext(src,host,{filename:"world_greenwood_art.js"});
  assert.equal(art.paintRoadVerges(can,[-200,-240,480,240]),1,
   "one genuine Greenwood road receives natural woodland verges");
  assert.ok(can.fills>=4,"both sides carry organic moss/forest-duff layers");
+ assert.ok(can.gradients>=4,"all four source-bound ground bands feather into existing forest soil");
+ assert.equal(art.stats().featheredRoadEdges,true);
  assert.ok(images.length>=2,"roadside ground uses existing original fern painting");
  assert.equal(JSON.stringify(geo.roads),origin,"paint-only changes never alter geometry");
  assert.equal(art.paintRoadVerges(ctx(),[850,-200,1400,210]),0,
@@ -64,8 +68,8 @@ vm.runInNewContext(src,host,{filename:"world_greenwood_art.js"});
   "no Greenwood art can be stamped in another source biome");
  assert.equal(art.stats().creatorApproved,false);
  const html=read("index.html"),worker=read("sw.js"),game=read("game.js");
- assert.ok(html.includes("world_greenwood_art.js?v=3"));
- assert.ok(worker.includes("veilward-hollowreach-v1326-woodland-verges"));
+ assert.ok(html.includes("world_greenwood_art.js?v=4"));
+ assert.ok(worker.includes("veilward-hollowreach-v1327-feathered-woodland"));
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R19 PASS: source-road woodland margins, mature 270x350 oak / 230x380 pine at original roots, preserved route geometry and save, forest still unapproved");
 })().catch(err=>{console.error(err);process.exitCode=1});
