@@ -45,6 +45,10 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.equal(world.geometry.stats().solids,39);
  assert.equal(world.routeArt.stats().roads,65);
  assert.equal(world.routeArt.stats().crossings,7);
+ const villageHouses=world.setpieces.objects.filter(o=>
+  o.anchor==="village"&&o.kind==="snow_cottage");
+ assert.equal(villageHouses.length,2,
+  "both original collision-backed Hollowreach cottages must survive new retaining walls");
  const walls=ids.map(id=>world.geometry.solids.find(w=>w.id===id));
  assert.ok(walls.every(Boolean));
  for(const w of walls){
