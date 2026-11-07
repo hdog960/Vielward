@@ -638,22 +638,22 @@ function create(model,geometry,options={}){
    const ux=dx+nx*turn,uy=dy+ny*turn,
      px=x+nx*side*20,py=y+ny*side*20;
    const heel=[px-ux*8,py-uy*8],toe=[px+ux*9,py+uy*9];
-   const w=7.8*scale;
+   const w=9.25*scale;
    ctx.beginPath();
    ctx.moveTo(heel[0]-nx*w*.91,heel[1]-ny*w*.91);
    ctx.lineTo(heel[0]+nx*w*.88,heel[1]+ny*w*.88);
    ctx.lineTo(toe[0]+nx*w*.60,toe[1]+ny*w*.60);
    ctx.lineTo(toe[0]-nx*w*.68,toe[1]-ny*w*.68);
    ctx.closePath();
-   ctx.fillStyle="rgba(55,84,115,.22)";ctx.fill();
+   ctx.fillStyle="rgba(53,82,109,.37)";ctx.fill();
    // Uneven toe/heel separation makes this compressed snow rather than a
    // dotted straight line, with a faint sunward displaced ridge.
    ctx.beginPath();
    ctx.moveTo(toe[0]+nx*w*.60+4,toe[1]+ny*w*.60-4);
    ctx.lineTo(toe[0]-nx*w*.45+4,toe[1]-ny*w*.45-4);
    ctx.lineTo(heel[0]-nx*w*.65+4,heel[1]-ny*w*.65-4);
-   ctx.strokeStyle="rgba(235,245,244,.36)";
-   ctx.lineWidth=3;ctx.stroke();
+   ctx.strokeStyle="rgba(239,247,246,.51)";
+   ctx.lineWidth=3.5;ctx.stroke();
   }
   ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
   for(const road of geometry.roads||[]){
