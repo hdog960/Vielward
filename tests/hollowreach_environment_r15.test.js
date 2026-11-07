@@ -49,7 +49,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  const world=sandbox.VeilwardWorldStream.create(model,{
   geometry,footprint,canvasFactory:canvas
  });
- assert.equal(world.version,"1.3.28");
+ assert.equal(world.version,"1.3.29");
  const info=world.raster.stats();
  assert.equal(info.sourceLandscapeAtlasReady,true);
  assert.equal(info.sourceLandscapeSourcePixels,144);
@@ -89,8 +89,8 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
    "original route anchor stays traversable: "+anchor.id);
  const sw=read("sw.js"),html=read("index.html");
  assert.ok(sw.includes("./assets/hollowreach_environment_r15.webp?v=1"));
- assert.ok(sw.includes("veilward-hollowreach-v1328-rooted-forest-floor"));
- assert.ok(html.includes("world_raster_pilot.js?v=24"));
+ assert.ok(sw.includes("veilward-hollowreach-v1329-illustrated-hermit"));
+ assert.ok(html.includes("world_raster_pilot.js?v=25"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R15 PASS: 4 original source RGBA sprites, two real cliff faces, 3 passable drifts, 12 regions, 39 solids, 48 route nodes, 65 roads, 7 crossings, preserved saves. Artist approval still 0%");
 })().catch(e=>{console.error(e);process.exitCode=1});
