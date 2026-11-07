@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.19",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.20",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
@@ -116,6 +116,10 @@ function load(){
 function create(model,geometry,options={}){
  if(!picture||!detail||!ground||!neighborhood)throw Error("All Hollowreach painted atlases must load before streaming world");
  const footprint=options.footprint,climate=options.climate;
+ // Creator's gold-reference aesthetic is mandatory. The R13 cottage art
+ // FAILED actual gameplay screenshot comparison; default to the better
+ // existing painted PNG. Only isolated explicit test previews may opt in.
+ const architectureExperiment=options.experimentalArchitecture===true;
  if(!geometry||!footprint||!climate)throw Error("Hollowreach art requires physical world geometry");
  const region="hollowreach";
  const winter=(x,y)=>footprint.regionAt(x,y)?.id===region;
@@ -129,7 +133,7 @@ function create(model,geometry,options={}){
   // Four full-size independent illustrated source sprites replace repeated
   // 96px village cottages. This is source art on the same physical object
   // rather than a separate screenshot or a new stand-alone polygon house.
-  if(index===1&&window.VeilwardArchitectureAtlas?.stamp?.(
+  if(index===1&&architectureExperiment&&window.VeilwardArchitectureAtlas?.stamp?.(
     ctx,variant,x,y,width,height,flip,alpha))return true;
   ctx.save();
   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*alpha;
@@ -927,6 +931,8 @@ function create(model,geometry,options={}){
   sourceCottageVariants:window.VeilwardArchitectureAtlas?.count||0,
   sourceCottagePixels:window.VeilwardArchitectureAtlas?.sourceSize||0,
   architectureRasterReady:!!window.VeilwardArchitectureAtlas?.ready,
+  architectureExperimentActive:architectureExperiment,
+  artistAcceptedArchitecture:false,
   winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
   sourceRootedLandscape:true,paintedStoneFlagstones:true,crispRasterSprites:true,
   inhabitedSnowRoadImpressions:true,sourceBoundWinterFootpaths:true,
