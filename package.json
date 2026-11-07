@@ -1,11 +1,11 @@
 {
   "name": "veilward-hollowreach",
-  "version": "1.3.30",
+  "version": "1.3.31",
   "private": true,
   "description": "Static iPhone action-RPG vertical slice (no runtime packages)",
   "scripts": {
-    "test": "node tests/phase3_scene_geometry.test.js && node tests/phase4_combat.test.js && node tests/phase5_quest.test.js && npm run audit:world && npm run audit:topology && npm run audit:streaming && npm run audit:geometry && npm run audit:art && npm run audit:footprint && npm run audit:climate && npm run audit:routes && npm run audit:review && npm run audit:recovery && npm run audit:setpieces && npm run audit:raster-pilot && npm run audit:winter-materials && npm run audit:composition && npm run audit:winter-plate && npm run audit:neighborhood-art && npm run audit:terraces && npm run audit:shelterbelt && npm run audit:architecture && npm run audit:snowpaths && npm run audit:landscape && npm run audit:architecture-art && npm run audit:contours && npm run audit:environment && npm run audit:snow-fans && npm run audit:greenwood && npm run audit:greenwood-painted && npm run audit:greenwood-verges && npm run audit:greenwood-floor && npm run audit:hermit-refuge && npm run audit:hermit-framing",
-    "check": "node --check game.js && node --check quest.js && node --check combat.js && node --check navigation.js && node --check visual.js && node --check sw.js && node --check world_geometry.js && node --check world_stream.js && node --check terrain_art.js && node --check world_footprint.js && node --check world_climate.js && node --check world_routes.js && node --check world_review.js && node --check world_illustration.js && node --check world_setpieces.js && node --check world_raster_pilot.js && node --check world_architecture_atlas.js && node --check world_greenwood_art.js && node --check world_greenwood_sanctuary.js",
+    "test": "node tests/phase3_scene_geometry.test.js && node tests/phase4_combat.test.js && node tests/phase5_quest.test.js && npm run audit:world && npm run audit:topology && npm run audit:streaming && npm run audit:geometry && npm run audit:art && npm run audit:footprint && npm run audit:climate && npm run audit:routes && npm run audit:review && npm run audit:recovery && npm run audit:setpieces && npm run audit:raster-pilot && npm run audit:winter-materials && npm run audit:composition && npm run audit:winter-plate && npm run audit:neighborhood-art && npm run audit:terraces && npm run audit:shelterbelt && npm run audit:architecture && npm run audit:snowpaths && npm run audit:landscape && npm run audit:architecture-art && npm run audit:contours && npm run audit:environment && npm run audit:snow-fans && npm run audit:greenwood && npm run audit:greenwood-painted && npm run audit:greenwood-verges && npm run audit:greenwood-floor && npm run audit:hermit-refuge && npm run audit:hermit-framing && npm run audit:hearth-cottage",
+    "check": "node --check game.js && node --check quest.js && node --check combat.js && node --check navigation.js && node --check visual.js && node --check sw.js && node --check world_geometry.js && node --check world_stream.js && node --check terrain_art.js && node --check world_footprint.js && node --check world_climate.js && node --check world_routes.js && node --check world_review.js && node --check world_illustration.js && node --check world_setpieces.js && node --check world_raster_pilot.js && node --check world_architecture_atlas.js && node --check world_greenwood_art.js && node --check world_greenwood_sanctuary.js && node --check world_greenwood_hearth.js",
     "audit:world": "node tests/overworld_phase1_audit.test.js",
     "audit:topology": "node tests/overworld_phase2_topology.test.js",
     "render:world-map": "node scripts/render_overworld_blueprint.js",
@@ -37,6 +37,7 @@
     "audit:greenwood-verges": "node tests/greenwood_verges_r19.test.js",
     "audit:greenwood-floor": "node tests/greenwood_floor_r20.test.js",
     "audit:hermit-refuge": "node tests/greenwood_hermit_refuge_r21.test.js",
-    "audit:hermit-framing": "node tests/greenwood_hermit_framing_r22.test.js"
+    "audit:hermit-framing": "node tests/greenwood_hermit_framing_r22.test.js",
+    "audit:hearth-cottage": "node tests/greenwood_hearth_cottage_r23.test.js"
   }
 }

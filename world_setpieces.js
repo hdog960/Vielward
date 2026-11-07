@@ -8,7 +8,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.8",PI=Math.PI,TAU=PI*2;
+const VERSION="1.3.31",PI=Math.PI,TAU=PI*2;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const rnd=(a,b,c=0)=>{let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296};
 function rect(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
@@ -330,7 +330,12 @@ function create(model,geometry,options={}){
   for(const o of built){
    if(skip?.(o))continue;
    if(o.x<bounds[0]-400||o.x>bounds[2]+400||o.y<bounds[1]-450||o.y>bounds[3]+360)continue;
-   drawers[o.kind](c,o);drawn++
+   // R23: the detailed source-painted Greenwood hearth house replaces
+   // just the original accepted physical forest_cottage footprint.
+   // The previous texture-drawn house is the safe loading fallback.
+   if(!(o.kind==="forest_cottage"&&
+      window.VeilwardGreenwoodHearth?.stamp?.(c,o)))drawers[o.kind](c,o);
+   drawn++
   }
   return drawn
  }

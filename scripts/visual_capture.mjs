@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.30",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.31",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -375,6 +375,34 @@ try{
  });
  console.log("R19_GREENWOOD_PHYSICAL_PATH "+JSON.stringify(vergeView));
  await sleep(1550);await capture(page,"GREENWOOD_R19_ROAD_CORRIDOR");
+ // R23: original blue-roof woodland house, NOT a pasted concept scene.
+ // Inspect the actual physical forest_cottage setpiece and a walkable
+ // lookout in the original surrounding road/forest geometry.
+ const hearthView=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const painter=window.VeilwardGreenwoodHearth;
+  const cottages=s.setpieces.objects.filter(o=>o.kind==="forest_cottage"&&
+   o.anchor==="greenwood_hearth");
+  if(cottages.length!==1||!painter?.ready||painter.stats().sourceSize!==256)
+   throw Error("R23 independent painted hearth cottage not installed");
+  const o=cottages[0];
+  let view=null;
+  for(let radius=0;radius<480&&!view;radius+=35)
+   for(let k=0;k<24;k++){
+    const angle=2*Math.PI*k/24,x=o.x+115+radius*Math.cos(angle),
+     y=o.y+175+radius*Math.sin(angle);
+    if(!s.blocked(x,y)){view={x,y};break}
+   }
+  if(!view)throw Error("R23 hearth house has no original walkable approach");
+  s.player.x=view.x;s.player.y=view.y;s.player.moving=false;
+  s.warm(view.x,view.y,1950,1300);
+  return{view,cottage:{id:o.id,x:o.x,y:o.y,r:o.r},stamps:painter.stats().stamps}
+ });
+ console.log("R23_REAL_HEARTH_COTTAGE "+JSON.stringify(hearthView));
+ await sleep(1400);await capture(page,"GREENWOOD_R23_HEARTH_COTTAGE");
+ const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
+ if(hearthStats.stamps<1||!hearthStats.ready)
+  throw Error("R23 house source decoded but was not rendered into game");
  // Real walkable hermit's approach: no fake concept canvas or new path.
  const hermitView=await page.evaluate(()=>{
   const stream=window.__veilwardCaptureStream;
@@ -453,6 +481,8 @@ try{
   greenwoodR17:window.__veilwardCaptureStream?.illustration?.stats()?.greenwoodAtlasSprites===15,
   greenwoodR18:window.VeilwardGreenwoodArt?.paintedReady===true,
   greenwoodR21:window.VeilwardGreenwoodSanctuary?.ready===true,
+  greenwoodR23:window.VeilwardGreenwoodHearth?.ready===true&&
+   window.VeilwardGreenwoodHearth?.stats()?.stamps>0,
   greenwoodR20:window.VeilwardGreenwoodArt?.create({
    footprint:window.__veilwardCaptureStream?.footprint,
    geometry:window.__veilwardCaptureStream?.geometry
@@ -471,10 +501,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.30"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
-  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||!state.greenwoodR21||
+ if(state.build!=="v1.3.31"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||!state.greenwoodR21||!state.greenwoodR23||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.30 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.31 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
