@@ -77,14 +77,21 @@ try{
  const shelterbelt=await page.evaluate(()=>{
   const stream=window.__veilwardCaptureStream;
   const trees=stream.geometry.solids.filter(x=>x.id?.startsWith("hollowreach_west_spruce_"));
-  const x=275.8*60,y=306*60;
-  if(trees.length!==4||stream.blocked(x,y)||
-   stream.raster.stats().shelterbeltSourceTrees!==4)
-   throw Error("The R9 source-backed forest verge is not playable");
-  stream.jumpToNode("village"); // resets camera, never a persistent save
-  stream.player.x=x;stream.player.y=y;stream.player.moving=false;
-  stream.warm(x,y,2100,1400);
-  return trees.map(t=>t.id)
+  const baseX=275.8*60,baseY=306*60;
+  if(trees.length!==4||stream.raster.stats().shelterbeltSourceTrees!==4)
+   throw Error("Missing R9 collidable forest art");
+  // Footprint generation can place a pre-existing boulder/sapling at one
+  // camera coordinate. Find the nearest *actually passable* boot point.
+  let view=null;
+  for(let r=0;r<=720&&!view;r+=45)for(let k=0;k<20;k++){
+   const a=k*Math.PI*2/20,x=baseX+r*Math.cos(a),y=baseY+r*Math.sin(a);
+   if(!stream.blocked(x,y)){view={x,y};break}
+  }
+  if(!view)throw Error("No playable western grove camera location");
+  stream.jumpToNode("village"); // resets camera; no persistent save
+  stream.player.x=view.x;stream.player.y=view.y;stream.player.moving=false;
+  stream.warm(view.x,view.y,2100,1400);
+  return {trees:trees.map(t=>t.id),view}
  });
  console.log("R9_SOURCE_BACKED_SHELTERBELT "+JSON.stringify(shelterbelt));
  await sleep(1300);
