@@ -38,7 +38,7 @@ env.window=env;
 vm.runInNewContext(read("world_greenwood_art.js"),env,{filename:"world_greenwood_art.js"});
 (async()=>{
  const renderer=env.VeilwardGreenwoodArt;
- assert.equal(renderer.version,"1.3.29");
+ assert.equal(renderer.version,"1.3.30");
  assert.equal(await renderer.loadPainted(),true);
  const art=renderer.create({geometry:geo,footprint});
  assert.equal(art.stats().rootedUnderstoryMats,true);
@@ -65,8 +65,8 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{filename:"world_greenwood
  const materials=read("terrain_art.js");
  assert.ok(illustration.includes('footprint.regionAt(x,y)?.id==="greenwood")continue'));
  assert.ok(materials.includes('?.id==="greenwood")return;'));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1329-illustrated-hermit"));
- assert.ok(read("index.html").includes("world_greenwood_art.js?v=6"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1330-hermit-scenic-framing"));
+ assert.ok(read("index.html").includes("world_greenwood_art.js?v=7"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R20 PASS: illustrated root-grown fern mats and retired Greenwood confetti, no source geometry mutation, saved progress retained; visual approval remains 0%");
 })().catch(err=>{console.error(err);process.exitCode=1});
