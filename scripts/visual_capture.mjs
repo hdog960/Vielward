@@ -495,6 +495,22 @@ async function capture(page,name){
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.
  await page.setViewportSize({width:720,height:405});
+ // Let the actual moving camera settle at the NEW viewport. Otherwise
+ // screenshot() can photograph the old 1136x640 camera one frame too early,
+ // falsely making a corrected tall roof appear clipped.
+ await sleep(name==="GREENWOOD_R22_FULL_ROOF"?900:90);
+ if(name==="GREENWOOD_R22_FULL_ROOF"){
+  const projected=await page.evaluate(()=>{
+   const s=window.__veilwardCaptureStream,frame=s.framing(720,405,.78);
+   const roof=(s.player.y-512-s.camera.y)*frame.zoom;
+   const feet=(s.player.y-s.camera.y)*frame.zoom;
+   return{roof,feet,zoom:frame.zoom}
+  });
+  console.log("R22_REAL_SCREEN_PIXEL_BOUNDS "+JSON.stringify(projected));
+  if(projected.roof<8||projected.feet>370||projected.feet<250)
+   throw Error("R22 genuine resized screenshot still crops house or hero: "+
+    JSON.stringify(projected))
+ }
  const jpg=await page.screenshot({type:"jpeg",quality:32,animations:"disabled"});
  const data=jpg.toString("base64");
  for(let i=0;i<data.length;i+=3800)

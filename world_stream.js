@@ -94,12 +94,15 @@ function create(model,options={}){
  // keep player and roof in one image without zooming the entire world out.
  function framing(screenW,screenH,baseZoom=.78){
   const hub=points.hermit;
-  if(!hub||screenH>520||screenH<220)return{zoom:baseZoom,anchorY:.52,focus:0};
+  // This composition applies only to landscape views. Portrait has enough
+  // vertical space with the normal game camera; no sudden portrait zoom.
+  if(!hub||screenW<screenH*1.25||screenH<220)return{zoom:baseZoom,anchorY:.52,focus:0};
   const hx=hub.point[0]*unit,hy=hub.point[1]*unit;
   const distance=Math.hypot(player.x-hx,player.y-hy);
   const t=clamp((850-distance)/650,0,1);
   const focus=t*t*(3-2*t);
-  return {zoom:baseZoom+(Math.min(baseZoom,.56)-baseZoom)*focus,
+  const safeZoom=Math.min(baseZoom,Math.max(.43,screenH*.70/(88+424)));
+  return {zoom:baseZoom+(safeZoom-baseZoom)*focus,
     anchorY:.52+.25*focus,focus}
  }
  if(geometry){
