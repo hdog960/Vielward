@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.23",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.24",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -261,6 +261,29 @@ try{
  await page.locator('.reviewRegion[aria-label="Explore Greenwood"]').click();
  await settle(page);
  await capture(page,"GREENWOOD");
+ // Source-backed tree art R17: photograph a genuinely walkable glade with
+ // source rooted trees, NOT a separate illustration or layout mockup.
+ const woodlandReview=await page.evaluate(()=>{
+  const stream=window.__veilwardCaptureStream;
+  if(stream?.art?.illustration?.stats()?.greenwoodAtlasSprites!==15)
+   throw Error("R17 live Greenwood foliage atlas not connected to game");
+  const n=stream.model.nodes.find(n=>n.id==="greenwood_hearth");
+  if(!n)throw Error("Greenwood source anchor missing");
+  const x=n.point[0]*60,y=n.point[1]*60;
+  let view=null;
+  for(let radius=0;radius<=700&&!view;radius+=35)
+   for(let k=0;k<24;k++){
+    const a=k*Math.PI/12,xx=x+Math.cos(a)*radius,
+      yy=y+Math.sin(a)*radius;
+    if(!stream.blocked(xx,yy)){view={x:xx,y:yy};break}
+   }
+  if(!view)throw Error("No valid source-rooted Greenwood visual review point");
+  stream.player.x=view.x;stream.player.y=view.y;stream.player.moving=false;
+  stream.warm(view.x,view.y,2300,1650);
+  return view
+ });
+ console.log("R17_SOURCE_GREENWOOD_GLADE "+JSON.stringify(woodlandReview));
+ await sleep(1350);await capture(page,"GREENWOOD_R17_FOLIAGE");
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
  await page.locator('.reviewRegion[aria-label="Explore Coldpine Ridge"]').click();
@@ -286,6 +309,7 @@ try{
   architectureAtlas:window.VeilwardArchitectureAtlas?.ready===true,
   sourceAtlasR15:window.__veilwardCaptureStream?.raster?.stats()?.sourceLandscapeAtlasReady===true,
   sourceFansR16:window.__veilwardCaptureStream?.raster?.stats()?.sourceLinkedSnowFans===true,
+  greenwoodR17:window.__veilwardCaptureStream?.art?.illustration?.stats()?.greenwoodAtlasSprites===15,
   sourceContours:window.__veilwardCaptureStream?.raster?.stats()?.physicallyBoundSnowContours===true,
   architectureRejected:window.__veilwardCaptureStream?.raster?.stats()?.architectureExperimentActive===false,
   cottageVariants:window.__veilwardCaptureStream?.raster?.stats()?.sourceCottageVariants,
@@ -296,10 +320,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.23"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
-  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||
+ if(state.build!=="v1.3.24"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.23 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.24 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
@@ -315,7 +339,7 @@ async function settle(page){
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_snow_fans_r16.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_greenwood_r17.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.

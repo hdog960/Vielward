@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.23",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.24",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";

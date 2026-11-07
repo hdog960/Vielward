@@ -167,7 +167,7 @@ function create({footprint,geometry}={}){
   for(const o of anchored){
    if(!["oak","pine","scrub"].includes(o.kind)||!forest(o.x,o.y)||
        geometry.waterAt(o.x,o.y,2))continue;
-   if(o.x+bounds[3]*0<bounds[0]-310||o.x>bounds[2]+310||
+   if(o.x<bounds[0]-310||o.x>bounds[2]+310||
      o.y<bounds[1]-310||o.y>bounds[3]+310)continue;
    const r=o.radius,shade=ctx.createRadialGradient?.(
     o.x,o.y,r*.08,o.x,o.y,r*2.6);
