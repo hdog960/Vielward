@@ -161,6 +161,50 @@ function create({footprint,geometry}={}){
  }
  function paintForestFloor(ctx,bounds){
   let count=0;
+  // R17b: continuous forest-floor pools fill the entire SOURCE Greenwood
+  // biome, not only rare trunk locations. Overlapping large-scale dappled
+  // patches give a woodland underpainting rather than 96px checkerboard,
+  // isolated flower confetti or invented new collision blockers.
+  const zone=460;
+  for(let gy=Math.floor((bounds[1]-200)/zone);
+      gy<=Math.ceil((bounds[3]+200)/zone);gy++)
+   for(let gx=Math.floor((bounds[0]-200)/zone);
+       gx<=Math.ceil((bounds[2]+200)/zone);gx++){
+    const cx=gx*zone+zone*(.23+hash(gx,gy,119)*.54),
+      cy=gy*zone+zone*(.18+hash(gy,gx,130)*.60);
+    if(!forest(cx,cy)||geometry.waterAt(cx,cy,50))continue;
+    const r=240+hash(gx,gy,133)*200;
+    if(typeof ctx.createRadialGradient==="function"){
+     const dark=ctx.createRadialGradient(cx-54,cy-29,16,cx,cy,r);
+     dark.addColorStop(0,"rgba(29,65,47,.31)");
+     dark.addColorStop(.30,"rgba(41,79,54,.23)");
+     dark.addColorStop(.66,"rgba(75,108,68,.12)");
+     dark.addColorStop(1,"rgba(77,112,69,0)");
+     ctx.save();ctx.fillStyle=dark;
+     ctx.fillRect(cx-r,cy-r,r*2,r*2);ctx.restore();
+     const offsetX=r*.32,offsetY=-r*.41;
+     const light=ctx.createRadialGradient(cx+offsetX,cy+offsetY,6,
+      cx+offsetX,cy+offsetY,r*.75);
+     light.addColorStop(0,"rgba(216,198,125,.17)");
+     light.addColorStop(.42,"rgba(180,189,112,.075)");
+     light.addColorStop(1,"rgba(180,189,112,0)");
+     ctx.save();ctx.fillStyle=light;
+     ctx.fillRect(cx-r,cy-r,r*2,r*2);ctx.restore()
+    }
+    // Connected leaf-litter wakes and mottled light all sit on continuous
+    // soil material; real roads are painted AFTER this pass.
+    for(let k=0;k<27;k++){
+     const t=hash(gx*13+k,gy,160),a=hash(gx,gy*19+k,161)*Math.PI*2,
+       rr=(.22+.70*Math.sqrt(t))*r,
+       px=cx+Math.cos(a)*rr,
+       py=cy+Math.sin(a)*rr*.72;
+     if(geometry.waterAt(px,py,6)||geometry.nearRoad(px,py,()=>true,18))continue;
+     const v=hash(k,gx+gy,163);
+     rect(ctx,px,py,4+Math.floor(v*8),2+Math.floor(v*3),
+      v>.71?"rgba(179,163,94,.34)":
+      v>.38?"rgba(45,88,52,.31)":"rgba(122,150,81,.29)")
+    }
+   }
   // A forest's undergrowth grows around established source tree roots, not
   // on random new solid objects or painted pathways. Roads render afterward.
   const anchored=[...footprint.cells(bounds,310),...footprint.groves(bounds,310)];
