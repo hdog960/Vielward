@@ -53,7 +53,7 @@ for(const f of ["world_geometry.js","world_climate.js","world_footprint.js",
  const game=vmEnv.VeilwardWorldStream.create(blueprint,{
   geometry:geometryData,footprint:footprintData,canvasFactory:canvas
  });
- assert.equal(game.version,"1.3.18");
+ assert.equal(game.version,"1.3.19");
  assert.equal(game.geometry.stats().solids,39);
  assert.equal(game.routeArt.stats().roads,65);
  assert.equal(game.routeArt.stats().crossings,7);
@@ -91,8 +91,8 @@ for(const f of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.ok(art.includes("raster.drawVillageGround(ctx,bounds,setpieces?.objects||[])"));
  assert.ok(routes.includes("raster?.paintedRoad(ctx,e,bounds)"));
  const sw=read("sw.js"),html=read("index.html"),main=read("game.js");
- assert.ok(sw.includes("veilward-hollowreach-v1318-rooted-winter-landscape"));
- assert.ok(html.includes("world_raster_pilot.js?v=14"));
+ assert.ok(sw.includes("veilward-hollowreach-v1319-illustrated-winter-homes"));
+ assert.ok(html.includes("world_raster_pilot.js?v=15"));
  assert.ok(main.includes('const SAVE="veilward-hollowreach-v01";'));
  assert.ok(main.includes('terrain_geometry.json?v=4'));
  console.log("R8 PASS: new source cliff colliders, illustrated snow caps, connected court, path integrity");
