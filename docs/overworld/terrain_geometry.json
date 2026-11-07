@@ -759,6 +759,38 @@
       "r": 2.1,
       "material": "pine-trunk",
       "height": 4
+    },
+    {
+      "id": "hollowreach_west_retaining_upper",
+      "name": "Hollowreach upper stone-and-snow terrace wall",
+      "shape": "segment",
+      "a": [
+        275.08,
+        300.67
+      ],
+      "b": [
+        275.08,
+        303.58
+      ],
+      "radius": 0.32,
+      "material": "retaining-wall",
+      "height": 4
+    },
+    {
+      "id": "hollowreach_west_retaining_lower",
+      "name": "Hollowreach lower village stone-and-snow terrace wall",
+      "shape": "segment",
+      "a": [
+        274.92,
+        306.15
+      ],
+      "b": [
+        274.92,
+        308.92
+      ],
+      "radius": 0.32,
+      "material": "retaining-wall",
+      "height": 4
     }
   ],
   "interactions": [
