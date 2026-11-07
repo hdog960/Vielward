@@ -147,3 +147,8 @@ A new independently produced eight-cell transparent PNG (`assets/hollowreach_nei
 
 ## Current Phase 9 R7 build — v1.3.13
 The live source has a depth-sorted Hollowreach winter raster compositor and softer physical-road rendering. Source of truth: `docs/overworld/HOLLOWREACH_DEPTH_R7.md` and `OVERWORLD_REBUILD_ROADMAP.md`. Test with `npm run check` and `npm test`, plus real-browser visual QA. **Still visually rejected at 0% creator approval; Phase 10 stays locked.** Continue improving the actual playable environment, not producing detached concept art. Preserve original sprites and saves. One development slice per creator instruction.
+
+
+## R8 v1.3.14 — Hollowreach grounded terrace / square integration
+The playable overworld now contains **three new genuinely solid source-geometry Hollowreach cliffs** in safe locations off existing roads. Original map topology, 48 nodes, 65 roads and seven crossings are unchanged. The 7 total cliff polygons and 33 total obstacles are rendered from authoritative geometry, not visual-only impostors. A snow cornice/fracture painter follows their real polygon footprints; Hollowreach's paved square, physically anchored cottage approaches and snowy path verges are unified in the same terrain compositor. Versioned app/cache and source geometry query were bumped; R8 tests are part of `npm test` and browser captures now inspect a viewpoint near the actual new cliff surfaces. **Visual creator acceptance is still 0%; no Phase 10.** See `docs/overworld/HOLLOWREACH_TERRACES_R8.md`.
+
