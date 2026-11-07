@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.27",SIZE=192,HEIGHT=240,VARIANTS=5;
+const V="1.3.28",SIZE=192,HEIGHT=240,VARIANTS=5;
 const A={
  oak:["#192b27","#264337","#355745","#4b7551","#64875a","#83a06b","#b2b57a"],
  pine:["#172e2b","#26443d","#2b5447","#46705a","#5c8165","#80a17b","#bbc296"]
@@ -310,6 +310,41 @@ function create({footprint,geometry}={}){
   }
   return segments
  }
+
+ // R20: native woodland understory begins at EXISTING real tree roots,
+ // not on independently created impassable scenery or repeated tile flecks.
+ function paintRootedUnderstory(ctx,bounds,roots){
+  if(!painted||!ctx?.drawImage)return 0;
+  let count=0;
+  for(const o of roots){
+   if(!["oak","pine","scrub","flowerbed"].includes(o.kind)||
+     !forest(o.x,o.y)||geometry.waterAt(o.x,o.y,25))continue;
+   const r=o.radius;
+   if(o.x+r*4<bounds[0]||o.x-r*4>bounds[2]||
+      o.y+r*3<bounds[1]||o.y-r*3>bounds[3])continue;
+   const seed=Math.floor(o.variant*8191);
+   const amount=o.kind==="oak"||o.kind==="pine"?3:2;
+   for(let j=0;j<amount;j++){
+    const a=j/amount*Math.PI*2+hash(seed,j,173)*.95,
+     distance=r*(.4+hash(j,seed,175)*1.27),
+     x=o.x+Math.cos(a)*distance,
+     y=o.y+Math.sin(a)*distance*.48;
+    // Do not conceal real water, roads, buildings or entrance thresholds.
+    if(!forest(x,y)||geometry.waterAt(x,y,12)||
+       geometry.nearRoad(x,y,()=>true,35)||
+       geometry.obstacle(x,y,35))continue;
+    const w=r*(2.9+hash(seed,j,177)*1.1),
+     h=w*(.37+hash(j,seed,179)*.10);
+    ctx.save();ctx.globalAlpha=.29+hash(seed,j,181)*.13;
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(x-w*.5),Math.round(y-h*.8),
+     Math.round(w),Math.round(h));
+    ctx.restore();count++
+   }
+  }
+  return count
+ }
  function paintForestFloor(ctx,bounds){
   let count=0;
   // R17b: continuous forest-floor pools fill the entire SOURCE Greenwood
@@ -342,26 +377,16 @@ function create({footprint,geometry}={}){
      ctx.save();ctx.fillStyle=light;
      ctx.fillRect(cx-r,cy-r,r*2,r*2);ctx.restore()
     }
-    // Connected leaf-litter wakes and mottled light all sit on continuous
-    // soil material; real roads are painted AFTER this pass.
-    for(let k=0;k<27;k++){
-     const t=hash(gx*13+k,gy,160),a=hash(gx,gy*19+k,161)*Math.PI*2,
-       rr=(.22+.70*Math.sqrt(t))*r,
-       px=cx+Math.cos(a)*rr,
-       py=cy+Math.sin(a)*rr*.72;
-     if(geometry.waterAt(px,py,6)||geometry.nearRoad(px,py,()=>true,18))continue;
-     const v=hash(k,gx+gy,163);
-     rect(ctx,px,py,4+Math.floor(v*8),2+Math.floor(v*3),
-      v>.71?"rgba(179,163,94,.34)":
-      v>.38?"rgba(45,88,52,.31)":"rgba(122,150,81,.29)")
-    }
+    // R20 removes detached repeated ground confetti; grounded vegetation
+    // comes from source trees in one cohesive canvas pass below.
    }
   // Connect the original roads to their own forest-floor material BEFORE
   // the actual road surfaces are drawn later in the terrain compositor.
   paintRoadVerges(ctx,bounds);
   // A forest's undergrowth grows around established source tree roots, not
   // on random new solid objects or painted pathways. Roads render afterward.
-  const anchored=[...footprint.cells(bounds,310),...footprint.groves(bounds,310)];
+  const anchored=[...footprint.cells(bounds,420),...footprint.groves(bounds,420)];
+  paintRootedUnderstory(ctx,bounds,anchored);
   for(const o of anchored){
    if(!["oak","pine","scrub"].includes(o.kind)||!forest(o.x,o.y)||
        geometry.waterAt(o.x,o.y,2))continue;
@@ -376,16 +401,7 @@ function create({footprint,geometry}={}){
     ctx.save();ctx.fillStyle=shade;
     ctx.fillRect(o.x-r*2.6,o.y-r*2.6,r*5.2,r*5.2);ctx.restore()
    }
-   // Richer leaf litter is still a passable ground material, never an
-   // independent object. Clumps connect to the same actual root footprint.
-   for(let i=0;i<8;i++){
-    const a=hash(i,o.x|0,o.y|0)*Math.PI*2,
-      dist=r*(.35+hash(i,o.y|0,o.x|0)*1.2),
-      px=o.x+Math.cos(a)*dist,py=o.y+Math.sin(a)*dist*.48;
-    if(geometry.waterAt(px,py,0)||geometry.nearRoad(px,py,()=>true,10))continue;
-    rect(ctx,px,py,3+(i%3)*3,2+(i%2),i%3===0?"rgba(171,151,86,.45)":
-      i%2===0?"rgba(57,93,54,.55)":"rgba(108,138,77,.36)")
-   }
+   // Real painted fern mats replace tiny detached pixel flecks.
    count++
   }
   return count
@@ -395,10 +411,11 @@ function create({footprint,geometry}={}){
   kindCount:3,totalSprites:VARIANTS*3,ready:!!atlas,
   physicsChanged:false,originalRootAnchors:true,creatorApproved:false,
   roadVergesFromSource:true,matureTreeCanopyScale:1.65,
-  featheredRoadEdges:true,
+  featheredRoadEdges:true,rootedUnderstoryMats:true,
+  retiredConfettiFloor:true,
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRoadVerges,stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRoadVerges,paintRootedUnderstory,stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},

@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.27",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.28",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -375,6 +375,22 @@ try{
  });
  console.log("R19_GREENWOOD_PHYSICAL_PATH "+JSON.stringify(vergeView));
  await sleep(1550);await capture(page,"GREENWOOD_R19_ROAD_CORRIDOR");
+ // Real walkable hermit's approach: no fake concept canvas or new path.
+ const hermitView=await page.evaluate(()=>{
+  const stream=window.__veilwardCaptureStream;
+  const artist=window.VeilwardGreenwoodArt?.create({
+   footprint:stream.footprint,geometry:stream.geometry
+  });
+  if(!artist?.stats()?.rootedUnderstoryMats||!artist.stats().retiredConfettiFloor)
+   throw Error("R20 rooted-forest compositor is not running");
+  stream.jumpToNode("hermit");
+  if(stream.blocked(stream.player.x,stream.player.y))
+   throw Error("R20 hermit waypoint is blocked");
+  stream.warm(stream.player.x,stream.player.y,2100,1450);
+  return {x:stream.player.x,y:stream.player.y}
+ });
+ console.log("R20_WALKABLE_HERMIT_APPROACH "+JSON.stringify(hermitView));
+ await sleep(1600);await capture(page,"GREENWOOD_R20_HERMIT_FLOOR");
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
  await page.locator('.reviewRegion[aria-label="Explore Coldpine Ridge"]').click();
@@ -402,6 +418,10 @@ try{
   sourceFansR16:window.__veilwardCaptureStream?.raster?.stats()?.sourceLinkedSnowFans===true,
   greenwoodR17:window.__veilwardCaptureStream?.illustration?.stats()?.greenwoodAtlasSprites===15,
   greenwoodR18:window.VeilwardGreenwoodArt?.paintedReady===true,
+  greenwoodR20:window.VeilwardGreenwoodArt?.create({
+   footprint:window.__veilwardCaptureStream?.footprint,
+   geometry:window.__veilwardCaptureStream?.geometry
+  }).stats().rootedUnderstoryMats===true,
   greenwoodR19:window.VeilwardGreenwoodArt?.create({
    footprint:window.__veilwardCaptureStream?.footprint,
    geometry:window.__veilwardCaptureStream?.geometry
@@ -416,10 +436,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.27"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
-  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||
+ if(state.build!=="v1.3.28"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.27 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.28 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
