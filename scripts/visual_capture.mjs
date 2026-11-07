@@ -265,7 +265,7 @@ try{
  // source rooted trees, NOT a separate illustration or layout mockup.
  const woodlandReview=await page.evaluate(()=>{
   const stream=window.__veilwardCaptureStream;
-  if(stream?.art?.illustration?.stats()?.greenwoodAtlasSprites!==15)
+  if(stream?.illustration?.stats()?.greenwoodAtlasSprites!==15)
    throw Error("R17 live Greenwood foliage atlas not connected to game");
   const n=stream.model.nodes.find(n=>n.id==="greenwood_hearth");
   if(!n)throw Error("Greenwood source anchor missing");
@@ -309,7 +309,7 @@ try{
   architectureAtlas:window.VeilwardArchitectureAtlas?.ready===true,
   sourceAtlasR15:window.__veilwardCaptureStream?.raster?.stats()?.sourceLandscapeAtlasReady===true,
   sourceFansR16:window.__veilwardCaptureStream?.raster?.stats()?.sourceLinkedSnowFans===true,
-  greenwoodR17:window.__veilwardCaptureStream?.art?.illustration?.stats()?.greenwoodAtlasSprites===15,
+  greenwoodR17:window.__veilwardCaptureStream?.illustration?.stats()?.greenwoodAtlasSprites===15,
   sourceContours:window.__veilwardCaptureStream?.raster?.stats()?.physicallyBoundSnowContours===true,
   architectureRejected:window.__veilwardCaptureStream?.raster?.stats()?.architectureExperimentActive===false,
   cottageVariants:window.__veilwardCaptureStream?.raster?.stats()?.sourceCottageVariants,
