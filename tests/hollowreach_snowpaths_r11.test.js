@@ -41,7 +41,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  const world=sandbox.VeilwardWorldStream.create(model,{
   geometry:geo,footprint,canvasFactory:canvas
  });
- assert.equal(world.version,"1.3.31");
+ assert.equal(world.version,"1.3.32");
  assert.equal(world.geometry.stats().solids,39);
  assert.equal(world.routeArt.stats().roads,65);
  assert.equal(world.routeArt.stats().crossings,7);
@@ -79,8 +79,8 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.ok(read("terrain_art.js").includes("raster.drawWinterFootpaths(ctx,bounds)"),
   "REAL chunk renderer must paint impressions after the existing roads");
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1331-second-forest-cottage"));
- assert.ok(read("index.html").includes("world_raster_pilot.js?v=27"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1332-source-glade-habitat"));
+ assert.ok(read("index.html").includes("world_raster_pilot.js?v=28"));
  for(const anchor of model.nodes)
   assert.equal(world.blocked(anchor.point[0]*60,anchor.point[1]*60),false,
    "all original travel anchor boots remain open: "+anchor.id);
