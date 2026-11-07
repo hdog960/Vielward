@@ -52,12 +52,14 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  const world=host.VeilwardWorldStream.create(model,{
   geometry:terrain,footprint,canvasFactory:canvas
  });
- assert.equal(world.version,"1.3.19");
+ assert.equal(world.version,"1.3.20");
  assert.equal(world.geometry.stats().solids,39);
  assert.equal(model.nodes.length,48);
  assert.equal(world.routeArt.stats().roads,65);
  assert.equal(world.routeArt.stats().crossings,7);
  assert.equal(world.raster.stats().architectureRasterReady,true);
+ assert.equal(world.raster.stats().architectureExperimentActive,false,
+  "The user's original painted cottage art must be the live default");
  assert.equal(world.raster.stats().sourceCottageVariants,4);
  assert.equal(world.raster.stats().sourceCottagePixels,256);
  const homes=world.setpieces.objects.filter(o=>
@@ -66,17 +68,30 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  draws.length=0;
  const n=model.nodes.find(n=>n.id==="village"),x=n.point[0]*60,y=n.point[1]*60;
  assert.equal(world.raster.drawSetpieces(ctx(),[x-1000,y-1000,x+1000,y+1000],homes),2);
+ const legacyDraws=draws.filter(d=>d[3]===96&&d[4]===96);
+ assert.ok(legacyDraws.length>=2,
+  "Unapproved geometric architecture must NOT replace painterly original homes");
+ // The original authored architecture source is preserved only for isolated
+ // future art refinement, never shown to ordinary creator playtests.
+ const dev=host.VeilwardWorldStream.create(model,{
+  geometry:terrain,footprint,canvasFactory:canvas,experimentalArchitecture:true
+ });
+ assert.equal(dev.raster.stats().architectureExperimentActive,true);
+ draws.length=0;
+ assert.equal(dev.raster.drawSetpieces(ctx(),[x-1000,y-1000,x+1000,y+1000],
+  dev.setpieces.objects.filter(o=>o.kind==="snow_cottage"&&o.anchor==="village")),2);
  const sourceDraws=draws.filter(d=>d[3]===256&&d[4]===256);
- assert.ok(sourceDraws.length>=2,"Two actual world houses draw original 256px sprites");
+ assert.ok(sourceDraws.length>=2,
+  "Unapproved 256px experimental art is still accessible in isolated R13 QA");
  for(const node of model.nodes)
   assert.equal(world.blocked(node.point[0]*60,node.point[1]*60),false,
    "All original travel waypoints remain passable");
  const html=read("index.html"),sw=read("sw.js");
  assert.ok(html.indexOf("world_architecture_atlas.js?v=1")<
-  html.indexOf("world_raster_pilot.js?v=15"),"Raster art source loads before world compositor");
+  html.indexOf("world_raster_pilot.js?v=16"),"Raster art source loads before world compositor");
  assert.ok(sw.includes('"./world_architecture_atlas.js?v=1"'));
- assert.ok(sw.includes("veilward-hollowreach-v1319-illustrated-winter-homes"));
+ assert.ok(sw.includes("veilward-hollowreach-v1320-original-art-protected"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  assert.equal(world.raster.stats().creatorApproved,false);
- console.log("R13 PASS: four 256px illustrated building variants rendered in real winter village, 39 obstacles, 48 anchors, 65 roads, 7 crossings, original saves");
+ console.log("R13 PASS: protected painterly original default; four 256px variants remain experimental only; 39 obstacles, 48 anchors, 65 roads, 7 crossings, original saves");
 })().catch(e=>{console.error(e);process.exitCode=1});

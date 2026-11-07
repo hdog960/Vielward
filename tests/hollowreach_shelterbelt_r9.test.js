@@ -40,7 +40,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  const world=env.VeilwardWorldStream.create(blueprint,{
   geometry:source,footprint,canvasFactory:canvas
  });
- assert.equal(world.version,"1.3.19");
+ assert.equal(world.version,"1.3.20");
  assert.equal(world.geometry.stats().solids,39);
  assert.equal(blueprint.nodes.length,48);
  assert.equal(blueprint.edges.length,65);
@@ -96,8 +96,8 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.equal(world.raster.stats().creatorApproved,false);
  assert.equal(world.raster.stats().geometryChanged,false);
  const html=read("index.html"),worker=read("sw.js"),game=read("game.js");
- assert.ok(html.includes("world_raster_pilot.js?v=15"));
- assert.ok(worker.includes("veilward-hollowreach-v1319-illustrated-winter-homes"));
+ assert.ok(html.includes("world_raster_pilot.js?v=16"));
+ assert.ok(worker.includes("veilward-hollowreach-v1320-original-art-protected"));
  assert.ok(game.includes('terrain_geometry.json?v=4'));
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R9 PASS: four real grove colliders; one connected painterly belt; 65 roads, 48 anchors, seven crossings, saves intact");
