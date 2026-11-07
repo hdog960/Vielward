@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.16",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.17",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -53,6 +53,27 @@ try{
  await page.waitForFunction(()=>document.querySelector("#reviewAtlasBtn")?.style?.display==="block",null,{timeout:60000});
  await settle(page);
  await capture(page,"HOLLOWREACH");
+ // R11: inspect an ACTUAL, source-authored walkable village street where
+ // subtle compressed boot impressions sit atop the hand-painted snow road.
+ const snowpath=await page.evaluate(()=>{
+  const stream=window.__veilwardCaptureStream;
+  if(!stream?.raster?.stats()?.sourceBoundWinterFootpaths)
+   throw Error("Source-road winter boots not registered in game");
+  const baseX=282*60+385,baseY=305*60+10;
+  let pt=null;
+  for(let r=0;r<=410&&!pt;r+=40)for(let i=0;i<20;i++){
+   const angle=i*Math.PI*2/20,x=baseX+Math.cos(angle)*r,
+    y=baseY+Math.sin(angle)*r;
+   if(!stream.blocked(x,y)){pt={x,y};break}
+  }
+  if(!pt)throw Error("No safe street viewport for R11");
+  stream.player.x=pt.x;stream.player.y=pt.y;
+  stream.player.moving=false;stream.warm(pt.x,pt.y,1950,1150);
+  return pt
+ });
+ console.log("R11_SOURCE_ROAD_TRACKS "+JSON.stringify(snowpath));
+ await sleep(1200);
+ await capture(page,"HOLLOWREACH_SNOWPATHS");
  // R8: verify the NEW physical escarpments at real world coordinates instead
  // of considering a screenshot of the village square sufficient evidence.
  // The check is a throwaway browser camera visit, not a gameplay save/teleport.
@@ -148,12 +169,13 @@ try{
   stonewalls:window.__veilwardCaptureStream?.raster?.stats()?.retainingWallSegments===2,
   villageHouses:window.__veilwardCaptureStream?.setpieces?.objects?.filter(o=>
    o.anchor==="village"&&o.kind==="snow_cottage").length,
+  winterBootTrails:window.__veilwardCaptureStream?.raster?.stats()?.sourceBoundWinterFootpaths===true,
   wallHorizontal:(window.__veilwardCaptureStream?.geometry?.solids||[]).filter(o=>
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.16"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal)
-  throw Error("Incomplete v1.3.16 visual preview "+JSON.stringify(state));
+ if(state.build!=="v1.3.17"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails)
+  throw Error("Incomplete v1.3.17 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
@@ -169,7 +191,7 @@ async function settle(page){
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_stonewalls_r10.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_snowpaths_r11.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.

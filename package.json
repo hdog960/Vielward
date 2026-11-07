@@ -1,10 +1,10 @@
 {
   "name": "veilward-hollowreach",
-  "version": "1.3.16",
+  "version": "1.3.17",
   "private": true,
   "description": "Static iPhone action-RPG vertical slice (no runtime packages)",
   "scripts": {
-    "test": "node tests/phase3_scene_geometry.test.js && node tests/phase4_combat.test.js && node tests/phase5_quest.test.js && npm run audit:world && npm run audit:topology && npm run audit:streaming && npm run audit:geometry && npm run audit:art && npm run audit:footprint && npm run audit:climate && npm run audit:routes && npm run audit:review && npm run audit:recovery && npm run audit:setpieces && npm run audit:raster-pilot && npm run audit:winter-materials && npm run audit:composition && npm run audit:winter-plate && npm run audit:neighborhood-art && npm run audit:terraces && npm run audit:shelterbelt && npm run audit:architecture",
+    "test": "node tests/phase3_scene_geometry.test.js && node tests/phase4_combat.test.js && node tests/phase5_quest.test.js && npm run audit:world && npm run audit:topology && npm run audit:streaming && npm run audit:geometry && npm run audit:art && npm run audit:footprint && npm run audit:climate && npm run audit:routes && npm run audit:review && npm run audit:recovery && npm run audit:setpieces && npm run audit:raster-pilot && npm run audit:winter-materials && npm run audit:composition && npm run audit:winter-plate && npm run audit:neighborhood-art && npm run audit:terraces && npm run audit:shelterbelt && npm run audit:architecture && npm run audit:snowpaths",
     "check": "node --check game.js && node --check quest.js && node --check combat.js && node --check navigation.js && node --check visual.js && node --check sw.js && node --check world_geometry.js && node --check world_stream.js && node --check terrain_art.js && node --check world_footprint.js && node --check world_climate.js && node --check world_routes.js && node --check world_review.js && node --check world_illustration.js && node --check world_setpieces.js && node --check world_raster_pilot.js",
     "audit:world": "node tests/overworld_phase1_audit.test.js",
     "audit:topology": "node tests/overworld_phase2_topology.test.js",
@@ -25,6 +25,7 @@
     "audit:neighborhood-art": "node tests/hollowreach_neighborhood_r6.test.js",
     "audit:terraces": "node tests/hollowreach_terraces_r8.test.js",
     "audit:shelterbelt": "node tests/hollowreach_shelterbelt_r9.test.js",
-    "audit:architecture": "node tests/hollowreach_architecture_r10.test.js"
+    "audit:architecture": "node tests/hollowreach_architecture_r10.test.js",
+    "audit:snowpaths": "node tests/hollowreach_snowpaths_r11.test.js"
   }
 }
