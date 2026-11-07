@@ -355,6 +355,17 @@ function create(model,geometry,options={}){
     top=Math.min(...pts.map(p=>p[1])),foot=Math.max(...pts.map(p=>p[1]));
   const span=right-left,segments=Math.max(1,Math.min(40,Math.ceil(span/148)));
   const width=Math.min(330,Math.max(185,span/segments*1.45));
+  // A wide, soft-grounded shadow and snow wash bind this real rock mass to
+  // the surrounding winter terrain. Only the original polygon is solid.
+  if(typeof ctx.createRadialGradient==="function"){
+   ctx.save();ctx.translate(cx,foot+8);
+   ctx.scale(Math.max(130,span*.77),Math.max(70,(foot-top)*.54));
+   const shade=ctx.createRadialGradient(0,0,.08,0,0,1);
+   shade.addColorStop(0,"rgba(43,69,103,.24)");
+   shade.addColorStop(.48,"rgba(82,111,143,.13)");
+   shade.addColorStop(1,"rgba(149,174,200,0)");
+   ctx.fillStyle=shade;ctx.fillRect(-1,-1,2,2);ctx.restore()
+  }
   ctx.save();ctx.beginPath();
   pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
   ctx.closePath();ctx.clip();
@@ -398,7 +409,29 @@ function create(model,geometry,options={}){
    i?ctx.lineTo(px,py+4+drift):ctx.moveTo(px,py+4+drift)
   }
   ctx.strokeStyle="rgba(248,251,246,.89)";ctx.lineWidth=7;ctx.stroke();
-  ctx.restore();return true
+  ctx.restore();
+  // Irregular snow skirting lies on existing ground outside the physical
+  // escarpment, so there is no invisible extra wall at the stone/snow seam.
+  if(pts.length>=4){
+   const l=pts[3],r=pts[2],dx=r[0]-l[0],dy=r[1]-l[1];
+   const steps=Math.max(3,Math.ceil(Math.hypot(dx,dy)/54));
+   ctx.beginPath();
+   for(let i=0;i<=steps;i++){
+    const t=i/steps,xx=l[0]+dx*t,yy=l[1]+dy*t;
+    const frost=Math.sin(t*15+cx*.007)*5+Math.cos(t*23+cy*.015)*3;
+    i?ctx.lineTo(xx,yy-5+frost):ctx.moveTo(xx,yy-5+frost)
+   }
+   for(let i=steps;i>=0;i--){
+    const t=i/steps,xx=l[0]+dx*t,yy=l[1]+dy*t;
+    const frost=Math.sin(t*17+cx*.014)*6;
+    ctx.lineTo(xx,yy+17+frost)
+   }
+   ctx.closePath();ctx.fillStyle="rgba(221,231,236,.67)";ctx.fill();
+   ctx.beginPath();ctx.moveTo(l[0],l[1]-6);
+   ctx.lineTo(r[0],r[1]-6);
+   ctx.strokeStyle="rgba(245,249,246,.48)";ctx.lineWidth=4;ctx.stroke()
+  }
+  return true
  }
  function drawForeground(ctx,player){
   if(!winter(player.x,player.y))return false;
