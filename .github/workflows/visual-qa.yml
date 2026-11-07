@@ -5,6 +5,7 @@ on:
       - "scripts/visual_capture.mjs"
       - ".github/workflows/visual-qa.yml"
       - "world_raster_pilot.js"
+      - "world_architecture_atlas.js"
       - "assets/hollowreach_pilot_sprites_v1.png"
       - "world_setpieces.js"
       - "world_illustration.js"
@@ -29,7 +30,7 @@ jobs:
         run: |
           npm install --no-save --no-package-lock playwright
           npx playwright install --with-deps chromium
-      - name: Render actual five Veilward views
+      - name: Render real Veilward environment and architecture review views
         run: node scripts/visual_capture.mjs
       - name: Upload human-review screenshots
         if: always()
