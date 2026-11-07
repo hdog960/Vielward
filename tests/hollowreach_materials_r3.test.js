@@ -46,11 +46,11 @@ for(const path of paths)vm.runInNewContext(S[path],sandbox,{filename:path});
  const pilot=sandbox.VeilwardRasterPilot;
  await pilot.load();assert.ok(pilot.ready,"all 4 real painted atlases loaded");
  const world=sandbox.VeilwardWorldStream.create(model,{geometry:geometryData,footprint:landData,canvasFactory:canvas});
- assert.equal(world.version,"1.3.25");
- assert.equal(world.art.version,"1.3.25");
- assert.equal(world.routeArt.version,"1.3.25");
- assert.equal(world.illustration.version,"1.3.25");
- assert.equal(world.raster.version,"1.3.25");
+ assert.equal(world.version,"1.3.26");
+ assert.equal(world.art.version,"1.3.26");
+ assert.equal(world.routeArt.version,"1.3.26");
+ assert.equal(world.illustration.version,"1.3.26");
+ assert.equal(world.raster.version,"1.3.26");
  assert.equal(world.raster.stats().artworkCells,30,"3+3+16+8 painted objects, infrastructure and terrain");
  assert.equal(world.raster.stats().creatorApproved,false);
  assert.equal(world.raster.stats().fullBackgroundPasted,false);
@@ -90,15 +90,15 @@ for(const path of paths)vm.runInNewContext(S[path],sandbox,{filename:path});
  for(const asset of ["assets/hollowreach_bridge_stairs_lamp_v2.png?v=1",
  "assets/hollowreach_ground_painted_v2.webp?v=1",
   "assets/hollowreach_neighborhood_r6.png?v=1",
- "world_raster_pilot.js?v=21","world_routes.js?v=20",
- "world_illustration.js?v=19","terrain_art.js?v=25","world_stream.js?v=25","game.js?v=46"]){
+ "world_raster_pilot.js?v=22","world_routes.js?v=21",
+ "world_illustration.js?v=20","terrain_art.js?v=26","world_stream.js?v=26","game.js?v=47"]){
   assert.ok(sw.includes(asset),"all iPhone offline assets precached "+asset);
   if(!asset.startsWith("assets/"))assert.ok(html.includes(asset),"game references same updated code "+asset)
  }
- assert.ok(sw.includes("veilward-hollowreach-v1325-painted-greenwood"));
+ assert.ok(sw.includes("veilward-hollowreach-v1326-woodland-verges"));
  const game=fs.readFileSync("game.js","utf8");
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure saved unchanged");
- assert.ok(game.includes('const APP_VERSION="1.3.25";'));
+ assert.ok(game.includes('const APP_VERSION="1.3.26";'));
  console.log("ART MATERIALS R3 PASS",ops,
  "30 authored image elements, real roads and all 48 travel anchors preserved; ART NOT ACCEPTED.");
 })().catch(e=>{console.error(e);process.exit(1)});
