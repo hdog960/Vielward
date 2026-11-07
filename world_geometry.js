@@ -48,7 +48,8 @@ const materialColors={
  "island-grass":"#8ba47b","timber-wall":"#57483f","wood-post":"#654e3f",
  "fence":"#6a5f55","pine-trunk":"#394d40","tree-trunk":"#435b48",
  "stone-plinth":"#676c73","railing":"#66626b","lantern-post":"#b39b6d",
- "reed-marker":"#596d48","ruin-column":"#736b79","cliff-face":"#40454c"
+ "reed-marker":"#596d48","ruin-column":"#736b79","cliff-face":"#40454c",
+ "retaining-wall":"#657689"
 };
 function create(model,data){
  validate(model,data);
