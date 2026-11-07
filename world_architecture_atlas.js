@@ -32,7 +32,7 @@ function snow(c,edge,seed,depth=6){
   }
  }
 }
-function window(c,x,y,w=24,h=22,seed=0){
+function drawWindow(c,x,y,w=24,h=22,seed=0){
  rect(c,x-6,y-7,w+12,h+14,P.woodDark);rect(c,x-4,y-5,w+8,h+8,P.woodLite);
  rect(c,x,y,w,h,"#9e674c");rect(c,x+3,y+3,w-6,h-6,P.gold);
  rect(c,x+4,y+4,Math.round(w*.43),h-8,P.shine);
@@ -84,9 +84,9 @@ function house(c,type){
  for(const [x,y,w,h] of [[25,120,7,67],[119,156,8,61],[220,121,9,69]]){
   rect(c,x,y,w,h,P.woodDark);rect(c,x+2,y+1,2,h-3,P.woodLite)
  }
- window(c,58,166,type===1?25:23,22,s);
- if(type!==1)window(c,89,177,18,17,s+2);
- if(type%2===0)window(c,185,145,19,20,s+4);
+ drawWindow(c,58,166,type===1?25:23,22,s);
+ if(type!==1)drawWindow(c,89,177,18,17,s+2);
+ if(type%2===0)drawWindow(c,185,145,19,20,s+4);
  door(c,153,181,type);
  // Four distinct pitched roofs use large sprites, never mirrored 96px decals.
  const left=[[11,136],[89,52],[184,27],[107,113]],
