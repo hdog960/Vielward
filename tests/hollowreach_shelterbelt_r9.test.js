@@ -8,7 +8,7 @@ const source=JSON.parse(read("docs/overworld/terrain_geometry.json"));
 const footprint=JSON.parse(read("docs/overworld/outdoor_footprint.json"));
 const ids=["hollowreach_west_spruce_upper","hollowreach_west_spruce_gate",
  "hollowreach_west_spruce_court","hollowreach_west_spruce_lower"];
-assert.equal(source.solids.length,37,"source now has four grounded winter trees");
+assert.equal(source.solids.length,39,"source now has four grounded winter trees");
 assert.equal(source.solids.filter(s=>s.material==="cliff-face").length,7);
 assert.equal(source.solids.filter(s=>ids.includes(s.id)).length,4);
 let images=0,strokes=0,rects=0;
@@ -40,8 +40,8 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  const world=env.VeilwardWorldStream.create(blueprint,{
   geometry:source,footprint,canvasFactory:canvas
  });
- assert.equal(world.version,"1.3.15");
- assert.equal(world.geometry.stats().solids,37);
+ assert.equal(world.version,"1.3.16");
+ assert.equal(world.geometry.stats().solids,39);
  assert.equal(blueprint.nodes.length,48);
  assert.equal(blueprint.edges.length,65);
  assert.equal(world.routeArt.stats().crossings,7);
@@ -96,9 +96,9 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.equal(world.raster.stats().creatorApproved,false);
  assert.equal(world.raster.stats().geometryChanged,false);
  const html=read("index.html"),worker=read("sw.js"),game=read("game.js");
- assert.ok(html.includes("world_raster_pilot.js?v=11"));
- assert.ok(worker.includes("veilward-hollowreach-v1315-west-spruce-occlusion"));
- assert.ok(game.includes('terrain_geometry.json?v=3'));
+ assert.ok(html.includes("world_raster_pilot.js?v=12"));
+ assert.ok(worker.includes("veilward-hollowreach-v1316-stone-retaining-walls"));
+ assert.ok(game.includes('terrain_geometry.json?v=4'));
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R9 PASS: four real grove colliders; one connected painterly belt; 65 roads, 48 anchors, seven crossings, saves intact");
 })().catch(e=>{console.error(e);process.exitCode=1});
