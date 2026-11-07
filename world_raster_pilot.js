@@ -663,59 +663,43 @@ function create(model,geometry,options={}){
   if(!winter(cx,cy))return false;
   const len=Math.hypot(b[0]-a[0],b[1]-a[1]);
   if(len<1)return false;
-  // R10 correction: one CONTINUOUS source-aligned stone face, not a stack
-  // of detached stone cutouts. The wall's impassable width comes only from
-  // the real source segment; visible snow and perspective have no blockers.
-  const dx=(b[0]-a[0])/len,dy=(b[1]-a[1])/len;
-  const nx=-dy,ny=dx,lit=29,shadow=29;
-  const face=[
-   [a[0]+nx*lit,a[1]+ny*lit-66],
-   [b[0]+nx*lit,b[1]+ny*lit-66],
-   [b[0]-nx*shadow,b[1]-ny*shadow+10],
-   [a[0]-nx*shadow,a[1]-ny*shadow+10]
-  ];
+  // A long, LOW retaining wall follows an actual horizontal physical
+  // segment. A single stone-textured face replaces the prior detached
+  // pillar/vertical-strip attempts. Do not rotate the authored wall sprite.
+  const left=Math.min(a[0],b[0])-13,right=Math.max(a[0],b[0])+13;
+  const top=Math.min(a[1],b[1])-76,foot=Math.max(a[1],b[1])+13;
   ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
-  ctx.beginPath();ctx.moveTo(a[0]+10,a[1]+14);
-  ctx.lineTo(b[0]+10,b[1]+14);
-  ctx.strokeStyle="rgba(47,72,97,.23)";
-  ctx.lineWidth=s.radius*2.2+21;ctx.stroke();
-  // Fill the entire mass first: transparent details in the original stone
-  // atlas can NEVER produce white rectangular gaps or free-standing posts.
+  ctx.beginPath();ctx.moveTo(a[0],a[1]+13);ctx.lineTo(b[0],b[1]+13);
+  ctx.strokeStyle="rgba(40,64,93,.20)";
+  ctx.lineWidth=s.radius*2.4+24;ctx.stroke();
+  // Source-painted stonework is stitched into one continuous wall panel.
   ctx.save();ctx.beginPath();
-  face.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
-  ctx.closePath();ctx.clip();
-  ctx.fillStyle="#536578";
-  const minX=Math.min(...face.map(p=>p[0])),maxX=Math.max(...face.map(p=>p[0]));
-  const minY=Math.min(...face.map(p=>p[1])),maxY=Math.max(...face.map(p=>p[1]));
-  ctx.fillRect(minX,minY,maxX-minX,maxY-minY);
-  // Repeat the ACTUAL independent illustrated stonework tile INSIDE the
-  // one masked wall plane, with overlapping edges to hide sprite borders.
-  const tiles=Math.max(2,Math.ceil((maxY-minY)/69));
-  for(let i=0;i<tiles;i++){
-   const y=minY+42+i*69;
-   ctx.save();ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*.84;
+  ctx.moveTo(left,top);ctx.lineTo(right,top);
+  ctx.lineTo(right,foot);ctx.lineTo(left,foot);ctx.closePath();ctx.clip();
+  ctx.fillStyle="#617587";ctx.fillRect(left,top,right-left,foot-top);
+  const panels=Math.max(2,Math.ceil((right-left)/91));
+  for(let i=0;i<panels;i++){
+   const xx=left+i*87-5;
+   ctx.save();
+   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*.86;
    ctx.imageSmoothingEnabled=true;
-   ctx.drawImage(neighborhood,144,72,72,72,
-    Math.round(cx-67+(i%3-1)*5),Math.round(y-94),134,127);
+   ctx.drawImage(neighborhood,144,72,72,72,Math.round(xx),
+    Math.round(top-12),116,116);
    ctx.restore()
   }
   ctx.restore();
-  // A single irregular snow cornice follows the actual upper wall edge.
+  // Continuous windblown cornice on the TOP, never a laser-bright vertical
+  // stripe. The lower edge remains grounded in its painted snow apron.
+  const steps=Math.max(4,Math.ceil((right-left)/29));
   ctx.beginPath();
-  const sections=Math.max(4,Math.ceil(len/35));
-  for(let i=0;i<=sections;i++){
-   const t=i/sections,
-    x=a[0]+(b[0]-a[0])*t+nx*lit,
-    y=a[1]+(b[1]-a[1])*t+ny*lit-66;
-   const drift=(Math.sin(t*17+cx*.011)+Math.cos(t*11))*2.8;
-   i?ctx.lineTo(x+nx*drift,y+ny*drift):
-    ctx.moveTo(x+nx*drift,y+ny*drift)
+  for(let i=0;i<=steps;i++){
+   const t=i/steps,x=left+(right-left)*t,
+    drift=Math.sin(t*14+cx*.008)*2.5+Math.cos(t*27)*1.4;
+   i?ctx.lineTo(x,top+5+drift):ctx.moveTo(x,top+5+drift)
   }
-  ctx.strokeStyle="rgba(230,241,241,.90)";
-  ctx.lineWidth=12;ctx.stroke();
-  ctx.beginPath();ctx.moveTo(a[0]+nx*lit+8,a[1]+ny*lit-59);
-  ctx.lineTo(b[0]+nx*lit+8,b[1]+ny*lit-59);
-  ctx.strokeStyle="rgba(111,148,168,.36)";ctx.lineWidth=4;ctx.stroke();
+  ctx.strokeStyle="rgba(239,246,242,.85)";ctx.lineWidth=10;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(left+7,foot-5);ctx.lineTo(right-7,foot-5);
+  ctx.strokeStyle="rgba(73,94,112,.34)";ctx.lineWidth=5;ctx.stroke();
   ctx.restore();return true
  }
  function drawRetainingWallForeground(ctx,player){
