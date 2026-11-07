@@ -445,6 +445,26 @@ function create(model,geometry,options={}){
   }
   return true
  }
+ function drawArchitectureForeground(ctx,player,objects=[]){
+  // Cached world chunks paint before the actor. A cottage whose BOOTS are
+  // closer to camera MUST occlude a character physically behind its roof.
+  // Repaint ONLY the correctly-frontmost authored roof, not the whole world.
+  if(!player||!winter(player.x,player.y))return 0;
+  let drawn=0;
+  const houses=(objects||[]).filter(o=>coveredSetpiece(o)&&
+   o.kind==="snow_cottage"&&o.y>player.y).sort((a,b)=>a.y-b.y);
+  for(const o of houses){
+   const type=o.seed%3,w=Math.min(415,330+o.r*.45+(type-1)*19),
+    h=Math.min(380,295+o.r*.38+(type===2?15:0));
+   if(Math.abs(o.x-player.x)>w*.55+18||
+     player.y<o.y-h-30||player.y>o.y+o.r*.08)continue;
+   ctx.save();
+   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*.93;
+   drawSetpieces(ctx,[o.x-550,o.y-550,o.x+550,o.y+550],[o]);
+   ctx.restore();drawn++
+  }
+  return drawn
+ }
  function drawVillageAtmosphere(ctx,bounds,objects=[]){
   // Warm light belongs to the painted village structures and physical lamps:
   // one cohesive environment layer, never fake illuminated proxy buildings.
@@ -672,11 +692,11 @@ function create(model,geometry,options={}){
   neighborhoodAtlasReady:!!neighborhood,neighborhoodSprites:8,
   winterDepthSorted:true,physicalRoadWeathering:true,
   winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
-  westernShelterbelt:true,shelterbeltSourceTrees:(geometry.solids||[]).filter(s=>s.id?.startsWith('hollowreach_west_spruce_')).length,
+  westernShelterbelt:true,frontmostCottageOcclusion:true,shelterbeltSourceTrees:(geometry.solids||[]).filter(s=>s.id?.startsWith('hollowreach_west_spruce_')).length,
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
-  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawShelterbeltGround,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
+  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawShelterbeltGround,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
 window.VeilwardRasterPilot={version:VERSION,load,create,
