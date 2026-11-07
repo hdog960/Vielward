@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.29",SRC="./assets/greenwood_hermit_sanctuary_r21.webp?v=1";
+const V="1.3.30",SRC="./assets/greenwood_hermit_sanctuary_r21.webp?v=1";
 let img=null,pending=null,failed=false;
 function load(){
  if(pending)return pending;
