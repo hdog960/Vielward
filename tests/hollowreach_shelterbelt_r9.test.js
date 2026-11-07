@@ -79,12 +79,25 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  const countBefore=images;
  for(const tree of roots)assert.equal(world.raster.drawStatic(ctx,tree),true);
  assert.ok(images>=countBefore+4,"all four solid trees have painted in-game canopies");
+ const cottage=world.setpieces.objects.find(o=>
+  o.anchor==="village"&&o.kind==="snow_cottage");
+ assert.ok(cottage,"the approved village cottage has a physical footprint");
+ const foregroundCtx=context(),beforeRoof=images;
+ assert.equal(world.raster.drawArchitectureForeground(foregroundCtx,
+  {x:cottage.x,y:cottage.y-130},[cottage]),1,
+  "when the actor is BEHIND the cottage its real painted roof occludes it");
+ assert.ok(images>beforeRoof,"architecture occlusion uses actual sprite art");
+ assert.equal(world.raster.drawArchitectureForeground(foregroundCtx,
+  {x:cottage.x,y:cottage.y+145},[cottage]),0,
+  "when actor boots are in FRONT, roof must not hide them");
+ assert.ok(read("terrain_art.js").includes("raster.drawArchitectureForeground(ctx,player"),
+  "the production game calls physical architecture occlusion after actors");
  assert.equal(world.raster.stats().shelterbeltSourceTrees,4);
  assert.equal(world.raster.stats().creatorApproved,false);
  assert.equal(world.raster.stats().geometryChanged,false);
  const html=read("index.html"),worker=read("sw.js"),game=read("game.js");
- assert.ok(html.includes("world_raster_pilot.js?v=10"));
- assert.ok(worker.includes("veilward-hollowreach-v1315-west-spruce-verge"));
+ assert.ok(html.includes("world_raster_pilot.js?v=11"));
+ assert.ok(worker.includes("veilward-hollowreach-v1315-west-spruce-occlusion"));
  assert.ok(game.includes('terrain_geometry.json?v=3'));
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R9 PASS: four real grove colliders; one connected painterly belt; 65 roads, 48 anchors, seven crossings, saves intact");
