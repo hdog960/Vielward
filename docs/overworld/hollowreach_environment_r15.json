@@ -1,0 +1,49 @@
+{
+  "schema": "veilward.hollowreach.environment-atlas.v1",
+  "version": "1.3.22",
+  "asset": "assets/hollowreach_environment_r15.webp",
+  "format": "WEBP/VP8X transparency",
+  "pixelDimensions": [
+    576,
+    144
+  ],
+  "sourceCell": [
+    144,
+    144
+  ],
+  "bytes": 27178,
+  "provenance": "Original generated art produced for Vielward; manually selected/cropped, transparency cleaned and WebP optimized. Not taken from the golden-reference screenshot.",
+  "sprites": [
+    {
+      "index": 0,
+      "name": "high winter escarpment",
+      "anchor": "hollowreach_west_snow_terrace",
+      "kind": "physical cliff painting"
+    },
+    {
+      "index": 1,
+      "name": "sloped winter escarpment",
+      "anchors": [
+        "hollowreach_north_terrace",
+        "hollowreach_west_lower_lip"
+      ],
+      "kind": "physical cliff painting"
+    },
+    {
+      "index": 2,
+      "name": "snow-covered low shrubs",
+      "anchorPrefix": "hollowreach_west_spruce_",
+      "kind": "rooted shelterbelt ground decoration"
+    },
+    {
+      "index": 3,
+      "name": "shallow snowdrift",
+      "anchorMaterial": "cliff-face",
+      "kind": "noncolliding terrain weathering"
+    }
+  ],
+  "physicsChanges": false,
+  "saveMigrations": false,
+  "approvedByCreator": false,
+  "phase10Locked": true
+}
