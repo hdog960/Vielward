@@ -765,12 +765,12 @@
       "name": "Hollowreach upper stone-and-snow terrace wall",
       "shape": "segment",
       "a": [
-        275.08,
-        300.67
+        274.25,
+        300.9166667
       ],
       "b": [
-        275.08,
-        303.58
+        277.0833333,
+        300.9166667
       ],
       "radius": 0.32,
       "material": "retaining-wall",
@@ -781,12 +781,12 @@
       "name": "Hollowreach lower village stone-and-snow terrace wall",
       "shape": "segment",
       "a": [
-        274.92,
-        306.15
+        274.3333333,
+        307.4166667
       ],
       "b": [
-        274.92,
-        308.92
+        276.8333333,
+        307.4166667
       ],
       "radius": 0.32,
       "material": "retaining-wall",
