@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.17",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.18",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
@@ -125,7 +125,7 @@ function create(model,geometry,options={}){
   if(!ctx?.drawImage)return false;
   ctx.save();
   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*alpha;
-  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingEnabled=false;
   const w=Math.round(width),h=Math.round(height);
   if(flip){
    ctx.translate(Math.round(x),0);
@@ -143,7 +143,7 @@ function create(model,geometry,options={}){
   // winter canopy proportion rather than shrinking it into a narrow pole.
   const srcX=(index%4)*72+(index<2?10:0),
    srcY=Math.floor(index/4)*72,srcW=index<2?52:72;
-  ctx.save();ctx.imageSmoothingEnabled=true;
+  ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*alpha;
   if(flip){
    ctx.translate(Math.round(x),0);ctx.scale(-1,1);
@@ -178,7 +178,7 @@ function create(model,geometry,options={}){
  }
  function drawDetail(ctx,index,x,y,w,h,flip=false,alpha=1){
   if(!ctx?.drawImage)return false;
-  ctx.save();ctx.imageSmoothingEnabled=true;
+  ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*alpha;
   if(flip){ctx.translate(Math.round(x),0);ctx.scale(-1,1);
    ctx.drawImage(detail,index*72,0,72,72,Math.round(-w/2),Math.round(y-h),Math.round(w),Math.round(h))}
@@ -236,7 +236,7 @@ function create(model,geometry,options={}){
   if(!winter(x+size*.5,y+size*.5)||
     !["snow","frost","stone","cliff","road","dirt","thaw","ruin"].includes(material))return false;
   const row=groundRow(material);
-  ctx.save();ctx.imageSmoothingEnabled=true;
+  ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.fillStyle=row===0?"#c4d4e1":row===1?"#aeb4bd":row===2?"#a5afc2":"#b0c1bf";
   ctx.fillRect(x,y,size,size);
   ctx.globalAlpha=row===0?.64:row===1?.67:.72;
@@ -549,6 +549,50 @@ function create(model,geometry,options={}){
   for(const task of tasks)task.paint();
   return tasks.length
  }
+
+ // R12: snow mantle follows actual upper/lower cliffs and four REAL
+ // spruce roots. It is a connected terrain underpainting, never an
+ // invented road, foreground prop or extra collision wall.
+ function drawVillageTerrainSpine(ctx,bounds){
+  const find=id=>(geometry.solids||[]).find(s=>s.id===id);
+  const upper=find("hollowreach_west_snow_terrace");
+  const lower=find("hollowreach_west_lower_lip");
+  const roots=["upper","gate","court","lower"].map(name=>
+   find("hollowreach_west_spruce_"+name));
+  if(!upper?.polygon||!lower?.polygon||roots.some(root=>!root))return 0;
+  const center=solid=>({
+   x:solid.polygon.reduce((n,p)=>n+p[0],0)/solid.polygon.length,
+   y:solid.polygon.reduce((n,p)=>n+p[1],0)/solid.polygon.length
+  });
+  const knots=[center(upper),...roots.map(root=>({x:root.cx,y:root.cy})),center(lower)];
+  const left=Math.min(...knots.map(p=>p.x))-280,right=Math.max(...knots.map(p=>p.x))+280,
+   top=Math.min(...knots.map(p=>p.y))-280,bottom=Math.max(...knots.map(p=>p.y))+280;
+  if(right<bounds[0]||left>bounds[2]||bottom<bounds[1]||top>bounds[3])return 0;
+  function trace(){
+   ctx.beginPath();
+   knots.forEach((p,i)=>{
+    const x=p.x+(i===0?-16:i===knots.length-1?-40:0);
+    i?ctx.lineTo(x,p.y):ctx.moveTo(x,p.y)
+   })
+  }
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  for(const [width,color] of [
+   [430,"rgba(44,73,107,.085)"],[350,"rgba(114,142,171,.105)"],
+   [255,"rgba(224,231,236,.22)"],[169,"rgba(240,246,244,.27)"]
+  ]){
+   trace();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()
+  }
+  // Native independent snow-plate texture, NOT fragments of a backdrop.
+  const plate=groundPlates?.[0]||ground;
+  if(plate&&typeof ctx.createPattern==="function"){
+   const pattern=ctx.createPattern(plate,"repeat");
+   if(pattern){
+    trace();ctx.globalAlpha=.17;ctx.strokeStyle=pattern;
+    ctx.lineWidth=141;ctx.stroke();ctx.globalAlpha=1
+   }
+  }
+  ctx.restore();return knots.length
+ }
  function drawShelterbeltGround(ctx,bounds){
   // R9: a CONNECTED snowy forest verge, tied to four real tree colliders.
   // Its drifts are walkable soft ground: trees are the ONLY solid features.
@@ -749,7 +793,7 @@ function create(model,geometry,options={}){
    const xx=left+i*87-5;
    ctx.save();
    ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*.86;
-   ctx.imageSmoothingEnabled=true;
+   ctx.imageSmoothingEnabled=false;
    ctx.drawImage(neighborhood,144,72,72,72,Math.round(xx),
     Math.round(top-12),116,116);
    ctx.restore()
@@ -799,6 +843,7 @@ function create(model,geometry,options={}){
   const reach=1280;
   if(x+reach<bounds[0]||x-reach>bounds[2]||
     y+reach<bounds[1]||y-reach>bounds[3])return false;
+  drawVillageTerrainSpine(ctx,bounds);
   drawRetainingWallGround(ctx,bounds);
   drawShelterbeltGround(ctx,bounds);
   function oval(px,py,rx,ry,color){
@@ -818,8 +863,6 @@ function create(model,geometry,options={}){
   }
   // Hand-laid winter flagstones: coherent bands and missing stones, not
   // isolated random pixel confetti. Most are partly submerged in snow.
-  const stoneColors=["rgba(89,110,132,.29)","rgba(111,126,142,.28)",
-   "rgba(146,160,175,.28)","rgba(85,104,124,.24)"];
   for(let gy=-5;gy<=5;gy++)for(let gx=-7;gx<=7;gx++){
    const key=(gx*53+gy*101),h=Math.sin(key*2.17+19)*43758.5453;
    const f=h-Math.floor(h);
@@ -833,8 +876,12 @@ function create(model,geometry,options={}){
    ctx.lineTo(px+ww*.47,py-hh*.23);
    ctx.lineTo(px+ww*.5,py+hh*.39);
    ctx.lineTo(px-ww*.27,py+hh*.5);ctx.closePath();
-   ctx.fillStyle=stoneColors[Math.abs(key)%stoneColors.length];
-   ctx.fill();
+   // Source-painted stone is clipped into the irregular flagstone shape,
+   // replacing the previous flat polygon color fill.
+   ctx.save();ctx.clip();ctx.globalAlpha=.50;ctx.imageSmoothingEnabled=false;
+   ctx.drawImage(ground,(Math.abs(key)%4)*32,64,32,32,
+    px-ww*.54,py-hh*.70,ww*1.08,hh*1.40);
+   ctx.restore();
    ctx.beginPath();ctx.moveTo(px-ww*.34,py-hh*.22);
    ctx.lineTo(px+ww*.23,py-hh*.15);
    ctx.strokeStyle="rgba(236,242,244,.26)";ctx.lineWidth=3;ctx.stroke()
@@ -870,6 +917,7 @@ function create(model,geometry,options={}){
   neighborhoodAtlasReady:!!neighborhood,neighborhoodSprites:8,
   winterDepthSorted:true,physicalRoadWeathering:true,
   winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
+  sourceRootedLandscape:true,paintedStoneFlagstones:true,crispRasterSprites:true,
   inhabitedSnowRoadImpressions:true,sourceBoundWinterFootpaths:true,
   westernShelterbelt:true,frontmostCottageOcclusion:true,
   retainingWallSegments:(geometry.solids||[]).filter(s=>s.material==='retaining-wall').length,
@@ -878,7 +926,7 @@ function create(model,geometry,options={}){
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
-  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawShelterbeltGround,drawWinterFootpaths,drawRetainingWallGround,drawRetainingWall,drawRetainingWallForeground,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
+  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawVillageTerrainSpine,drawShelterbeltGround,drawWinterFootpaths,drawRetainingWallGround,drawRetainingWall,drawRetainingWallForeground,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
 window.VeilwardRasterPilot={version:VERSION,load,create,
