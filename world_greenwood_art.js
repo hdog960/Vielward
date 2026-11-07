@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.24",SIZE=192,HEIGHT=240,VARIANTS=5;
+const V="1.3.25",SIZE=192,HEIGHT=240,VARIANTS=5;
 const A={
  oak:["#192b27","#264337","#355745","#4b7551","#64875a","#83a06b","#b2b57a"],
  pine:["#172e2b","#26443d","#2b5447","#46705a","#5c8165","#80a17b","#bbc296"]
@@ -119,8 +119,34 @@ function shrubs(ctx,variant){
   }
  }
 }
-let atlas=null;
+let atlas=null,painted=null,paintedError=null,paintedPromise=null;
+const PAINTED_SRC="./assets/greenwood_forest_painted_r18.avif?v=1",PAINTED_SIZE=128;
+// Four independently authored, isolated 128px Greenwood illustrations:
+// mature oak, evergreen pine, fern bed, mossy rock. No painted backdrop.
+function loadPainted(){
+ if(painted)return Promise.resolve(true);
+ if(paintedPromise)return paintedPromise;
+ if(typeof Image!=="function")return Promise.resolve(false);
+ paintedPromise=new Promise(resolve=>{
+  const img=new Image();img.decoding="async";
+  img.onload=()=>{
+   if(img.naturalWidth===PAINTED_SIZE*4&&img.naturalHeight===PAINTED_SIZE){
+    painted=img;paintedError=null;resolve(true)
+   }else{
+    paintedError="Unexpected Greenwood illustrated sprite dimensions";
+    console.warn(paintedError);resolve(false)
+   }
+  };
+  img.onerror=()=>{
+   paintedError="Illustrated Greenwood unavailable; keeping established native art";
+   console.warn(paintedError);resolve(false)
+  };
+  try{img.src=PAINTED_SRC}catch(err){paintedError=String(err);resolve(false)}
+ });
+ return paintedPromise
+}
 function load(){
+ loadPainted();
  if(atlas)return atlas;
  if(typeof document==="undefined"||!document.createElement)return null;
  const canvas=document.createElement("canvas");
@@ -139,10 +165,27 @@ function load(){
 }
 function create({footprint,geometry}={}){
  if(!footprint||!geometry)throw Error("Greenwood art requires physical source geometry");
+ loadPainted();
  const forest=(x,y)=>footprint.regionAt(x,y)?.id==="greenwood";
  function stamp(ctx,type,x,y,w,h,seed=0){
   if(!load())return false;
   const v=((seed|0)%VARIANTS+VARIANTS)%VARIANTS;
+  // Retain some original procedural varieties to prevent clone repetition;
+  // the new paintings replace most tree, shrub and real boulder source roots.
+  if(painted&&(type==="rock"||v!==1)){
+   const index=type==="oak"?0:type==="pine"?1:type==="rock"?3:2;
+   const width=Math.round(w),height=Math.round(h),flip=v%2===0;
+   ctx.save();ctx.imageSmoothingEnabled=true;
+   ctx.imageSmoothingQuality="high";
+   if(flip){
+    ctx.translate(Math.round(x),0);ctx.scale(-1,1);
+    ctx.drawImage(painted,index*PAINTED_SIZE,0,PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(-width*.5),Math.round(y-height),width,height)
+   }else ctx.drawImage(painted,index*PAINTED_SIZE,0,PAINTED_SIZE,PAINTED_SIZE,
+    Math.round(x-width*.5),Math.round(y-height),width,height);
+   ctx.restore();return true
+  }
+  if(type==="rock")return false;
   const offset=(type==="oak"?0:type==="pine"?VARIANTS:VARIANTS*2)+v;
   ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.drawImage(atlas,offset*SIZE,0,SIZE,HEIGHT,
@@ -151,12 +194,13 @@ function create({footprint,geometry}={}){
  }
  function paintFeature(ctx,o){
   if(!o||!forest(o.x,o.y))return false;
-  if(!["oak","pine","flowerbed","scrub"].includes(o.kind))return false;
+  if(!["oak","pine","flowerbed","scrub","boulder"].includes(o.kind))return false;
   const n=Math.floor(o.variant*849),r=o.radius;
   if(o.kind==="oak"||o.kind==="pine"){
    const w=r*(o.kind==="oak"?3.3:2.9),h=r*(o.kind==="oak"?4.2:4.6);
    return stamp(ctx,o.kind,o.x,o.y,w,h,n)
   }
+  if(o.kind==="boulder")return stamp(ctx,"rock",o.x,o.y,r*2.6,r*1.9,n);
   return stamp(ctx,"shrubs",o.x,o.y,r*2.1,r*1.5,n)
  }
  function paintForestFloor(ctx,bounds){
@@ -239,8 +283,12 @@ function create({footprint,geometry}={}){
  function stats(){return {version:V,sourceSpritePixels:SIZE,
   sourceHeightPixels:HEIGHT,variantsPerKind:VARIANTS,
   kindCount:3,totalSprites:VARIANTS*3,ready:!!atlas,
-  physicsChanged:false,originalRootAnchors:true,creatorApproved:false}}
+  physicsChanged:false,originalRootAnchors:true,creatorApproved:false,
+  paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
+  paintedAssetKinds:4,paintedAssetError:paintedError}}
  return{load,stamp,paintFeature,paintForestFloor,stats}
 }
-window.VeilwardGreenwoodArt={version:V,load,create};
+window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
+ get paintedReady(){return !!painted},
+ get paintedError(){return paintedError}};
 })();
