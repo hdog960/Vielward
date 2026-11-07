@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.16",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.17",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
@@ -620,6 +620,73 @@ function create(model,geometry,options={}){
   }
   return roots.length
  }
+ function drawWinterFootpaths(ctx,bounds){
+  // R11: a visibly inhabited snow village. Every compressed boot-print
+  // follows an AUTHORED, WALKABLE source road, never an imaginary shortcut.
+  // Ground impressions have no physics and introduce no new path geometry.
+  const village=nodes.get("village");
+  if(!village)return 0;
+  const unit=model.worldDesign.worldUnitScale,
+   centerX=village.point[0]*unit,centerY=village.point[1]*unit;
+  const reach=2490;
+  if(centerX+reach<bounds[0]||centerX-reach>bounds[2]||
+   centerY+reach<bounds[1]||centerY-reach>bounds[3])return 0;
+  let imprints=0;
+  function footprint(x,y,dx,dy,n){
+   const nx=-dy,ny=dx,side=n%2?-1:1;
+   const turn=Math.sin(n*.77)*.13,scale=.91+Math.sin(n*2.6)*.11;
+   const ux=dx+nx*turn,uy=dy+ny*turn,
+     px=x+nx*side*20,py=y+ny*side*20;
+   const heel=[px-ux*8,py-uy*8],toe=[px+ux*9,py+uy*9];
+   const w=7.8*scale;
+   ctx.beginPath();
+   ctx.moveTo(heel[0]-nx*w*.91,heel[1]-ny*w*.91);
+   ctx.lineTo(heel[0]+nx*w*.88,heel[1]+ny*w*.88);
+   ctx.lineTo(toe[0]+nx*w*.60,toe[1]+ny*w*.60);
+   ctx.lineTo(toe[0]-nx*w*.68,toe[1]-ny*w*.68);
+   ctx.closePath();
+   ctx.fillStyle="rgba(55,84,115,.22)";ctx.fill();
+   // Uneven toe/heel separation makes this compressed snow rather than a
+   // dotted straight line, with a faint sunward displaced ridge.
+   ctx.beginPath();
+   ctx.moveTo(toe[0]+nx*w*.60+4,toe[1]+ny*w*.60-4);
+   ctx.lineTo(toe[0]-nx*w*.45+4,toe[1]-ny*w*.45-4);
+   ctx.lineTo(heel[0]-nx*w*.65+4,heel[1]-ny*w*.65-4);
+   ctx.strokeStyle="rgba(235,245,244,.36)";
+   ctx.lineWidth=3;ctx.stroke();
+  }
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  for(const road of geometry.roads||[]){
+   if(road.crossing||
+    !["village","joren","village_north","village_south","bridge_w"]
+      .includes(road.from)&&
+    !["village","joren","village_north","village_south","bridge_w"]
+      .includes(road.to))continue;
+   for(const [a,b,prior,len] of road.parts){
+    if(len<1)continue;
+    const dx=(b[0]-a[0])/len,dy=(b[1]-a[1])/len;
+    const stride=56;
+    for(let step=Math.ceil(prior/stride);step*stride<=prior+len;step++){
+     const distance=step*stride;
+     if(distance<75||distance>road.total-75)continue;
+     if((step+road.id.length)%11===0)continue; // wind-covered gaps
+     const t=(distance-prior)/len;
+     const offset=Math.sin(step*1.91+road.id.length*.3)*5;
+     const x=a[0]+dx*len*t-dy*offset,
+      y=a[1]+dy*len*t+dx*offset;
+     if(Math.hypot(x-centerX,y-centerY)>reach||!winter(x,y))continue;
+     if(x<bounds[0]-34||x>bounds[2]+34||
+      y<bounds[1]-34||y>bounds[3]+34)continue;
+     const side=step%2?-1:1;
+     const bx=x-dy*side*20,by=y+dx*side*20;
+     if(geometry.waterAt(bx,by,8)||geometry.obstacle(bx,by,8))
+      continue;
+     footprint(x,y,dx,dy,step);imprints++;
+    }
+   }
+  }
+  ctx.restore();return imprints
+ }
  function drawRetainingWallGround(ctx,bounds){
   // The base of every retaining wall is a single broad snow/cold-stone
   // transition, never a free-floating wall sprite or a separate false path.
@@ -803,6 +870,7 @@ function create(model,geometry,options={}){
   neighborhoodAtlasReady:!!neighborhood,neighborhoodSprites:8,
   winterDepthSorted:true,physicalRoadWeathering:true,
   winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
+  inhabitedSnowRoadImpressions:true,sourceBoundWinterFootpaths:true,
   westernShelterbelt:true,frontmostCottageOcclusion:true,
   retainingWallSegments:(geometry.solids||[]).filter(s=>s.material==='retaining-wall').length,
   physicallyAnchoredStonework:true,
@@ -810,7 +878,7 @@ function create(model,geometry,options={}){
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
-  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawShelterbeltGround,drawRetainingWallGround,drawRetainingWall,drawRetainingWallForeground,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
+  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawShelterbeltGround,drawWinterFootpaths,drawRetainingWallGround,drawRetainingWall,drawRetainingWallForeground,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
 window.VeilwardRasterPilot={version:VERSION,load,create,
