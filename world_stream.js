@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.29",TAU=Math.PI*2;
+const VERSION="1.3.30",TAU=Math.PI*2;
 function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
 function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295}
 function rgb(hex){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
@@ -89,6 +89,19 @@ function create(model,options={}){
  const start=points.village.point;
  const player={x:start[0]*unit,y:start[1]*unit,facing:{x:0,y:1},step:0,moving:false};
  const camera={x:0,y:0};let cameraReady=false;
+ // R22: physically grounded landscape framing near the tall hermit's
+ // painted refuge. Only *small landscape* viewports need more vertical room:
+ // keep player and roof in one image without zooming the entire world out.
+ function framing(screenW,screenH,baseZoom=.78){
+  const hub=points.hermit;
+  if(!hub||screenH>520||screenH<220)return{zoom:baseZoom,anchorY:.52,focus:0};
+  const hx=hub.point[0]*unit,hy=hub.point[1]*unit;
+  const distance=Math.hypot(player.x-hx,player.y-hy);
+  const t=clamp((850-distance)/650,0,1);
+  const focus=t*t*(3-2*t);
+  return {zoom:baseZoom+(Math.min(baseZoom,.56)-baseZoom)*focus,
+    anchorY:.52+.25*focus,focus}
+ }
  if(geometry){
   const spawn=footprint?footprint.safePoint(player.x,player.y):geometry.safePoint(player.x,player.y);
   player.x=spawn.x;player.y=spawn.y;
@@ -223,7 +236,8 @@ function create(model,options={}){
  function render(ctx,screenW,screenH,zoom=.78,dt=.016){
   const viewW=screenW/zoom,viewH=screenH/zoom;
   const targetX=clamp(player.x-viewW*.5,0,Math.max(0,width-viewW));
-  const targetY=clamp(player.y-viewH*.52,0,Math.max(0,height-viewH));
+  const targetY=clamp(player.y-viewH*framing(screenW,screenH).anchorY,
+   0,Math.max(0,height-viewH));
   if(!cameraReady){camera.x=targetX;camera.y=targetY;cameraReady=true}
   const smooth=1-Math.exp(-Math.max(0,dt)*9);
   camera.x+=(targetX-camera.x)*smooth;
@@ -248,7 +262,7 @@ function create(model,options={}){
   for(const t of queue.slice(0,2))ensure(t);
   trim(nearby);peakCache=Math.max(peakCache,cache.size);
   visibleTiles=visible.length;renderSerial++;
-  return {camera,viewWidth:viewW,viewHeight:viewH,missing:missing.length}
+  return {camera,viewWidth:viewW,viewHeight:viewH,zoom,missing:missing.length}
  }
  function jumpToNode(id){
   const node=points[id];if(!node)throw Error("Unknown terrain showcase landmark "+id);
@@ -288,7 +302,7 @@ function create(model,options={}){
   hollowreachRaster:raster?.stats()??null,
   climate:climate?.sample(player.x,player.y)??null,
   terrainArt:art?.diagnostics?.()??null}}
- return{version:VERSION,model,geometry,footprint,climate,routeArt,setpieces,raster,illustration,art,player,camera,size,width,height,move,render,renderDebug,renderForeground,jumpToNode,
+ return{version:VERSION,model,geometry,footprint,climate,routeArt,setpieces,raster,illustration,art,player,camera,size,width,height,move,framing,render,renderDebug,renderForeground,jumpToNode,
   warm,cells,blocked,nearbyInteraction,regionName,stats,clearCache:()=>cache.clear(),
   tile:(col,row)=>cache.get(chunkId(col,row))||null}
 }

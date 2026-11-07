@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.29",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.30",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -407,6 +407,21 @@ try{
  });
  console.log("R21_PAINTED_HERMIT_LIVE "+JSON.stringify(refuge));
  await sleep(1550);await capture(page,"GREENWOOD_R21_HERMIT_COTTAGE");
+ // R22: this same real player point must reveal the entire tall painted
+ // roof in a phone-size 16:9 world preview without losing the hero.
+ const composition=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const f=s.framing(720,405,.78);
+  if(f.focus<.98||f.zoom>.575||f.anchorY<.75)
+   throw Error("R22 adaptive hermit composition not active");
+  const imageTop=(s.player.y-(88+424))*f.zoom;
+  const playerFoot=405*f.anchorY;
+  if(playerFoot-imageTop<284||playerFoot>340)
+   throw Error("R22 hero/cottage framing not within vertical safe area");
+  return f
+ });
+ console.log("R22_HERMIT_TALL_ROOF_COMPOSITION "+JSON.stringify(composition));
+ await sleep(1100);await capture(page,"GREENWOOD_R22_FULL_ROOF");
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
  await page.locator('.reviewRegion[aria-label="Explore Coldpine Ridge"]').click();
@@ -453,10 +468,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.29"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+ if(state.build!=="v1.3.30"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
   !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||!state.greenwoodR21||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.29 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.30 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
