@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.14",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.15",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
@@ -523,14 +523,86 @@ function create(model,geometry,options={}){
   for(const task of tasks)task.paint();
   return tasks.length
  }
+ function drawShelterbeltGround(ctx,bounds){
+  // R9: a CONNECTED snowy forest verge, tied to four real tree colliders.
+  // Its drifts are walkable soft ground: trees are the ONLY solid features.
+  const roots=(geometry.solids||[]).filter(s=>
+   s.id?.startsWith("hollowreach_west_spruce_")&&
+   s.material==="pine-trunk"&&winter(s.cx,s.cy))
+   .sort((a,b)=>a.cy-b.cy);
+  if(roots.length!==4)return 0;
+  const left=Math.min(...roots.map(s=>s.cx-s.radius*2.3)),
+    right=Math.max(...roots.map(s=>s.cx+s.radius*2.3)),
+    top=Math.min(...roots.map(s=>s.cy-s.radius*1.9)),
+    bottom=Math.max(...roots.map(s=>s.cy+s.radius*1.9));
+  if(right<bounds[0]||left>bounds[2]||bottom<bounds[1]||top>bounds[3])return 0;
+  function follow(){
+   ctx.beginPath();
+   for(let i=0;i<roots.length;i++){
+    const s=roots[i];
+    if(!i)ctx.moveTo(s.cx,s.cy);
+    else ctx.lineTo(s.cx,s.cy)
+   }
+  }
+  ctx.save();ctx.lineJoin="round";ctx.lineCap="round";
+  // Broken icy ground and windblown powder form one natural edge from the
+  // upper escarpment towards the lower cottages. No hard polygon perimeter.
+  const bands=[
+   [192,"rgba(53,86,120,.14)"],
+   [154,"rgba(119,149,177,.19)"],
+   [115,"rgba(207,221,235,.31)"],
+   [80,"rgba(240,244,238,.34)"]
+  ];
+  for(const [width,color] of bands){
+   follow();ctx.lineWidth=width;ctx.strokeStyle=color;ctx.stroke()
+  }
+  const painted=groundPlates?.[0]||ground;
+  if(painted&&typeof ctx.createPattern==="function"){
+   const pattern=ctx.createPattern(painted,"repeat");
+   if(pattern){
+    follow();ctx.lineWidth=69;ctx.strokeStyle=pattern;
+    ctx.globalAlpha=.25;ctx.stroke();ctx.globalAlpha=1
+   }
+  }
+  ctx.restore();
+  // Each real tree-root transitions into its own small drift lobes. All
+  // boughs are then painted in source foot-depth order above this substrate.
+  for(const s of roots){
+   ctx.save();ctx.translate(s.cx+10,s.cy+10);
+   ctx.scale(s.radius*1.33,s.radius*.36);
+   ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
+   ctx.fillStyle="rgba(38,67,97,.21)";ctx.fill();ctx.restore();
+   ctx.save();ctx.translate(s.cx-9,s.cy+2);
+   ctx.scale(s.radius*1.18,s.radius*.30);
+   ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
+   ctx.fillStyle="rgba(227,238,241,.40)";ctx.fill();ctx.restore()
+  }
+  // Existing AUTHOR-PAINTED undergrowth follows the grove's village-facing
+  // side in linked clusters, rather than arbitrary standalone white blocks.
+  for(let seg=0;seg<roots.length-1;seg++){
+   const a=roots[seg],b=roots[seg+1];
+   const length=Math.hypot(b.cx-a.cx,b.cy-a.cy);
+   const n=Math.max(1,Math.ceil(length/135));
+   for(let k=0;k<n;k++){
+    const t=(k+.5)/n;
+    const px=a.cx+(b.cx-a.cx)*t+74;
+    const py=a.cy+(b.cy-a.cy)*t+26+(seg%2)*9;
+    if(geometry.nearRoad(px,py,()=>true,60)||geometry.waterAt(px,py,0))continue;
+    const ww=108+(seg+k)%3*12,hh=69+(seg+k)%2*10;
+    drawNeighborhood(ctx,4,px,py,ww,hh,(seg+k)%2===1,.84)
+   }
+  }
+  return roots.length
+ }
  function drawVillageGround(ctx,bounds,objects=[]){
   // A source-authored square and connected cottage thresholds: NO painted
   // background, invented route, changed collider or free-floating art cards.
   const node=nodes.get("village");if(!node)return false;
   const unit=model.worldDesign.worldUnitScale,x=node.point[0]*unit,y=node.point[1]*unit;
-  const reach=720;
+  const reach=1280;
   if(x+reach<bounds[0]||x-reach>bounds[2]||
     y+reach<bounds[1]||y-reach>bounds[3])return false;
+  drawShelterbeltGround(ctx,bounds);
   function oval(px,py,rx,ry,color){
    ctx.save();ctx.translate(px,py);ctx.scale(rx,ry);
    ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
@@ -600,10 +672,11 @@ function create(model,geometry,options={}){
   neighborhoodAtlasReady:!!neighborhood,neighborhoodSprites:8,
   winterDepthSorted:true,physicalRoadWeathering:true,
   winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
+  westernShelterbelt:true,shelterbeltSourceTrees:(geometry.solids||[]).filter(s=>s.id?.startsWith('hollowreach_west_spruce_')).length,
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
-  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
+  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawShelterbeltGround,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
 window.VeilwardRasterPilot={version:VERSION,load,create,
