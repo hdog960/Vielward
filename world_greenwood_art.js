@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.26",SIZE=192,HEIGHT=240,VARIANTS=5;
+const V="1.3.27",SIZE=192,HEIGHT=240,VARIANTS=5;
 const A={
  oak:["#192b27","#264337","#355745","#4b7551","#64875a","#83a06b","#b2b57a"],
  pine:["#172e2b","#26443d","#2b5447","#46705a","#5c8165","#80a17b","#bbc296"]
@@ -265,7 +265,22 @@ function create({footprint,geometry}={}){
       ctx.beginPath();
       nearPts.forEach((p,j)=>j?ctx.lineTo(...p):ctx.moveTo(...p));
       for(let j=farPts.length-1;j>=0;j--)ctx.lineTo(...farPts[j]);
-      ctx.closePath();ctx.fillStyle=col;ctx.fill()
+      ctx.closePath();
+      // Flat polygon-color verges read as dark geometric rails in the
+      // real gameplay capture. Fade both edges into the native illustrated
+      // forest ground instead, leaving natural branching irregularities.
+      let material=col;
+      if(typeof ctx.createLinearGradient==="function"){
+       const centreX=mx+nx*side*(hw+near),centreY=my+ny*side*(hw+near);
+       const outsideX=mx+nx*side*(hw+far),outsideY=my+ny*side*(hw+far);
+       const fade=ctx.createLinearGradient(centreX,centreY,outsideX,outsideY);
+       fade.addColorStop(0,"rgba(37,70,49,0)");
+       fade.addColorStop(.25,col);
+       fade.addColorStop(.59,col);
+       fade.addColorStop(1,"rgba(37,70,49,0)");
+       material=fade
+      }
+      ctx.fillStyle=material;ctx.fill()
      }
      // Two irregular, connected ground layers make the illustrated soil,
      // woodland duff and source path merge instead of appearing as ribbons.
@@ -380,6 +395,7 @@ function create({footprint,geometry}={}){
   kindCount:3,totalSprites:VARIANTS*3,ready:!!atlas,
   physicsChanged:false,originalRootAnchors:true,creatorApproved:false,
   roadVergesFromSource:true,matureTreeCanopyScale:1.65,
+  featheredRoadEdges:true,
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
  return{load,stamp,paintFeature,paintForestFloor,paintRoadVerges,stats}
