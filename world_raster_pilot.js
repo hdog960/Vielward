@@ -941,18 +941,14 @@ function create(model,geometry,options={}){
     [2*e.halfWidth+42,"rgba(222,234,235,.23)"]]){
     trace();ctx.lineWidth=w;ctx.strokeStyle=color;ctx.stroke()
    }
-   if(groundArt&&ctx.drawImage){
-    ctx.save();trace();ctx.lineWidth=2*e.halfWidth+36;
-    ctx.strokeStyle="#fff";ctx.stroke(); // underlying low-contrast snow
-    ctx.clip?.(); // optional in synthetic QA; all road marks are scenery only
-    ctx.globalAlpha=.09;ctx.imageSmoothingEnabled=false;
-    const tileSize=groundPlates?.[0]?256:128;
-    const x0=Math.floor((xMin-90)/tileSize)*tileSize;
-    const y0=Math.floor((yMin-90)/tileSize)*tileSize;
-    for(let py=y0;py<yMax+100;py+=tileSize)
-     for(let px=x0;px<xMax+100;px+=tileSize)
-      ctx.drawImage(groundArt,px,py,tileSize,tileSize);
-    ctx.restore()
+   // Global repeating source atlas is stroked only INSIDE the existing
+   // path's walkable material, with no per-chunk image loops or empty clips.
+   if(groundArt&&typeof ctx.createPattern==="function"){
+    const pattern=ctx.createPattern(groundArt,"repeat");
+    if(pattern){
+     ctx.save();trace();ctx.globalAlpha=.09;ctx.lineWidth=2*e.halfWidth+36;
+     ctx.strokeStyle=pattern;ctx.stroke();ctx.restore()
+    }
    }
    ctx.restore();count++
   }
