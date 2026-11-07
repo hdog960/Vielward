@@ -39,14 +39,14 @@ for(const name of ["world_geometry.js","world_climate.js","world_footprint.js",
 (async()=>{
  await host.VeilwardRasterPilot.load();
  const grove=host.VeilwardGreenwoodArt;
- assert.equal(grove.version,"1.3.30");
+ assert.equal(grove.version,"1.3.31");
  const atlas=grove.load();
  assert.ok(atlas&&atlas.width===192*15&&atlas.height===240,
   "Fifteen cached original native-pixel source sprites");
  assert.ok(leaves>6000,"authored clustered leaf pixels, not four basic polygons");
  const world=host.VeilwardWorldStream.create(model,{geometry,footprint,
   canvasFactory:canvas});
- assert.equal(world.version,"1.3.30");
+ assert.equal(world.version,"1.3.31");
  assert.equal(world.illustration.stats().greenwoodAtlasSprites,15);
  assert.equal(world.illustration.stats().greenwoodOriginalAnchors,true);
  assert.equal(world.geometry.stats().solids,39);
@@ -78,9 +78,9 @@ for(const name of ["world_geometry.js","world_climate.js","world_footprint.js",
  for(const anchor of model.nodes)
   assert.equal(world.blocked(anchor.point[0]*60,anchor.point[1]*60),false,
    "original waypoint remains reachable");
- assert.ok(read("index.html").includes("world_greenwood_art.js?v=7"));
- assert.ok(read("sw.js").includes("world_greenwood_art.js?v=7"));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1330-hermit-scenic-framing"));
+ assert.ok(read("index.html").includes("world_greenwood_art.js?v=8"));
+ assert.ok(read("sw.js").includes("world_greenwood_art.js?v=8"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1331-second-forest-cottage"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  assert.equal(world.raster.stats().creatorApproved,false);
  console.log("R17 PASS: 15 cached native-pixel Greenwood tree/shrub variants, original physical roots, zero world physics edits, 12 regions, 39 solids, 48 safe nodes, 65 roads, 7 crossings, original save; art unapproved");

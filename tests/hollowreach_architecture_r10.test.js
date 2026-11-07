@@ -41,7 +41,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  const world=sandbox.VeilwardWorldStream.create(model,{
   geometry:source,footprint,canvasFactory:canvas
  });
- assert.equal(world.version,"1.3.30");
+ assert.equal(world.version,"1.3.31");
  assert.equal(world.geometry.stats().solids,39);
  assert.equal(world.routeArt.stats().roads,65);
  assert.equal(world.routeArt.stats().crossings,7);
@@ -88,8 +88,8 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.equal(world.raster.stats().creatorApproved,false);
  assert.equal(world.raster.stats().geometryChanged,false);
  const html=read("index.html"),worker=read("sw.js"),game=read("game.js");
- assert.ok(worker.includes("veilward-hollowreach-v1330-hermit-scenic-framing"));
- assert.ok(html.includes("world_raster_pilot.js?v=26"));
+ assert.ok(worker.includes("veilward-hollowreach-v1331-second-forest-cottage"));
+ assert.ok(html.includes("world_raster_pilot.js?v=27"));
  assert.ok(game.includes('terrain_geometry.json?v=4'));
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R10 PASS: two physically painted village walls, clear western lane, roof/wall actor depth, original roads and saves");
