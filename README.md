@@ -1,3 +1,9 @@
+## Phase 9 R19b — v1.3.27: visual QA rejected geometric verges, replaced with graded forest soil
+
+The first R19 real-browser screenshot confirmed the mature Greenwood tree art improved proportions, but its dark, nearly flat quadrilateral road shoulders did NOT meet the creator's painterly visual standard. R19b removes the harsh block-band appearance by using distance-to-trail **feathered Canvas gradients** that fade at both inner and outer edges of each source-road verge, retaining irregular natural ground outlines and native fern illustration. All existing source geometry, physical travel/collision, PWA saves, original painted sprites and route order are unchanged. Real in-game visual capture `GREENWOOD_R19_ROAD_CORRIDOR` is retained, and `tests/greenwood_verges_r19.test.js` now checks the feathered gradient rendering path.
+
+This is further Phase 9 art recovery, **not visual acceptance**. True large-scale woodland architecture and more sophisticated forest-floor sprite coverage remain unfinished. Visual acceptance 0%, Phase 9 ACTIVE, Phase 10 LOCKED.
+
 ## Phase 9 R19 — v1.3.26: mature Greenwood forest and road corridor integration
 
 Actual gameplay reviews of R18 revealed under-scaled trees (roughly Wanderer-sized) and flat, sharply separated tan roads. R19 raises the **illustrated oak and pine crowns to mature tree proportions** while keeping their exact pre-existing physical root coordinates and collider sizes. The new `paintRoadVerges` stage builds two subdued, irregular moss-and-forest-duff layers along **the real Greenwood route geometry**, with small, low-opacity reuse of the R18 original painted fern texture inside those verges. It runs in `paintForestFloor` before the authoritative roads are rendered, does not create a route or solid, and is skipped in other biomes / water / distant chunks. R19 visual QA includes a new actual playable `GREENWOOD_R19_ROAD_CORRIDOR` screenshot and a deterministic source regression.
