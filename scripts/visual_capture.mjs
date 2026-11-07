@@ -39,6 +39,16 @@ try{
  await page.waitForFunction(()=>document.querySelector("#beginBtn")?.textContent?.includes("ENTER HOLLOWREACH"),null,{timeout:60000});
  await page.click("#beginBtn");
  await page.click("#pauseBtn");
+ // Capture the actual streamed game instance without any production-game
+ // QA hook or save/quest mutation. This wrapper exists ONLY in this browser.
+ await page.evaluate(()=>{
+  const original=window.VeilwardWorldStream.create;
+  window.VeilwardWorldStream.create=function(...args){
+   const stream=original.apply(this,args);
+   window.__veilwardCaptureStream=stream;
+   return stream
+  }
+ });
  await page.click("#worldPreviewBtn");
  await page.waitForFunction(()=>document.querySelector("#reviewAtlasBtn")?.style?.display==="block",null,{timeout:60000});
  await settle(page);
@@ -47,7 +57,7 @@ try{
  // of considering a screenshot of the village square sufficient evidence.
  // The check is a throwaway browser camera visit, not a gameplay save/teleport.
  const physicalTerraces=await page.evaluate(()=>{
-  const s=worldPreview.stream;
+  const s=window.__veilwardCaptureStream;
   const px=277*60,py=294*60;
   if(!s||s.blocked(px,py))throw Error("R8 terrace viewpoint is not walkable");
   const names=["hollowreach_west_snow_terrace","hollowreach_north_terrace",
@@ -62,7 +72,7 @@ try{
  console.log("R8_SOURCE_BACKED_TERRACES "+JSON.stringify(physicalTerraces));
  await sleep(1400);
  await capture(page,"HOLLOWREACH_TERRACES");
- await page.evaluate(()=>worldPreview.stream.jumpToNode("village"));
+ await page.evaluate(()=>window.__veilwardCaptureStream.jumpToNode("village"));
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
  await page.waitForFunction(()=>document.querySelectorAll(".reviewRegion canvas").length===12);
