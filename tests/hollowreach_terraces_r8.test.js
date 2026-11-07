@@ -78,9 +78,10 @@ for(const f of ["world_geometry.js","world_climate.js","world_footprint.js",
  const house=game.setpieces.objects.filter(o=>o.kind==="snow_cottage"&&o.anchor==="village");
  assert.ok(house.length>0);
  const bounds=[origin[0]-1100,origin[1]-1100,origin[0]+1100,origin[1]+1100];
- const paintsBefore=painted,gradBefore=gradients;
+ const imagesBefore=drawn,clipsBefore=clipped,gradBefore=gradients;
  assert.equal(game.raster.drawVillageGround(context(),bounds,game.setpieces.objects),true);
- assert.ok(painted>paintsBefore+70,"painted plaza pavers and physical cottage approaches exist");
+ assert.ok(drawn>imagesBefore+70&&clipped>clipsBefore+70,
+  "village irregular paving uses genuine painted stone raster masks");
  assert.ok(gradients>gradBefore,"snow-worn forecourt has a unified atmosphere");
  assert.equal(game.raster.stats().geometryChanged,false,
   "art renderer has no separate geometry mutations");
