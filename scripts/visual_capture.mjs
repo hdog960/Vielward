@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.18",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.19",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -160,6 +160,30 @@ try{
  console.log("R12_SOURCE_ROOTED_WINTER_SLOPE "+JSON.stringify(landscape));
  await sleep(1400);
  await capture(page,"HOLLOWREACH_R12_LANDSCAPE");
+ // R13: physically existing cottage viewport, not a standalone art preview.
+ const cottageView=await page.evaluate(()=>{
+  const stream=window.__veilwardCaptureStream;
+  const houses=stream?.setpieces?.objects?.filter(o=>
+    o.anchor==="village"&&o.kind==="snow_cottage")||[];
+  if(houses.length!==2||!window.VeilwardArchitectureAtlas?.ready)
+   throw Error("R13 authored houses absent in real world");
+  const target=houses[0];
+  let view=null;
+  for(let radius=200;radius<650&&!view;radius+=35){
+   for(let step=0;step<24;step++){
+    const angle=step*Math.PI*2/24,x=target.x+Math.cos(angle)*radius,
+     y=target.y+Math.sin(angle)*radius;
+    if(!stream.blocked(x,y)){view={x,y};break}
+   }
+  }
+  if(!view)throw Error("No safe player viewpoint at illustrated winter home");
+  stream.player.x=view.x;stream.player.y=view.y;stream.player.moving=false;
+  stream.warm(view.x,view.y,2000,1300);
+  return{view,originalHomeIDs:houses.map(o=>o.id)}
+ });
+ console.log("R13_LIVE_ILLUSTRATED_COTTAGES "+JSON.stringify(cottageView));
+ await sleep(1300);
+ await capture(page,"HOLLOWREACH_R13_COTTAGES");
  await page.evaluate(()=>window.__veilwardCaptureStream.jumpToNode("village"));
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
@@ -191,14 +215,18 @@ try{
   villageHouses:window.__veilwardCaptureStream?.setpieces?.objects?.filter(o=>
    o.anchor==="village"&&o.kind==="snow_cottage").length,
   winterBootTrails:window.__veilwardCaptureStream?.raster?.stats()?.sourceBoundWinterFootpaths===true,
+  architectureAtlas:window.VeilwardArchitectureAtlas?.ready===true,
+  cottageVariants:window.__veilwardCaptureStream?.raster?.stats()?.sourceCottageVariants,
+  cottagePixelSource:window.__veilwardCaptureStream?.raster?.stats()?.sourceCottagePixels,
   rootedLandscape:window.__veilwardCaptureStream?.raster?.stats()?.sourceRootedLandscape===true,
   paintedFlagstones:window.__veilwardCaptureStream?.raster?.stats()?.paintedStoneFlagstones===true,
   wallHorizontal:(window.__veilwardCaptureStream?.geometry?.solids||[]).filter(o=>
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.18"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones)
-  throw Error("Incomplete v1.3.18 visual preview "+JSON.stringify(state));
+ if(state.build!=="v1.3.19"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+  !state.architectureAtlas||state.cottageVariants!==4||state.cottagePixelSource!==256)
+  throw Error("Incomplete v1.3.19 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
@@ -214,7 +242,7 @@ async function settle(page){
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_landscape_r12.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_homes_r13.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.

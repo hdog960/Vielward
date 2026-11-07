@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.18",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.19",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
@@ -106,6 +106,9 @@ function load(){
   try{groundPlates=makeGroundPlates(ground)}catch(e){
    groundPlates=null;console.warn("Winter plate composition unavailable",e)
   }
+  try{window.VeilwardArchitectureAtlas?.load?.()}catch(err){
+   console.warn("High-resolution winter architecture atlas failed; preserved cottage fallback",err)
+  }
   error=null;return picture
  },e=>{error=e;pending=null;throw e});
  return pending
@@ -121,8 +124,13 @@ function create(model,geometry,options={}){
  const supported=new Set(["snow_cottage","brazier","bridge_post","sign"]);
  const coveredSetpiece=o=>!!o&&supported.has(o.kind)&&regionOfAnchor(o.anchor)===region;
  const coveredHub=h=>!!h&&regionOfAnchor(h.anchor)===region;
- function stamp(ctx,index,x,y,width,height,flip=false,alpha=1){
+ function stamp(ctx,index,x,y,width,height,flip=false,alpha=1,variant=0){
   if(!ctx?.drawImage)return false;
+  // Four full-size independent illustrated source sprites replace repeated
+  // 96px village cottages. This is source art on the same physical object
+  // rather than a separate screenshot or a new stand-alone polygon house.
+  if(index===1&&window.VeilwardArchitectureAtlas?.stamp?.(
+    ctx,variant,x,y,width,height,flip,alpha))return true;
   ctx.save();
   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*alpha;
   ctx.imageSmoothingEnabled=false;
@@ -194,7 +202,7 @@ function create(model,geometry,options={}){
  }
  function drawHub(ctx,h){
   if(!coveredHub(h)||h.kind!=="smithy")return false;
-  return stamp(ctx,1,h.x,h.y,410,355)
+  return stamp(ctx,1,h.x,h.y,410,355,false,1,2)
  }
  function drawSetpieces(ctx,bounds,objects){
   let count=0;
@@ -204,10 +212,10 @@ function create(model,geometry,options={}){
    if(o.kind==="snow_cottage"){
     // Three distinct existing solid footprints receive distinct proportions
     // and a connected painted porch edge, not a detached fence in the square.
-    const type=o.seed%3,flipped=type===1,
+    const type=o.seed%4,flipped=type===1,
      w=Math.min(415,330+o.r*.45+(type-1)*19),
      h=Math.min(380,295+o.r*.38+(type===2?15:0));
-    if(stamp(ctx,1,o.x,o.y,w,h,flipped))count++;
+    if(stamp(ctx,1,o.x,o.y,w,h,flipped,1,type))count++;
     const accent=type===1?6:5,side=type===1?-.40:.40;
     drawNeighborhood(ctx,accent,o.x+o.r*side,o.y-o.r*.06,
      o.r*(type===1?.72:.96),o.r*(type===1?.61:.67),flipped,.89);
@@ -454,7 +462,7 @@ function create(model,geometry,options={}){
   const houses=(objects||[]).filter(o=>coveredSetpiece(o)&&
    o.kind==="snow_cottage"&&o.y>player.y).sort((a,b)=>a.y-b.y);
   for(const o of houses){
-   const type=o.seed%3,w=Math.min(415,330+o.r*.45+(type-1)*19),
+   const type=o.seed%4,w=Math.min(415,330+o.r*.45+(type-1)*19),
     h=Math.min(380,295+o.r*.38+(type===2?15:0));
    if(Math.abs(o.x-player.x)>w*.55+18||
      player.y<o.y-h-30||player.y>o.y+o.r*.08)continue;
@@ -916,6 +924,9 @@ function create(model,geometry,options={}){
   artworkCells:30,pilotRegion:region,materialPlateSize:PLATE_SIZE,
   neighborhoodAtlasReady:!!neighborhood,neighborhoodSprites:8,
   winterDepthSorted:true,physicalRoadWeathering:true,
+  sourceCottageVariants:window.VeilwardArchitectureAtlas?.count||0,
+  sourceCottagePixels:window.VeilwardArchitectureAtlas?.sourceSize||0,
+  architectureRasterReady:!!window.VeilwardArchitectureAtlas?.ready,
   winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
   sourceRootedLandscape:true,paintedStoneFlagstones:true,crispRasterSprites:true,
   inhabitedSnowRoadImpressions:true,sourceBoundWinterFootpaths:true,
