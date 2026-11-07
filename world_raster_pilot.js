@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.15",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.16",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
@@ -459,7 +459,7 @@ function create(model,geometry,options={}){
    if(Math.abs(o.x-player.x)>w*.55+18||
      player.y<o.y-h-30||player.y>o.y+o.r*.08)continue;
    ctx.save();
-   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*.93;
+   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*.68;
    drawSetpieces(ctx,[o.x-550,o.y-550,o.x+550,o.y+550],[o]);
    ctx.restore();drawn++
   }
@@ -497,6 +497,9 @@ function create(model,geometry,options={}){
   if(!s)return false;
   if(["pine-trunk","tree-trunk","lantern-post"].includes(s.material))
    return Number.isFinite(s.cx)&&winter(s.cx,s.cy);
+  if(s.material==="retaining-wall"&&s.shape==="segment"&&s.a&&s.b){
+   return winter((s.a[0]+s.b[0])*.5,(s.a[1]+s.b[1])*.5)
+  }
   if(s.material==="cliff-face"&&s.polygon?.length){
    const cx=s.polygon.reduce((total,p)=>total+p[0],0)/s.polygon.length;
    const cy=s.polygon.reduce((total,p)=>total+p[1],0)/s.polygon.length;
@@ -533,11 +536,14 @@ function create(model,geometry,options={}){
   for(const s of geometry.solids||[]){
    if(!handlesWinterSolid(s))continue;
    const points=s.polygon||null;
-   const x=points?points.reduce((a,p)=>a+p[0],0)/points.length:s.cx;
-   const y=points?Math.max(...points.map(p=>p[1])):s.cy;
+   const x=points?points.reduce((a,p)=>a+p[0],0)/points.length:
+     s.shape==="segment"?(s.a[0]+s.b[0])*.5:s.cx;
+   const y=points?Math.max(...points.map(p=>p[1])):
+     s.shape==="segment"?Math.max(s.a[1],s.b[1]):s.cy;
    if(!visible(x,y,650))continue;
    tasks.push({y,id:"s"+s.id,paint:()=>s.material==="cliff-face"?
-     drawCliff(ctx,s):drawStatic(ctx,s)})
+     drawCliff(ctx,s):s.material==="retaining-wall"?
+     drawRetainingWall(ctx,s):drawStatic(ctx,s)})
   }
   tasks.sort((a,b)=>a.y-b.y||a.id.localeCompare(b.id));
   for(const task of tasks)task.paint();
@@ -614,6 +620,80 @@ function create(model,geometry,options={}){
   }
   return roots.length
  }
+ function drawRetainingWallGround(ctx,bounds){
+  // The base of every retaining wall is a single broad snow/cold-stone
+  // transition, never a free-floating wall sprite or a separate false path.
+  const walls=(geometry.solids||[]).filter(o=>o.material==="retaining-wall"&&
+    o.shape==="segment"&&o.id?.startsWith("hollowreach_west_retaining_"));
+  let count=0;
+  for(const wall of walls){
+   const {a,b,radius}=wall;
+   if(Math.max(a[0],b[0])+100<bounds[0]||
+      Math.min(a[0],b[0])-100>bounds[2]||
+      Math.max(a[1],b[1])+110<bounds[1]||
+      Math.min(a[1],b[1])-110>bounds[3])continue;
+   ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+   const stroke=(width,color)=>{
+    ctx.beginPath();ctx.moveTo(a[0],a[1]+9);
+    ctx.lineTo(b[0],b[1]+9);
+    ctx.lineWidth=width;ctx.strokeStyle=color;ctx.stroke()
+   };
+   stroke(radius*2.6+95,"rgba(62,86,116,.11)");
+   stroke(radius*2.4+54,"rgba(136,159,183,.18)");
+   stroke(radius*2.1+26,"rgba(232,239,242,.30)");
+   ctx.restore();count++
+  }
+  return count
+ }
+ function wallSegments(s){
+  const len=Math.hypot(s.b[0]-s.a[0],s.b[1]-s.a[1]);
+  const count=Math.max(2,Math.min(20,Math.ceil(len/81)));
+  const out=[];
+  for(let i=0;i<count;i++){
+   const t=(i+.5)/count;
+   out.push({x:s.a[0]+(s.b[0]-s.a[0])*t,
+     y:s.a[1]+(s.b[1]-s.a[1])*t,
+     width:123+(i%3)*8,height:98+(i%2)*9,flip:i%2===1})
+  }
+  return out
+ }
+ function drawRetainingWall(ctx,s){
+  if(s?.material!=="retaining-wall"||s.shape!=="segment"||!s.a||!s.b)return false;
+  const cx=(s.a[0]+s.b[0])*.5,cy=(s.a[1]+s.b[1])*.5;
+  if(!winter(cx,cy))return false;
+  ctx.save();ctx.lineCap="round";
+  // Source-defined real wall cast shadow, directly over its physics segment.
+  ctx.beginPath();ctx.moveTo(s.a[0]+9,s.a[1]+8);
+  ctx.lineTo(s.b[0]+9,s.b[1]+8);
+  ctx.strokeStyle="rgba(42,60,83,.24)";
+  ctx.lineWidth=s.radius*2.4+8;ctx.stroke();
+  for(const part of wallSegments(s))
+   drawNeighborhood(ctx,6,part.x,part.y,part.width,part.height,
+    part.flip,.97);
+  // One continuous snowline ties all authored stone panels into a wall,
+  // without inventing a larger impassable obstacle than the geometry.
+  ctx.beginPath();ctx.moveTo(s.a[0]-10,s.a[1]-68);
+  ctx.lineTo(s.b[0]-10,s.b[1]-68);
+  ctx.strokeStyle="rgba(238,245,242,.59)";
+  ctx.lineWidth=7;ctx.stroke();
+  ctx.restore();return true
+ }
+ function drawRetainingWallForeground(ctx,player){
+  if(!player||!winter(player.x,player.y))return 0;
+  let count=0;
+  for(const wall of geometry.solids||[]){
+   if(wall.material!=="retaining-wall"||wall.shape!=="segment")continue;
+   for(const part of wallSegments(wall)){
+    // Only a physically FRONTMOST panel may soften the actor silhouette.
+    if(part.y<=player.y+5||
+       Math.abs(player.x-part.x)>part.width*.56||
+       player.y<part.y-part.height*1.07)continue;
+    drawNeighborhood(ctx,6,part.x,part.y,part.width,part.height,
+      part.flip,.66);count++
+   }
+  }
+  return count
+ }
  function drawVillageGround(ctx,bounds,objects=[]){
   // A source-authored square and connected cottage thresholds: NO painted
   // background, invented route, changed collider or free-floating art cards.
@@ -622,6 +702,7 @@ function create(model,geometry,options={}){
   const reach=1280;
   if(x+reach<bounds[0]||x-reach>bounds[2]||
     y+reach<bounds[1]||y-reach>bounds[3])return false;
+  drawRetainingWallGround(ctx,bounds);
   drawShelterbeltGround(ctx,bounds);
   function oval(px,py,rx,ry,color){
    ctx.save();ctx.translate(px,py);ctx.scale(rx,ry);
@@ -692,11 +773,13 @@ function create(model,geometry,options={}){
   neighborhoodAtlasReady:!!neighborhood,neighborhoodSprites:8,
   winterDepthSorted:true,physicalRoadWeathering:true,
   winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
-  westernShelterbelt:true,frontmostCottageOcclusion:true,shelterbeltSourceTrees:(geometry.solids||[]).filter(s=>s.id?.startsWith('hollowreach_west_spruce_')).length,
+  westernShelterbelt:true,frontmostCottageOcclusion:true,
+  retainingWallSegments:(geometry.solids||[]).filter(s=>s.material==='retaining-wall').length,
+  physicallyAnchoredStonework:true,shelterbeltSourceTrees:(geometry.solids||[]).filter(s=>s.id?.startsWith('hollowreach_west_spruce_')).length,
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
-  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawShelterbeltGround,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
+  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawShelterbeltGround,drawRetainingWallGround,drawRetainingWall,drawRetainingWallForeground,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
 window.VeilwardRasterPilot={version:VERSION,load,create,
