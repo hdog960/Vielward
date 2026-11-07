@@ -644,6 +644,81 @@
       ],
       "material": "cliff-face",
       "height": 5
+    },
+    {
+      "id": "hollowreach_west_snow_terrace",
+      "name": "Hollowreach western snowy escarpment",
+      "shape": "polygon",
+      "points": [
+        [
+          264,
+          286
+        ],
+        [
+          272,
+          284
+        ],
+        [
+          274,
+          289
+        ],
+        [
+          266,
+          291
+        ]
+      ],
+      "material": "cliff-face",
+      "height": 3
+    },
+    {
+      "id": "hollowreach_north_terrace",
+      "name": "Hollowreach northeast winter upper terrace",
+      "shape": "polygon",
+      "points": [
+        [
+          294,
+          282
+        ],
+        [
+          306,
+          282
+        ],
+        [
+          309,
+          288
+        ],
+        [
+          295,
+          289
+        ]
+      ],
+      "material": "cliff-face",
+      "height": 3
+    },
+    {
+      "id": "hollowreach_west_lower_lip",
+      "name": "Hollowreach western lower rock and snowbank",
+      "shape": "polygon",
+      "points": [
+        [
+          259,
+          315
+        ],
+        [
+          267,
+          313
+        ],
+        [
+          269,
+          318
+        ],
+        [
+          259,
+          322
+        ]
+      ],
+      "material": "cliff-face",
+      "height": 2
     }
   ],
   "interactions": [
