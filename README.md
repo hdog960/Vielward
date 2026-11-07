@@ -1,3 +1,7 @@
+## Phase 9 R12 — v1.3.18: source-rooted winter terrain and crisp raster details
+
+The actual playable Hollowreach preview now paints a linked snow-covered west slope using the physical upper/lower cliff polygons and all four authentic collision-backed spruce roots. Village flagstones use clipped imagery from the independent, authored winter stone atlas rather than flat polygon fills; existing winter building/terrain sprites are enlarged with pixel-sharp nearest-neighbor rendering. The R12 source regression and real-browser terrain viewpoint are part of QA. **This is only a structural environmental integration pass.** It does not produce original-reference-level illustrated architecture; Greenwood and much of the overworld remain underdetailed. The 12-region topology, 48 nodes, 65 roads, 7 crossings, 39 physical solids, playable original scenes, saves and protected actor art are unchanged. **Creator visual acceptance remains 0%; Phase 9 ACTIVE and Phase 10 LOCKED.** Source: `docs/overworld/HOLLOWREACH_LANDSCAPE_R12.md`.
+
 # VEILWARD v1.3.9 — phase 9 original-style terrain and infrastructure pilot
 
 **Visual acceptance still 0% — NOT READY FOR CREATOR REINSPECTION.** Hollowreach now uses new painted terrain materials (snow, stone, paths, rocky cliff transitions) alongside real illustrated cabin, pine, icy rock, lantern, stairs and bridge sprites. This is a prototype of the *asset pipeline*, not a finished full map. The original richly illustrated adventure and all saves are unchanged.
