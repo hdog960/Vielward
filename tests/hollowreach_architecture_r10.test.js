@@ -70,7 +70,8 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
   "physical frontmost stonework can correctly occlude an actor behind it");
  assert.ok(drawn>painted);
  assert.equal(world.raster.drawRetainingWallForeground(context(),
-  {x:fx,y:front.b[1]+180}),0,"stonework behind an actor never hides them");
+  {x:fx,y:Math.max(...walls.map(w=>Math.max(w.a[1],w.b[1])))+180}),0,
+  "when actor feet are in FRONT of both walls, neither wall hides them");
  assert.ok(read("terrain_art.js").includes("raster.drawRetainingWallForeground(ctx,player)"),
   "the playable scene calls the real foreground renderer");
  assert.ok(read("world_raster_pilot.js").includes("drawRetainingWall(ctx,s):drawStatic(ctx,s)"),
@@ -79,6 +80,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
   assert.equal(world.blocked(n.point[0]*60,n.point[1]*60),false,
    "all 48 original world anchors remain reachable: "+n.id);
  assert.equal(world.raster.stats().retainingWallSegments,2);
+ assert.equal(world.raster.stats().continuousRetainingFace,true);
  assert.equal(world.raster.stats().creatorApproved,false);
  assert.equal(world.raster.stats().geometryChanged,false);
  const html=read("index.html"),worker=read("sw.js"),game=read("game.js");
