@@ -95,9 +95,9 @@ for(const file of files)vm.runInNewContext(fs.readFileSync(file,"utf8"),host,{fi
  }
  const h=fs.readFileSync("index.html","utf8"),sw=fs.readFileSync("sw.js","utf8"),
   src=fs.readFileSync("game.js","utf8");
- assert.ok(h.includes("world_raster_pilot.js?v=10"));
+ assert.ok(h.includes("world_raster_pilot.js?v=11"));
  assert.ok(sw.includes("assets/hollowreach_neighborhood_r6.png?v=1"));
- assert.ok(sw.includes("veilward-hollowreach-v1315-west-spruce-verge"));
+ assert.ok(sw.includes("veilward-hollowreach-v1315-west-spruce-occlusion"));
  assert.ok(src.includes('const APP_VERSION="1.3.15";'));
  assert.ok(src.includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R6 PASS: real authored sprite asset, in-game draw source, world topology and save key");
