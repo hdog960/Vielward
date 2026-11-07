@@ -122,9 +122,10 @@ try{
   raster:!!window.VeilwardRasterPilot?.ready,
   plateMode:window.VeilwardRasterPilot?.materialPlateMode,
   neighborhoodAtlas:!!window.VeilwardRasterPilot?.ready,
+  foregroundRoofDepth:window.__veilwardCaptureStream?.raster?.stats()?.frontmostCottageOcclusion===true,
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.15"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas)
+ if(state.build!=="v1.3.15"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth)
   throw Error("Incomplete v1.3.15 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
