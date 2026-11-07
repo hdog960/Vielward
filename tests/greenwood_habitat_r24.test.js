@@ -13,8 +13,10 @@ function ctx(){
   beginPath(){},moveTo(){},lineTo(){},closePath(){},arc(){},
   fill(){},fillRect(){shadePaints++},stroke(){},clearRect(){},
   drawImage(...args){
-   // Original R18 128px fern cell, NOT cropped reference screenshots.
-   assert.equal(args[1],256);
+   // Atlas assembly uses three drawImage arguments; only source-to-world
+   // nine-argument fern stamps count as finished habitat artwork.
+   if(args.length!==9)return;
+   assert.equal(args[1],256,"original R18 fern atlas source");
    assert.equal(args[3],128);assert.equal(args[4],128);
    stamps++
   },
