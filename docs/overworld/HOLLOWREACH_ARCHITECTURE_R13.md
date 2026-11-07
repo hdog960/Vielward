@@ -1,3 +1,9 @@
+## Phase 9 R13 art-acceptance correction — v1.3.20 (November 7, 2026)
+
+Actual Chromium game screenshots exposed poor original-style fidelity in the R13 experimental house sprites: oversized flat roof triangles and boxy outlines. They are **rejected** as production art despite all functional tests passing. v1.3.20 restores the better original painterly 96px cottage art to the normal playable Hollowreach overworld. The four 256px trial sprite designs survive only behind `experimentalArchitecture:true` in an isolated developer preview; the normal game never renders them. The trial is evidence of a technical raster-art pipeline, **not an acceptable visual upgrade**. Screenshot QA and a new default-versus-experimental regression now lock the production art gate.
+
+No world coordinates, 39 physical obstacles, 48 travel anchors, 65 roads, 7 crossings, existing quest/save storage, or protected hero/Warden art changed. Phase 9 is **ACTIVE**, visual acceptance remains **0%**, and Phase 10 stays **LOCKED** until explicit creator inspection and approval of genuine in-game reference-quality illustrated environments. This correction supersedes earlier R13 text that implies the trial houses were promoted.
+
 # VEILWARD Phase 9 R13 — Original Winter Architecture Atlas
 
 **Build: v1.3.19. This is still unapproved phase-9 art, not phase 10.**
