@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.14",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.15",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -72,6 +72,23 @@ try{
  console.log("R8_SOURCE_BACKED_TERRACES "+JSON.stringify(physicalTerraces));
  await sleep(1400);
  await capture(page,"HOLLOWREACH_TERRACES");
+ // R9: inspect the FOUR source-backed western winter trees and their
+ // continuous undergrowth at a real, walkable player location.
+ const shelterbelt=await page.evaluate(()=>{
+  const stream=window.__veilwardCaptureStream;
+  const trees=stream.geometry.solids.filter(x=>x.id?.startsWith("hollowreach_west_spruce_"));
+  const x=275.8*60,y=306*60;
+  if(trees.length!==4||stream.blocked(x,y)||
+   stream.raster.stats().shelterbeltSourceTrees!==4)
+   throw Error("The R9 source-backed forest verge is not playable");
+  stream.jumpToNode("village"); // resets camera, never a persistent save
+  stream.player.x=x;stream.player.y=y;stream.player.moving=false;
+  stream.warm(x,y,2100,1400);
+  return trees.map(t=>t.id)
+ });
+ console.log("R9_SOURCE_BACKED_SHELTERBELT "+JSON.stringify(shelterbelt));
+ await sleep(1300);
+ await capture(page,"HOLLOWREACH_SHELTERBELT");
  await page.evaluate(()=>window.__veilwardCaptureStream.jumpToNode("village"));
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
@@ -100,8 +117,8 @@ try{
   neighborhoodAtlas:!!window.VeilwardRasterPilot?.ready,
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.14"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas)
-  throw Error("Incomplete v1.3.14 visual preview "+JSON.stringify(state));
+ if(state.build!=="v1.3.15"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas)
+  throw Error("Incomplete v1.3.15 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
@@ -117,7 +134,7 @@ async function settle(page){
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_terraces_r8.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_shelterbelt_r9.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.
