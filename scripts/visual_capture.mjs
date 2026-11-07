@@ -146,9 +146,13 @@ try{
   neighborhoodAtlas:!!window.VeilwardRasterPilot?.ready,
   foregroundRoofDepth:window.__veilwardCaptureStream?.raster?.stats()?.frontmostCottageOcclusion===true,
   stonewalls:window.__veilwardCaptureStream?.raster?.stats()?.retainingWallSegments===2,
+  villageHouses:window.__veilwardCaptureStream?.setpieces?.objects?.filter(o=>
+   o.anchor==="village"&&o.kind==="snow_cottage").length,
+  wallHorizontal:(window.__veilwardCaptureStream?.geometry?.solids||[]).filter(o=>
+   o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.16"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls)
+ if(state.build!=="v1.3.16"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal)
   throw Error("Incomplete v1.3.16 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
