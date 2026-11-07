@@ -19,7 +19,7 @@ const window={Image:ImageMock,console};window.window=window;
 vm.runInNewContext(source,window,{filename:"world_greenwood_hearth.js"});
 (async()=>{
  const painter=window.VeilwardGreenwoodHearth;
- assert.equal(painter.version,"1.3.31");
+ assert.equal(painter.version,"1.3.32");
  assert.equal(painter.ready,false);
  assert.equal(await painter.load(),true);
  assert.equal(painter.ready,true);
@@ -44,7 +44,7 @@ vm.runInNewContext(source,window,{filename:"world_greenwood_hearth.js"});
   "real fallback must remain");
  assert.ok(read("game.js").includes("await window.VeilwardGreenwoodHearth?.load?.();"));
  assert.ok(read("index.html").includes("world_greenwood_hearth.js?v=1"));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1331-second-forest-cottage"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1332-source-glade-habitat"));
  assert.ok(read("sw.js").includes("assets/greenwood_hearth_cottage_r23.webp?v=1"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  const model=JSON.parse(read("docs/overworld/world_blueprint.json"));
