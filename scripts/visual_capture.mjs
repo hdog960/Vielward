@@ -43,6 +43,26 @@ try{
  await page.waitForFunction(()=>document.querySelector("#reviewAtlasBtn")?.style?.display==="block",null,{timeout:60000});
  await settle(page);
  await capture(page,"HOLLOWREACH");
+ // R8: verify the NEW physical escarpments at real world coordinates instead
+ // of considering a screenshot of the village square sufficient evidence.
+ // The check is a throwaway browser camera visit, not a gameplay save/teleport.
+ const physicalTerraces=await page.evaluate(()=>{
+  const s=worldPreview.stream;
+  const px=277*60,py=294*60;
+  if(!s||s.blocked(px,py))throw Error("R8 terrace viewpoint is not walkable");
+  const names=["hollowreach_west_snow_terrace","hollowreach_north_terrace",
+   "hollowreach_west_lower_lip"];
+  const rocks=names.map(name=>s.geometry.solids.find(o=>o.id===name));
+  if(rocks.some(o=>!o||!s.raster.handlesWinterSolid(o)))
+   throw Error("R8 authored cliffs missing from the real physical renderer");
+  s.player.x=px;s.player.y=py;s.player.moving=false;
+  s.warm(px,py,2100,1400);
+  return rocks.map(o=>o.id)
+ });
+ console.log("R8_SOURCE_BACKED_TERRACES "+JSON.stringify(physicalTerraces));
+ await sleep(1400);
+ await capture(page,"HOLLOWREACH_TERRACES");
+ await page.evaluate(()=>worldPreview.stream.jumpToNode("village"));
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
  await page.waitForFunction(()=>document.querySelectorAll(".reviewRegion canvas").length===12);
