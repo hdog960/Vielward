@@ -43,7 +43,7 @@ for(const path of paths)vm.runInNewContext(sources[path],host,{filename:path});
  assert.equal(stream.version,"1.3.31");
  assert.equal(stream.art.version,"1.3.31");
  assert.equal(stream.illustration.version,"1.3.31");
- assert.equal(stream.setpieces.version,"1.3.8");
+ assert.equal(stream.setpieces.version,"1.3.31");
  assert.equal(stream.raster?.version,"1.3.31","Running game actually uses authored art");
  assert.equal(stream.raster.stats().creatorApproved,false,"Creator's art gate remains pending");
  assert.equal(stream.raster.stats().geometryChanged,false);
