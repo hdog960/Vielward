@@ -659,23 +659,63 @@ function create(model,geometry,options={}){
  }
  function drawRetainingWall(ctx,s){
   if(s?.material!=="retaining-wall"||s.shape!=="segment"||!s.a||!s.b)return false;
-  const cx=(s.a[0]+s.b[0])*.5,cy=(s.a[1]+s.b[1])*.5;
+  const a=s.a,b=s.b,cx=(a[0]+b[0])*.5,cy=(a[1]+b[1])*.5;
   if(!winter(cx,cy))return false;
-  ctx.save();ctx.lineCap="round";
-  // Source-defined real wall cast shadow, directly over its physics segment.
-  ctx.beginPath();ctx.moveTo(s.a[0]+9,s.a[1]+8);
-  ctx.lineTo(s.b[0]+9,s.b[1]+8);
-  ctx.strokeStyle="rgba(42,60,83,.24)";
-  ctx.lineWidth=s.radius*2.4+8;ctx.stroke();
-  for(const part of wallSegments(s))
-   drawNeighborhood(ctx,6,part.x,part.y,part.width,part.height,
-    part.flip,.97);
-  // One continuous snowline ties all authored stone panels into a wall,
-  // without inventing a larger impassable obstacle than the geometry.
-  ctx.beginPath();ctx.moveTo(s.a[0]-10,s.a[1]-68);
-  ctx.lineTo(s.b[0]-10,s.b[1]-68);
-  ctx.strokeStyle="rgba(238,245,242,.59)";
-  ctx.lineWidth=7;ctx.stroke();
+  const len=Math.hypot(b[0]-a[0],b[1]-a[1]);
+  if(len<1)return false;
+  // R10 correction: one CONTINUOUS source-aligned stone face, not a stack
+  // of detached stone cutouts. The wall's impassable width comes only from
+  // the real source segment; visible snow and perspective have no blockers.
+  const dx=(b[0]-a[0])/len,dy=(b[1]-a[1])/len;
+  const nx=-dy,ny=dx,lit=29,shadow=29;
+  const face=[
+   [a[0]+nx*lit,a[1]+ny*lit-66],
+   [b[0]+nx*lit,b[1]+ny*lit-66],
+   [b[0]-nx*shadow,b[1]-ny*shadow+10],
+   [a[0]-nx*shadow,a[1]-ny*shadow+10]
+  ];
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  ctx.beginPath();ctx.moveTo(a[0]+10,a[1]+14);
+  ctx.lineTo(b[0]+10,b[1]+14);
+  ctx.strokeStyle="rgba(47,72,97,.23)";
+  ctx.lineWidth=s.radius*2.2+21;ctx.stroke();
+  // Fill the entire mass first: transparent details in the original stone
+  // atlas can NEVER produce white rectangular gaps or free-standing posts.
+  ctx.save();ctx.beginPath();
+  face.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+  ctx.closePath();ctx.clip();
+  ctx.fillStyle="#536578";
+  const minX=Math.min(...face.map(p=>p[0])),maxX=Math.max(...face.map(p=>p[0]));
+  const minY=Math.min(...face.map(p=>p[1])),maxY=Math.max(...face.map(p=>p[1]));
+  ctx.fillRect(minX,minY,maxX-minX,maxY-minY);
+  // Repeat the ACTUAL independent illustrated stonework tile INSIDE the
+  // one masked wall plane, with overlapping edges to hide sprite borders.
+  const tiles=Math.max(2,Math.ceil((maxY-minY)/69));
+  for(let i=0;i<tiles;i++){
+   const y=minY+42+i*69;
+   ctx.save();ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*.84;
+   ctx.imageSmoothingEnabled=true;
+   ctx.drawImage(neighborhood,144,72,72,72,
+    Math.round(cx-67+(i%3-1)*5),Math.round(y-94),134,127);
+   ctx.restore()
+  }
+  ctx.restore();
+  // A single irregular snow cornice follows the actual upper wall edge.
+  ctx.beginPath();
+  const sections=Math.max(4,Math.ceil(len/35));
+  for(let i=0;i<=sections;i++){
+   const t=i/sections,
+    x=a[0]+(b[0]-a[0])*t+nx*lit,
+    y=a[1]+(b[1]-a[1])*t+ny*lit-66;
+   const drift=(Math.sin(t*17+cx*.011)+Math.cos(t*11))*2.8;
+   i?ctx.lineTo(x+nx*drift,y+ny*drift):
+    ctx.moveTo(x+nx*drift,y+ny*drift)
+  }
+  ctx.strokeStyle="rgba(230,241,241,.90)";
+  ctx.lineWidth=12;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(a[0]+nx*lit+8,a[1]+ny*lit-59);
+  ctx.lineTo(b[0]+nx*lit+8,b[1]+ny*lit-59);
+  ctx.strokeStyle="rgba(111,148,168,.36)";ctx.lineWidth=4;ctx.stroke();
   ctx.restore();return true
  }
  function drawRetainingWallForeground(ctx,player){
@@ -683,14 +723,16 @@ function create(model,geometry,options={}){
   let count=0;
   for(const wall of geometry.solids||[]){
    if(wall.material!=="retaining-wall"||wall.shape!=="segment")continue;
-   for(const part of wallSegments(wall)){
-    // Only a physically FRONTMOST panel may soften the actor silhouette.
-    if(part.y<=player.y+5||
-       Math.abs(player.x-part.x)>part.width*.56||
-       player.y<part.y-part.height*1.07)continue;
-    drawNeighborhood(ctx,6,part.x,part.y,part.width,part.height,
-      part.flip,.66);count++
-   }
+   const near=wallSegments(wall).some(part=>
+    part.y>player.y+5&&
+    Math.abs(player.x-part.x)<part.width*.56&&
+    player.y>=part.y-part.height*1.07);
+   if(!near)continue;
+   ctx.save();ctx.beginPath();
+   ctx.rect(player.x-84,player.y-135,168,147);ctx.clip();
+   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*.68;
+   drawRetainingWall(ctx,wall);
+   ctx.restore();count++
   }
   return count
  }
@@ -775,7 +817,8 @@ function create(model,geometry,options={}){
   winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
   westernShelterbelt:true,frontmostCottageOcclusion:true,
   retainingWallSegments:(geometry.solids||[]).filter(s=>s.material==='retaining-wall').length,
-  physicallyAnchoredStonework:true,shelterbeltSourceTrees:(geometry.solids||[]).filter(s=>s.id?.startsWith('hollowreach_west_spruce_')).length,
+  physicallyAnchoredStonework:true,
+  continuousRetainingFace:true,shelterbeltSourceTrees:(geometry.solids||[]).filter(s=>s.id?.startsWith('hollowreach_west_spruce_')).length,
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
