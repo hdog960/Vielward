@@ -35,7 +35,7 @@ for(const f of ["world_geometry.js","world_climate.js","world_footprint.js",
  await host.VeilwardRasterPilot.load();
  const world=host.VeilwardWorldStream.create(model,{geometry,footprint,
   canvasFactory:()=>({width:0,height:0,getContext:ctx})});
- assert.equal(world.version,"1.3.23");
+ assert.equal(world.version,"1.3.24");
  assert.equal(model.nodes.length,48);
  assert.equal(world.geometry.stats().solids,39);
  assert.equal(world.routeArt.stats().roads,65);
@@ -65,8 +65,8 @@ for(const f of ["world_geometry.js","world_climate.js","world_footprint.js",
   old.map(n=>n*2),"deterministic world-space snow painting");
  assert.ok(read("world_raster_pilot.js").includes("drawSourceSnowFans(ctx,bounds);"));
  assert.ok(read("terrain_art.js").includes("raster.drawVillageGround(ctx,bounds"));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1323-cliff-snow-deposition"));
- assert.ok(read("index.html").includes("world_raster_pilot.js?v=19"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1324-greenwood-foliage"));
+ assert.ok(read("index.html").includes("world_raster_pilot.js?v=20"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  for(const anchor of model.nodes)
   assert.equal(world.blocked(anchor.point[0]*60,anchor.point[1]*60),false,

@@ -1,4 +1,4 @@
-/* VEILWARD v1.3.23: real authored raster atlas → seamless large world plates.
+/* VEILWARD v1.3.24: real authored raster atlas → seamless large world plates.
  * This is a geometry-safe art-production regression, NOT artist signoff.
  */
 "use strict";
