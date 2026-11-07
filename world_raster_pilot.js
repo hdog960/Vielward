@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.20",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.21",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
@@ -847,6 +847,117 @@ function create(model,geometry,options={}){
   }
   return count
  }
+
+ // Phase 9 R14: continuous snow / rock weathering contours belong to real
+ // cliffs and road shoulders. This never creates new scenery silhouettes,
+ // fake cliffs, colliders or walkable shortcuts; road decks still paint above.
+ function drawVillageLandContours(ctx,bounds){
+  const village=nodes.get("village");if(!village)return 0;
+  const scale=model.worldDesign.worldUnitScale,
+   hubX=village.point[0]*scale,hubY=village.point[1]*scale;
+  if(hubX+2400<bounds[0]||hubX-2400>bounds[2]||
+     hubY+2450<bounds[1]||hubY-2450>bounds[3])return 0;
+  let count=0;
+  const groundArt=groundPlates?.[0]||ground;
+  const stoneArt=groundPlates?.[2]||ground;
+  // Snow-mantled geology is derived from the SAME physical cliff polygons
+  // used by blocked(), rather than invented polygon props in open snow.
+  const ids=["hollowreach_west_snow_terrace",
+   "hollowreach_north_terrace","hollowreach_west_lower_lip"];
+  for(const id of ids){
+   const solid=(geometry.solids||[]).find(s=>s.id===id);
+   if(!solid?.polygon)continue;
+   const xs=solid.polygon.map(p=>p[0]),ys=solid.polygon.map(p=>p[1]);
+   const xmin=Math.min(...xs),xmax=Math.max(...xs),
+    ymin=Math.min(...ys),ymax=Math.max(...ys);
+   if(xmax+215<bounds[0]||xmin-215>bounds[2]||
+      ymax+175<bounds[1]||ymin-175>bounds[3])continue;
+   const span=Math.max(1,xmax-xmin),steps=Math.max(6,Math.ceil(span/42));
+   const front=[];
+   for(let i=0;i<=steps;i++){
+    const t=i/steps,wx=xmin+span*t;
+    const wiggle=Math.sin(t*12.1+xmin*.003)*7+
+     Math.sin(t*26.7+ymin*.002)*3;
+    front.push([wx,ymax+wiggle])
+   }
+   ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+   function trace(offset=0){
+    ctx.beginPath();
+    front.forEach((p,i)=>{
+     if(i)ctx.lineTo(p[0],p[1]+offset);
+     else ctx.moveTo(p[0],p[1]+offset)
+    })
+   }
+   // A soft lower-strata wash visually extends the existing rock onto snow.
+   for(const [offset,width,color] of [
+    [26,122,"rgba(37,59,85,.12)"],
+    [6,87,"rgba(70,98,126,.12)"],
+    [-20,51,"rgba(190,207,218,.27)"]]){
+    trace(offset);ctx.lineWidth=width;ctx.strokeStyle=color;ctx.stroke()
+   }
+   // The lower bank is sampled from native author-painted stone/snow atlas,
+   // clipped to the actual cliff's footprint-shaped transition footprint.
+   if(stoneArt&&ctx.drawImage){
+    ctx.save();ctx.beginPath();
+    front.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]+19):ctx.moveTo(p[0],p[1]+19));
+    for(let i=front.length-1;i>=0;i--)
+     ctx.lineTo(front[i][0],front[i][1]+64+
+      Math.sin(i*.83+id.length)*9);
+    ctx.closePath();ctx.clip();ctx.globalAlpha=.24;
+    ctx.imageSmoothingEnabled=false;
+    const tileSize=groundPlates?.[2]?256:128;
+    const sx=Math.floor((xmin-80)/tileSize)*tileSize;
+    for(let x=sx;x<xmax+140;x+=tileSize){
+     ctx.drawImage(stoneArt,x,ymax-80,tileSize,tileSize)
+    }
+    ctx.restore()
+   }
+   // A narrow windward cornice connects existing cliffs with their snowy
+   // surroundings; it cannot be mistaken for a new climbable stone wall.
+   trace(-34);ctx.strokeStyle="rgba(239,248,245,.43)";
+   ctx.lineWidth=12;ctx.stroke();ctx.restore();count++
+  }
+  // Road shoulders receive a continuous material feather, not rows of
+  // cloned decorations. The authoritative road geometry paints on top.
+  const localRoads=(geometry.roads||[]).filter(e=>!e.crossing&&
+   (e.from==="village"||e.to==="village"));
+  for(const e of localRoads){
+   const points=e.path;
+   if(!points?.length)continue;
+   const xMin=Math.min(...points.map(p=>p[0])),
+    xMax=Math.max(...points.map(p=>p[0])),
+    yMin=Math.min(...points.map(p=>p[1])),
+    yMax=Math.max(...points.map(p=>p[1]));
+   if(xMax+175<bounds[0]||xMin-175>bounds[2]||
+      yMax+175<bounds[1]||yMin-175>bounds[3])continue;
+   ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+   function trace(){
+    ctx.beginPath();
+    points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]))
+   }
+   for(const [w,color] of [
+    [2*e.halfWidth+145,"rgba(59,86,116,.072)"],
+    [2*e.halfWidth+95,"rgba(161,183,205,.12)"],
+    [2*e.halfWidth+42,"rgba(222,234,235,.23)"]]){
+    trace();ctx.lineWidth=w;ctx.strokeStyle=color;ctx.stroke()
+   }
+   if(groundArt&&ctx.drawImage){
+    ctx.save();trace();ctx.lineWidth=2*e.halfWidth+36;
+    ctx.strokeStyle="#fff";ctx.stroke(); // underlying low-contrast snow
+    ctx.clip?.(); // optional in synthetic QA; all road marks are scenery only
+    ctx.globalAlpha=.09;ctx.imageSmoothingEnabled=false;
+    const tileSize=groundPlates?.[0]?256:128;
+    const x0=Math.floor((xMin-90)/tileSize)*tileSize;
+    const y0=Math.floor((yMin-90)/tileSize)*tileSize;
+    for(let py=y0;py<yMax+100;py+=tileSize)
+     for(let px=x0;px<xMax+100;px+=tileSize)
+      ctx.drawImage(groundArt,px,py,tileSize,tileSize);
+    ctx.restore()
+   }
+   ctx.restore();count++
+  }
+  return count
+ }
  function drawVillageGround(ctx,bounds,objects=[]){
   // A source-authored square and connected cottage thresholds: NO painted
   // background, invented route, changed collider or free-floating art cards.
@@ -856,6 +967,7 @@ function create(model,geometry,options={}){
   if(x+reach<bounds[0]||x-reach>bounds[2]||
     y+reach<bounds[1]||y-reach>bounds[3])return false;
   drawVillageTerrainSpine(ctx,bounds);
+  drawVillageLandContours(ctx,bounds);
   drawRetainingWallGround(ctx,bounds);
   drawShelterbeltGround(ctx,bounds);
   function oval(px,py,rx,ry,color){
@@ -935,6 +1047,7 @@ function create(model,geometry,options={}){
   artistAcceptedArchitecture:false,
   winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
   sourceRootedLandscape:true,paintedStoneFlagstones:true,crispRasterSprites:true,
+  physicallyBoundSnowContours:true,terrainPhysicsChanged:false,
   inhabitedSnowRoadImpressions:true,sourceBoundWinterFootpaths:true,
   westernShelterbelt:true,frontmostCottageOcclusion:true,
   retainingWallSegments:(geometry.solids||[]).filter(s=>s.material==='retaining-wall').length,
@@ -943,7 +1056,7 @@ function create(model,geometry,options={}){
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
-  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawVillageTerrainSpine,drawShelterbeltGround,drawWinterFootpaths,drawRetainingWallGround,drawRetainingWall,drawRetainingWallForeground,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
+  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawVillageTerrainSpine,drawVillageLandContours,drawShelterbeltGround,drawWinterFootpaths,drawRetainingWallGround,drawRetainingWall,drawRetainingWallForeground,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
 window.VeilwardRasterPilot={version:VERSION,load,create,
