@@ -5,12 +5,15 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.21",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
+const VERSION="1.3.22",URL="./assets/hollowreach_pilot_sprites_v1.png?v=1";
 const DETAIL="./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1";
 const GROUND="./assets/hollowreach_ground_painted_v2.webp?v=1";
 const NEIGHBORHOOD="./assets/hollowreach_neighborhood_r6.png?v=1";
+// Two high-detail cliff masses, low rooted brush and shallow winter drifts.
+// Four original transparent 144px sprites. Never paste the reference painting.
+const ENVIRONMENT="./assets/hollowreach_environment_r15.webp?v=1";
 
-let picture=null,detail=null,ground=null,neighborhood=null,groundPlates=null,pending=null,error=null;
+let picture=null,detail=null,ground=null,neighborhood=null,environment=null,groundPlates=null,pending=null,error=null;
 const PLATE_CELLS=8,PLATE_CELL=32,PLATE_SIZE=PLATE_CELLS*PLATE_CELL;
 // Hand-selected material variations, used only with the NEW independent
 // authored raster atlas. Never sample, mirror, or tile the reference painting.
@@ -98,9 +101,13 @@ function load(){
   decode(URL,288,96,"original winter sprite"),
   decode(DETAIL,216,72,"painted bridge/stairs/lantern"),
   decode(GROUND,128,128,"painted winter terrain"),
-  decode(NEIGHBORHOOD,288,144,"eight illustrated Hollowreach environment objects")
+  decode(NEIGHBORHOOD,288,144,"eight illustrated Hollowreach environment objects"),
+  // Keep the original production sprites and gameplay alive even if this
+  // optional richer environment asset is blocked by an old iPhone cache.
+  decode(ENVIRONMENT,576,144,"R15 independent winter landscape sprites")
+   .catch(e=>{console.warn("R15 art unavailable; retaining established terrain",e);return null})
  ]).then(images=>{
-  [picture,detail,ground,neighborhood]=images;
+  [picture,detail,ground,neighborhood,environment]=images;
   // The material stage is optional ONLY in synthetic test canvases. Normal
   // browsers produce four composited plates from the real source art.
   try{groundPlates=makeGroundPlates(ground)}catch(e){
@@ -358,6 +365,41 @@ function create(model,geometry,options={}){
    drawDetail(ctx,1,x,y,Math.max(170,e.halfWidth*1.6),Math.min(300,Math.max(160,len*.6)))
   }
  }
+
+ // Isolated landscape sprites follow AUTHORITATIVE rock/tree geometry.
+ // The atlas is not a collidable invisible prop collection or flat screenshot.
+ function drawEnvironment(ctx,index,x,y,w,h,flip=false,alpha=1){
+  if(!environment||!ctx?.drawImage||index<0||index>3)return false;
+  ctx.save();ctx.imageSmoothingEnabled=false;
+  ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*alpha;
+  const ww=Math.round(w),hh=Math.round(h);
+  if(flip){
+   ctx.translate(Math.round(x),0);ctx.scale(-1,1);
+   ctx.drawImage(environment,index*144,0,144,144,Math.round(-ww/2),Math.round(y-hh),ww,hh)
+  }else{
+   ctx.drawImage(environment,index*144,0,144,144,
+    Math.round(x-ww/2),Math.round(y-hh),ww,hh)
+  }
+  ctx.restore();return true
+ }
+ function drawSourceWinterDrifts(ctx,bounds){
+  if(!environment)return 0;
+  let n=0;
+  for(const id of ["hollowreach_west_snow_terrace",
+   "hollowreach_north_terrace","hollowreach_west_lower_lip"]){
+   const rock=(geometry.solids||[]).find(o=>o.id===id);
+   if(!rock?.polygon)continue;
+   const xs=rock.polygon.map(p=>p[0]),ys=rock.polygon.map(p=>p[1]);
+   const x=(Math.min(...xs)+Math.max(...xs))*.5+22,
+    y=Math.max(...ys)+56;
+   if(x+250<bounds[0]||x-250>bounds[2]||
+      y+170<bounds[1]||y-170>bounds[3])continue;
+   // A low, passable lip under the actual rock footprint, painted before
+   // the original road material. This is not a new boulder/collider.
+   if(drawEnvironment(ctx,3,x,y,310,160,id.includes("north"),.56))n++
+  }
+  return n
+ }
  function drawCliff(ctx,s){
   if(!s||s.material!=="cliff-face"||!s.polygon?.length)return false;
   const pts=s.polygon,cx=pts.reduce((sum,p)=>sum+p[0],0)/pts.length,
@@ -365,6 +407,19 @@ function create(model,geometry,options={}){
   if(!winter(cx,cy))return false;
   const left=Math.min(...pts.map(p=>p[0])),right=Math.max(...pts.map(p=>p[0])),
     top=Math.min(...pts.map(p=>p[1])),foot=Math.max(...pts.map(p=>p[1]));
+  // Physical snowy cliffs can now use a fuller illustrated face. We only
+  // replace three *existing* winter polygon blockers. The foot anchor
+  // shares the source polygon; all other terrain keeps its prior renderer.
+  const richer=(s.id==="hollowreach_west_snow_terrace"||
+   s.id==="hollowreach_north_terrace"||
+   s.id==="hollowreach_west_lower_lip");
+  if(richer&&environment){
+   const span=right-left,depth=foot-top,
+    width=Math.min(960,Math.max(410,span*1.03)),
+    height=Math.min(740,Math.max(400,Math.max(depth*1.17,width*.78)));
+   const kind=s.id==="hollowreach_north_terrace"||s.id==="hollowreach_west_lower_lip"?1:0;
+   if(drawEnvironment(ctx,kind,cx,foot+36,width,height,s.id==="hollowreach_west_lower_lip",.97))return true
+  }
   const span=right-left,segments=Math.max(1,Math.min(40,Math.ceil(span/148)));
   const width=Math.min(330,Math.max(185,span/segments*1.45));
   // A wide, soft-grounded shadow and snow wash bind this real rock mass to
@@ -671,7 +726,8 @@ function create(model,geometry,options={}){
     const py=a.cy+(b.cy-a.cy)*t+26+(seg%2)*9;
     if(geometry.nearRoad(px,py,()=>true,60)||geometry.waterAt(px,py,0))continue;
     const ww=108+(seg+k)%3*12,hh=69+(seg+k)%2*10;
-    drawNeighborhood(ctx,4,px,py,ww,hh,(seg+k)%2===1,.84)
+    if(!drawEnvironment(ctx,2,px,py,ww*1.55,hh*1.48,(seg+k)%2===1,.78))
+     drawNeighborhood(ctx,4,px,py,ww,hh,(seg+k)%2===1,.84)
    }
   }
   return roots.length
@@ -964,6 +1020,7 @@ function create(model,geometry,options={}){
     y+reach<bounds[1]||y-reach>bounds[3])return false;
   drawVillageTerrainSpine(ctx,bounds);
   drawVillageLandContours(ctx,bounds);
+  drawSourceWinterDrifts(ctx,bounds);
   drawRetainingWallGround(ctx,bounds);
   drawShelterbeltGround(ctx,bounds);
   function oval(px,py,rx,ry,color){
@@ -1043,6 +1100,8 @@ function create(model,geometry,options={}){
   artistAcceptedArchitecture:false,
   winterTerraces:true,forecourtPaving:true,groundedCottageApproaches:true,
   sourceRootedLandscape:true,paintedStoneFlagstones:true,crispRasterSprites:true,
+  sourceLandscapeAtlasReady:!!environment,sourceLandscapeSourcePixels:environment?144:0,
+  sourceWinterCliffSprites:environment?2:0,sourcePassableDriftSprites:environment?1:0,
   physicallyBoundSnowContours:true,terrainPhysicsChanged:false,
   inhabitedSnowRoadImpressions:true,sourceBoundWinterFootpaths:true,
   westernShelterbelt:true,frontmostCottageOcclusion:true,
@@ -1052,7 +1111,7 @@ function create(model,geometry,options={}){
   materialPlateMode:groundPlates?"seam-composed":"single-cell fallback",geometryChanged:false,
   fullBackgroundPasted:false,creatorApproved:false}}
  return{version:VERSION,drawFeature,drawStatic,drawHub,drawSetpieces,drawDetail,
-  drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawVillageTerrainSpine,drawVillageLandContours,drawShelterbeltGround,drawWinterFootpaths,drawRetainingWallGround,drawRetainingWall,drawRetainingWallForeground,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
+  drawEnvironment,drawSourceWinterDrifts,drawCliff,drawForeground,drawVillageAtmosphere,drawWinterScene,drawVillageGround,drawVillageTerrainSpine,drawVillageLandContours,drawShelterbeltGround,drawWinterFootpaths,drawRetainingWallGround,drawRetainingWall,drawRetainingWallForeground,drawArchitectureForeground,handlesWinterSolid,paintGroundCell,paintedRoad,decorateRoute,handlesSetpiece:coveredSetpiece,
   handlesHub:coveredHub,covers:winter,stats}
 }
 window.VeilwardRasterPilot={version:VERSION,load,create,

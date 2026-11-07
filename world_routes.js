@@ -4,7 +4,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.21",TAU=Math.PI*2;
+const VERSION="1.3.22",TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const palettes={
  alpine:{rim:"#687c8a",bed:"#adafa8",center:"#d7d6c7",shade:"#62758a",detail:"#f0e8d4"},

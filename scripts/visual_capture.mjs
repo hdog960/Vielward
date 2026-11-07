@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.21",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.22",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -206,6 +206,30 @@ try{
  console.log("R14_SOURCE_CLIFF_CONTOURS "+JSON.stringify(contours));
  await sleep(1300);
  await capture(page,"HOLLOWREACH_R14_CONTOURS");
+ // R15 inspect new independent pixel-art cliff on a REAL physical terrace.
+ const escarpmentView=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  if(!s?.raster?.stats()?.sourceLandscapeAtlasReady||
+     s.raster.stats().sourceWinterCliffSprites!==2)
+   throw Error("R15 real rendered winter environment atlas not loaded");
+  const cliff=s.geometry.solids.find(o=>o.id==="hollowreach_west_snow_terrace");
+  if(!cliff?.polygon)throw Error("R15 cliff must be physically authored");
+  const xs=cliff.polygon.map(p=>p[0]),ys=cliff.polygon.map(p=>p[1]);
+  const targetX=Math.max(...xs)+220,targetY=Math.max(...ys)+170;
+  let view=null;
+  for(let radius=0;radius<630&&!view;radius+=35)
+   for(let step=0;step<24;step++){
+    const angle=step*Math.PI*2/24,x=targetX+Math.cos(angle)*radius,
+     y=targetY+Math.sin(angle)*radius;
+    if(!s.blocked(x,y)){view={x,y};break}
+   }
+  if(!view)throw Error("No physical walkable cliff review viewpoint");
+  s.player.x=view.x;s.player.y=view.y;s.player.moving=false;
+  s.warm(view.x,view.y,1950,1300);return view
+ });
+ console.log("R15_SOURCE_ESCARPMENT_VIEW "+JSON.stringify(escarpmentView));
+ await sleep(1350);
+ await capture(page,"HOLLOWREACH_R15_ESCARPMENT");
  await page.evaluate(()=>window.__veilwardCaptureStream.jumpToNode("village"));
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
@@ -238,6 +262,7 @@ try{
    o.anchor==="village"&&o.kind==="snow_cottage").length,
   winterBootTrails:window.__veilwardCaptureStream?.raster?.stats()?.sourceBoundWinterFootpaths===true,
   architectureAtlas:window.VeilwardArchitectureAtlas?.ready===true,
+  sourceAtlasR15:window.__veilwardCaptureStream?.raster?.stats()?.sourceLandscapeAtlasReady===true,
   sourceContours:window.__veilwardCaptureStream?.raster?.stats()?.physicallyBoundSnowContours===true,
   architectureRejected:window.__veilwardCaptureStream?.raster?.stats()?.architectureExperimentActive===false,
   cottageVariants:window.__veilwardCaptureStream?.raster?.stats()?.sourceCottageVariants,
@@ -248,10 +273,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.21"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
-  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||
+ if(state.build!=="v1.3.22"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.21 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.22 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
@@ -267,7 +292,7 @@ async function settle(page){
 async function capture(page,name){
  const original={width:1136,height:640};
  const full=await page.screenshot({type:"jpeg",quality:68,animations:"disabled"});
- writeFileSync("artifacts/"+name.toLowerCase()+"_contours_r14.jpg",full);
+ writeFileSync("artifacts/"+name.toLowerCase()+"_escarpment_r15.jpg",full);
  console.log("VISUAL_CAPTURE "+name+" bytes="+full.length);
  // Reduced preview is also printed in small chunks for machine inspection
  // of actual browser pixels through the GitHub job log.
