@@ -85,14 +85,14 @@ eq(i.regions,12,"12 original region map remains intact");
 eq(i.roadCount,65,"atlas overview unchanged source network");
 const pack=S["index.html"],sw=S["sw.js"],game=S["game.js"];
 for(const name of ["world_climate.js?v=4","world_footprint.js?v=5",
- "world_illustration.js?v=9","terrain_art.js?v=14","world_routes.js?v=10",
+ "world_illustration.js?v=9","terrain_art.js?v=15","world_routes.js?v=10",
  "world_stream.js?v=15","world_review.js?v=4","game.js?v=36",
  "manifest.webmanifest?v=1315"]){
  ok(pack.includes(name)&&sw.includes(name),"iPhone and HTML pin identical rebuilt art asset "+name)
 }
-ok(pack.indexOf("world_illustration.js?v=9")<pack.indexOf("terrain_art.js?v=14")&&
- pack.indexOf("terrain_art.js?v=14")<pack.indexOf("world_stream.js?v=15"),"browser builds illustrator before runtime stream");
-ok(sw.includes("veilward-hollowreach-v1315-west-spruce-verge"),"old iPhone Home Screen visual tiles invalidated");
+ok(pack.indexOf("world_illustration.js?v=9")<pack.indexOf("terrain_art.js?v=15")&&
+ pack.indexOf("terrain_art.js?v=15")<pack.indexOf("world_stream.js?v=15"),"browser builds illustrator before runtime stream");
+ok(sw.includes("veilward-hollowreach-v1315-west-spruce-occlusion"),"old iPhone Home Screen visual tiles invalidated");
 ok(game.includes('const APP_VERSION="1.3.15";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),
  "old quest/local save key unchanged");
 ok(game.includes("HOLLOWREACH ART RECOVERY")&&game.includes("span:1250"),"gallery labels truthful status and zooms to the art");
