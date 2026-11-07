@@ -46,6 +46,9 @@ for(const f of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.equal(stats.creatorApproved,false);
  assert.equal(stats.geometryChanged,false);
  assert.equal(stats.architectureExperimentActive,false);
+ // World constructor may prepaint cached chunks; isolate this renderer test
+ // from unrelated background drawing that occurs at creation time.
+ patterns=clips=strokes=rects=0;
  assert.equal(world.raster.drawSourceSnowFans(ctx(),[0,0,1500,1400]),0);
  assert.equal(rects,0);
  const node=model.nodes.find(n=>n.id==="village");
