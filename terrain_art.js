@@ -7,7 +7,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.13",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
+const VERSION="1.3.14",TILE=32,VARIANTS=4,COLUMNS=8,WORLD_CELL=96,TAU=Math.PI*2;
 const PALETTES={
  snow:{base:"#acbcd0",dark:"#788da9",light:"#e4eced",mid:"#bfcdd9",spark:"#f6f5e8",motif:"drift"},
  frost:{base:"#8fa3b8",dark:"#627590",light:"#cedadd",mid:"#adbbc9",spark:"#e9ece8",motif:"shale"},
@@ -398,7 +398,7 @@ function create(model,geometry,options={}){
   if(footprint)footprint.draws(ctx,bounds);
   drawSurfaces(ctx,bounds);
   if(illustration)illustration.drawGround(ctx,bounds);
-  if(raster)raster.drawVillageGround(ctx,bounds);
+  if(raster)raster.drawVillageGround(ctx,bounds,setpieces?.objects||[]);
   if(routeArt)routeArt.draw(ctx,bounds);else drawRoads(ctx,bounds);
   if(illustration)illustration.drawFeatures(ctx,bounds,!!raster?.drawWinterScene);
   else if(footprint)footprint.drawScenery(ctx,bounds);

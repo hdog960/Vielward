@@ -4,7 +4,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.13",TAU=Math.PI*2;
+const VERSION="1.3.14",TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const palettes={
  alpine:{rim:"#687c8a",bed:"#adafa8",center:"#d7d6c7",shade:"#62758a",detail:"#f0e8d4"},
@@ -77,7 +77,7 @@ function create(model,geometry,options={}){
   ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke()
  }
  function ribbon(ctx,e,bounds){
-  if(raster?.paintedRoad(ctx,e))return;
+  if(raster?.paintedRoad(ctx,e,bounds))return;
   const first=e.path[0],last=e.path[e.path.length-1];
   const colors=palette((first[0]+last[0])/2,(first[1]+last[1])/2);
   const wide=e.kind==="street"||e.kind==="road"||e.kind==="old-road",stair=e.kind==="stairs"||e.slope==="stairs",steep=e.kind==="switchback"||e.slope==="switchback";
