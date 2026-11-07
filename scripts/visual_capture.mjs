@@ -318,9 +318,19 @@ try{
  await sleep(1400);await capture(page,"GREENWOOD_R17_ROOTED_TREE");
  // R18 photographed original alpha tree art on its physical source root,
  // not a separately composited scene or reference painting.
- const paintedView=await page.evaluate(()=>{
+ const paintedView=await page.evaluate(async()=>{
   const s=window.__veilwardCaptureStream,asset=window.VeilwardGreenwoodArt;
   if(!asset?.paintedReady)throw Error("R18 original Greenwood AVIF failed to decode: "+asset?.paintedError);
+  const check=new Image();check.src="./assets/greenwood_forest_painted_r18.avif?v=1";
+  await check.decode();const can=document.createElement("canvas");
+  can.width=512;can.height=128;const cc=can.getContext("2d",{willReadFrequently:true});
+  cc.drawImage(check,0,0);
+  const pixels=cc.getImageData(0,0,512,128).data;
+  const counts=[0,0,0,0];
+  for(let i=0;i<pixels.length;i+=4)if(pixels[i+3]>50)
+   counts[Math.floor((i/4)%512/128)]++;
+  console.log("R18_NONTRANSPARENT_SOURCE_PIXELS "+JSON.stringify(counts));
+  if(counts.some(n=>n<1500))throw Error("R18 sprite image decoded but is transparent/empty: "+counts);
   const grove=s.model.nodes.find(o=>o.id==="greenwood_hearth");
   const cx=grove.point[0]*60,cy=grove.point[1]*60;
   const b=[cx-5100,cy-5100,cx+5100,cy+5100];
