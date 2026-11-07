@@ -58,6 +58,6 @@ for(const f of files)vm.runInNewContext(fs.readFileSync(f,"utf8"),host,{filename
  const sw=fs.readFileSync("sw.js","utf8"),html=fs.readFileSync("index.html","utf8");
  assert.ok(sw.includes("veilward-hollowreach-v1318-rooted-winter-landscape"));
  assert.ok(html.includes("world_raster_pilot.js?v=14"));
- assert.ok(html.includes("terrain_art.js?v=17"));
+ assert.ok(html.includes("terrain_art.js?v=18"));
  console.log("R4 PASS: painted cliff composition, source lighting, true tree depth, roads and caches");
 })().catch(e=>{console.error(e);process.exitCode=1});
