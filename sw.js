@@ -1,10 +1,10 @@
-/* VEILWARD 1.3.31 — Phase 9 R19b feathered woodland transitions; approved originals protected.
+/* VEILWARD 1.3.32 — Phase 9 R19b feathered woodland transitions; approved originals protected.
    Use network-first for HTML/scripts, and preserve offline assets. */
-const BUILD="1.3.31";
-const CACHE="veilward-hollowreach-v1331-second-forest-cottage";
+const BUILD="1.3.32";
+const CACHE="veilward-hollowreach-v1332-source-glade-habitat";
 const FILES=[
- "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_geometry.js?v=1","./world_climate.js?v=4","./world_footprint.js?v=5","./world_setpieces.js?v=3","./world_architecture_atlas.js?v=1","./world_raster_pilot.js?v=27","./assets/hollowreach_pilot_sprites_v1.png?v=1","./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1","./assets/hollowreach_ground_painted_v2.webp?v=1","./assets/hollowreach_neighborhood_r6.png?v=1","./assets/hollowreach_environment_r15.webp?v=1","./world_greenwood_art.js?v=8","./assets/greenwood_oak_r18.avif?v=1","./assets/greenwood_pine_r18.avif?v=1","./assets/greenwood_ferns_r18.avif?v=1","./assets/greenwood_rock_r18.avif?v=1","./world_greenwood_sanctuary.js?v=3","./assets/greenwood_hermit_sanctuary_r21.webp?v=1","./world_greenwood_hearth.js?v=1","./assets/greenwood_hearth_cottage_r23.webp?v=1","./world_illustration.js?v=25","./terrain_art.js?v=31","./world_routes.js?v=26","./world_stream.js?v=31","./world_review.js?v=4","./docs/overworld/world_blueprint.json?v=1","./docs/overworld/terrain_geometry.json?v=4","./docs/overworld/outdoor_footprint.json?v=1","./game.js?v=52","./navigation.js?v=11",
- "./visual.js?v=33","./visual.css?v=15","./manifest.webmanifest?v=1331","./icon.svg",
+ "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_geometry.js?v=1","./world_climate.js?v=4","./world_footprint.js?v=5","./world_setpieces.js?v=3","./world_architecture_atlas.js?v=1","./world_raster_pilot.js?v=28","./assets/hollowreach_pilot_sprites_v1.png?v=1","./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1","./assets/hollowreach_ground_painted_v2.webp?v=1","./assets/hollowreach_neighborhood_r6.png?v=1","./assets/hollowreach_environment_r15.webp?v=1","./world_greenwood_art.js?v=9","./assets/greenwood_oak_r18.avif?v=1","./assets/greenwood_pine_r18.avif?v=1","./assets/greenwood_ferns_r18.avif?v=1","./assets/greenwood_rock_r18.avif?v=1","./world_greenwood_sanctuary.js?v=3","./assets/greenwood_hermit_sanctuary_r21.webp?v=1","./world_greenwood_hearth.js?v=1","./assets/greenwood_hearth_cottage_r23.webp?v=1","./world_illustration.js?v=26","./terrain_art.js?v=32","./world_routes.js?v=27","./world_stream.js?v=32","./world_review.js?v=4","./docs/overworld/world_blueprint.json?v=1","./docs/overworld/terrain_geometry.json?v=4","./docs/overworld/outdoor_footprint.json?v=1","./game.js?v=53","./navigation.js?v=11",
+ "./visual.js?v=33","./visual.css?v=15","./manifest.webmanifest?v=1332","./icon.svg",
  "./assets/village_v06_clear.jpg?art=23","./assets/wilds_clean.jpg?art=23",
  "./assets/cave_clean.jpg?art=23","./assets/forge.jpg?art=23",
  "./assets/actors_v07.png?art=23",

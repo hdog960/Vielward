@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.31",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.32",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -404,6 +404,24 @@ try{
  });
  console.log("R23_REAL_HEARTH_COTTAGE "+JSON.stringify(hearthView));
  await sleep(1400);await capture(page,"GREENWOOD_R23_HEARTH_COTTAGE");
+ // R24 live-game painted woodland floor at the original hearth approach.
+ const habitat=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const painter=window.VeilwardGreenwoodArt?.create({
+   footprint:s.footprint,geometry:s.geometry,model:s.model
+  });
+  const stats=painter?.stats();
+  if(!stats?.paintedGladeHabitat||
+     stats.namedHabitatAnchors.join(",")!=="greenwood_hearth,hermit")
+   throw Error("R24 source-linked original landmark habitat unavailable");
+  s.jumpToNode("greenwood_hearth");
+  if(s.blocked(s.player.x,s.player.y))
+   throw Error("R24 original Greenwood hearth waypoint became blocked");
+  s.warm(s.player.x,s.player.y,2100,1450);
+  return {x:s.player.x,y:s.player.y,anchors:stats.namedHabitatAnchors}
+ });
+ console.log("R24_GREENWOOD_SOURCE_HABITAT "+JSON.stringify(habitat));
+ await sleep(1250);await capture(page,"GREENWOOD_R24_HABITAT");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
@@ -505,10 +523,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.31"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+ if(state.build!=="v1.3.32"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
   !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||!state.greenwoodR21||!state.greenwoodR23||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.31 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.32 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{

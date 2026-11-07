@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const VERSION="1.3.31",SRC="./assets/greenwood_hearth_cottage_r23.webp?v=1";
+const VERSION="1.3.32",SRC="./assets/greenwood_hearth_cottage_r23.webp?v=1";
 const ORIGINAL=256;
 let image=null,failed=false,promise=null,stamps=0;
 function load(){

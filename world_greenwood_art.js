@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.31",SIZE=192,HEIGHT=240,VARIANTS=5;
+const V="1.3.32",SIZE=192,HEIGHT=240,VARIANTS=5;
 const A={
  oak:["#192b27","#264337","#355745","#4b7551","#64875a","#83a06b","#b2b57a"],
  pine:["#172e2b","#26443d","#2b5447","#46705a","#5c8165","#80a17b","#bbc296"]
@@ -186,7 +186,7 @@ function load(){
  }
  atlas=canvas;return atlas
 }
-function create({footprint,geometry}={}){
+function create({footprint,geometry,model}={}){
  if(!footprint||!geometry)throw Error("Greenwood art requires physical source geometry");
  loadPainted();
  const forest=(x,y)=>footprint.regionAt(x,y)?.id==="greenwood";
@@ -345,6 +345,58 @@ function create({footprint,geometry}={}){
   }
   return count
  }
+
+ // R24: Existing Hearth and Hermit waypoints anchor an interconnected,
+ // PASSABLE woodland habitat; no new tree roots, cliffs, solids or roads.
+ const habitatAnchors=(model?.nodes||[]).filter(n=>
+  n.id==="greenwood_hearth"||n.id==="hermit").map(n=>({
+   id:n.id,x:n.point[0]*model.worldDesign.worldUnitScale,
+   y:n.point[1]*model.worldDesign.worldUnitScale
+  }));
+ function paintLandmarkHabitat(ctx,bounds){
+  if(!painted||!habitatAnchors.length)return 0;
+  let mats=0;
+  for(const hub of habitatAnchors){
+   const reach=920;
+   if(hub.x+reach<bounds[0]||hub.x-reach>bounds[2]||
+      hub.y+reach<bounds[1]||hub.y-reach>bounds[3])continue;
+   const salt=hub.id==="hermit"?337:419;
+   // Two natural clearing skirts. Golden-angle spacing prevents a
+   // repeated tile grid. The ORIGINAL physical roadway remains clear.
+   for(let j=0;j<54;j++){
+    const angle=j*2.399963229728653+hash(j,salt,301)*.23;
+    const ring=j%3===0?205:j%3===1?410:610;
+    const radius=ring+(hash(j,salt,303)-.5)*190;
+    const x=hub.x+Math.cos(angle)*radius*1.02,
+     y=hub.y+Math.sin(angle)*radius*.82;
+    const w=148+hash(salt,j,305)*114,
+     h=w*(.46+hash(j,salt,307)*.14);
+    if(x+w*.7<bounds[0]||x-w*.7>bounds[2]||
+       y+h<bounds[1]||y-h>bounds[3])continue;
+    if(!forest(x,y)||geometry.waterAt(x,y,35)||
+       geometry.nearRoad(x,y,()=>true,55)||
+       geometry.obstacle(x,y,50)||footprint.blocked?.(x,y,33))continue;
+    ctx.save();
+    const shade=ctx.createRadialGradient?.(x,y-h*.17,8,x,y-h*.17,w*.78);
+    if(shade){
+     shade.addColorStop(0,"rgba(20,48,33,.19)");
+     shade.addColorStop(.49,"rgba(34,74,43,.11)");
+     shade.addColorStop(1,"rgba(54,89,53,0)");
+     ctx.fillStyle=shade;
+     ctx.fillRect(x-w*.83,y-w*.83,w*1.66,w*1.66)
+    }
+    ctx.translate(x,y);
+    ctx.rotate((hash(salt,j,309)-.5)*.28);
+    ctx.scale(hash(j,salt,311)>.51?-1:1,1);
+    ctx.globalAlpha=.38+hash(salt,j,313)*.21;
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
+     -w*.5,-h*.88,w,h);
+    ctx.restore();mats++
+   }
+  }
+  return mats
+ }
  function paintForestFloor(ctx,bounds){
   let count=0;
   // R17b: continuous forest-floor pools fill the entire SOURCE Greenwood
@@ -383,6 +435,8 @@ function create({footprint,geometry}={}){
   // Connect the original roads to their own forest-floor material BEFORE
   // the actual road surfaces are drawn later in the terrain compositor.
   paintRoadVerges(ctx,bounds);
+  // Original landmark anchors ground the passable woodland floor.
+  paintLandmarkHabitat(ctx,bounds);
   // A forest's undergrowth grows around established source tree roots, not
   // on random new solid objects or painted pathways. Roads render afterward.
   const anchored=[...footprint.cells(bounds,420),...footprint.groves(bounds,420)];
@@ -412,10 +466,11 @@ function create({footprint,geometry}={}){
   physicsChanged:false,originalRootAnchors:true,creatorApproved:false,
   roadVergesFromSource:true,matureTreeCanopyScale:1.65,
   featheredRoadEdges:true,rootedUnderstoryMats:true,
-  retiredConfettiFloor:true,
+  retiredConfettiFloor:true,paintedGladeHabitat:true,
+  namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRoadVerges,paintRootedUnderstory,stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},

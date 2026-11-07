@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.31",PI=Math.PI;
+const V="1.3.32",PI=Math.PI;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 function hash(a,b,c=0){let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
 function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
@@ -16,7 +16,7 @@ function inView(x,y,b,pad=400){return x>b[0]-pad&&x<b[2]+pad&&y>b[1]-pad&&y<b[3]
 function create(model,geometry,options={}){
  const footprint=options.footprint,climate=options.climate,setpieces=options.setpieces||null,raster=options.raster||null,unit=model.worldDesign.worldUnitScale;
  if(!footprint||!climate||!geometry?.roads)throw Error("Illustrated environment requires the actual land, climate and solid sources");
- const greenwood=window.VeilwardGreenwoodArt?.create({footprint,geometry,climate})||null;
+ const greenwood=window.VeilwardGreenwoodArt?.create({footprint,geometry,climate,model})||null;
  const anchors=Object.fromEntries(model.nodes.map(n=>[n.id,n.point.map(q=>q*unit)]));
  const hubs=footprint.source.hubs.map(h=>({...h,x:anchors[h.anchor][0],y:anchors[h.anchor][1],r:h.radius*unit}));
  const solidById=new Map(geometry.solids.map(s=>[s.id,s]));
