@@ -1,0 +1,11 @@
+# VEILWARD Phase 9 R13 — Original Winter Architecture Atlas
+
+**Build: v1.3.19. This is still unapproved phase-9 art, not phase 10.**
+
+The original 96×96 source cottage from R3 was being stretched to 350×350 or larger in actual iPhone gameplay, which left the village's architecture visually repetitive and short of the original `assets/village_v06_clear.jpg` benchmark. R13 changes the *production sprite pipeline* rather than adding more collisionless decorations. The new `world_architecture_atlas.js` compiles four manually designed 256×256 pixel-canvas building illustrations into one cached in-memory source image (1024×256). Roofs have two pitched faces, material-level shingles, snowloaded eaves and cornices, distinct stone chimneys and vents, timber walls with aligned grain, lit window recesses, doors, steps, and variant-specific porch and workshop details.
+
+Actual playable Hollowreach cottages and the existing smithy use the new full-source-size artwork through `world_raster_pilot.js`. The four variants share grounded foot anchors and draw order. The original cottage texture remains as a fallback if the new atlas is unavailable. No full screenshot is pasted into the streamed world; these are independently rendered objects. The runtime remains static HTML/Canvas, 100% GitHub Pages and landscape iPhone compatible, no subscriptions or external art services.
+
+**No changes to** 12 macro-regions, 48 anchors, 65 physical roads, seven crossings, 39 original physical obstacles, original playable scene assets, quests, saves (`veilward-hollowreach-v01`) or the creator-approved Wanderer/Warden Hal images. Source QA: `tests/hollowreach_architecture_r13.test.js` plus all existing regressions. Browser visual QA captures an additional real gameplay `HOLLOWREACH_R13_COTTAGES` view. This work is not evidence of physical iPhone review.
+
+**Unfinished:** The architecture drawings still need creator-guided aesthetic refinement, the wider snowy landscape lacks matching cliff/river/stair integration, Greenwood and the rest of the twelve-region topology remain visually behind the accepted source illustrations. Do not signal art acceptance, move to Phase 10, or claim this work matches the 2.5D golden reference without actual creator signoff. Visual approval remains 0%.
