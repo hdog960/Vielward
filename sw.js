@@ -1,10 +1,10 @@
-/* VEILWARD 1.3.24 — Phase 9 R17 Greenwood rooted pixel foliage.
+/* VEILWARD 1.3.25 — Phase 9 R17 Greenwood rooted pixel foliage.
    Use network-first for HTML/scripts, and preserve offline assets. */
-const BUILD="1.3.24";
-const CACHE="veilward-hollowreach-v1324-greenwood-foliage";
+const BUILD="1.3.25";
+const CACHE="veilward-hollowreach-v1325-painted-greenwood";
 const FILES=[
- "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_geometry.js?v=1","./world_climate.js?v=4","./world_footprint.js?v=5","./world_setpieces.js?v=2","./world_architecture_atlas.js?v=1","./world_raster_pilot.js?v=20","./assets/hollowreach_pilot_sprites_v1.png?v=1","./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1","./assets/hollowreach_ground_painted_v2.webp?v=1","./assets/hollowreach_neighborhood_r6.png?v=1","./assets/hollowreach_environment_r15.webp?v=1","./world_greenwood_art.js?v=1","./world_illustration.js?v=18","./terrain_art.js?v=24","./world_routes.js?v=19","./world_stream.js?v=24","./world_review.js?v=4","./docs/overworld/world_blueprint.json?v=1","./docs/overworld/terrain_geometry.json?v=4","./docs/overworld/outdoor_footprint.json?v=1","./game.js?v=45","./navigation.js?v=11",
- "./visual.js?v=33","./visual.css?v=15","./manifest.webmanifest?v=1324","./icon.svg",
+ "./","./index.html","./combat.js?v=2","./quest.js?v=1","./world_geometry.js?v=1","./world_climate.js?v=4","./world_footprint.js?v=5","./world_setpieces.js?v=2","./world_architecture_atlas.js?v=1","./world_raster_pilot.js?v=21","./assets/hollowreach_pilot_sprites_v1.png?v=1","./assets/hollowreach_bridge_stairs_lamp_v2.png?v=1","./assets/hollowreach_ground_painted_v2.webp?v=1","./assets/hollowreach_neighborhood_r6.png?v=1","./assets/hollowreach_environment_r15.webp?v=1","./world_greenwood_art.js?v=2","./assets/greenwood_forest_painted_r18.avif?v=1","./world_illustration.js?v=19","./terrain_art.js?v=25","./world_routes.js?v=20","./world_stream.js?v=25","./world_review.js?v=4","./docs/overworld/world_blueprint.json?v=1","./docs/overworld/terrain_geometry.json?v=4","./docs/overworld/outdoor_footprint.json?v=1","./game.js?v=46","./navigation.js?v=11",
+ "./visual.js?v=33","./visual.css?v=15","./manifest.webmanifest?v=1325","./icon.svg",
  "./assets/village_v06_clear.jpg?art=23","./assets/wilds_clean.jpg?art=23",
  "./assets/cave_clean.jpg?art=23","./assets/forge.jpg?art=23",
  "./assets/actors_v07.png?art=23",
