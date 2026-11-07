@@ -24,9 +24,9 @@ const host={console:{log(){},warn(){},error(){}}};host.window=host;
 for(const file of ["world_geometry.js","world_climate.js","world_footprint.js","world_routes.js","terrain_art.js","world_stream.js"])
  vm.runInNewContext(source[file],host,{filename:file});
 const G=host.VeilwardGeometry,C=host.VeilwardClimate,F=host.VeilwardFootprint,R=host.VeilwardRoutes,A=host.VeilwardTerrainArt,W=host.VeilwardWorldStream;
-eq(R.version,"1.3.17","dedicated road network is versioned");
-eq(W.version,"1.3.17","real streamer includes new roads");
-eq(A.version,"1.3.17","terrain renderer composes new roads");
+eq(R.version,"1.3.18","dedicated road network is versioned");
+eq(W.version,"1.3.18","real streamer includes new roads");
+eq(A.version,"1.3.18","terrain renderer composes new roads");
 const geo=G.create(model,geometryData),climate=C.create(model);
 const routes=R.create(model,geo,{climate}),land=F.create(model,geo,footprintData,{climate});
 const art=A.create(model,geo,{canvasFactory:factory,climate,footprint:land,routeArt:routes});
@@ -120,14 +120,14 @@ for(const stop of ["village","bridge_w","ford_w","falls_w","mossmere_w","island"
 stream.renderDebug(context(),1024,600,.78);
 yes(paint.paths>20&&paint.images>0&&paint.stroke>20,"new road renderer and overlay execute in simulated Canvas");
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
-for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_routes.js?v=12","terrain_art.js?v=17","world_stream.js?v=17","game.js?v=38","manifest.webmanifest?v=1317"])
+for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_routes.js?v=13","terrain_art.js?v=18","world_stream.js?v=18","game.js?v=39","manifest.webmanifest?v=1318"])
  yes(html.includes(asset)&&sw.includes(asset),"Safari and PWA both pin new file "+asset);
-yes(html.indexOf("world_routes.js?v=12")<html.indexOf("world_stream.js?v=17"),"browser constructs route engine before real streamer");
-yes(game.includes('const APP_VERSION="1.3.17";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"new build and original user saves intact");
+yes(html.indexOf("world_routes.js?v=13")<html.indexOf("world_stream.js?v=18"),"browser constructs route engine before real streamer");
+yes(game.includes('const APP_VERSION="1.3.18";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"new build and original user saves intact");
 yes(game.includes('if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!stream.illustration||!stream.setpieces||!stream.raster||!window.VeilwardReview)'),"game rejects incomplete physical road runtime");
 yes(game.includes('id,name')&&game.includes('crossingStops')&&game.includes('cycleCrossingShowcase')&&game.includes('crossingShowcaseBtn'),"real seven-stop iPhone crossing menu wired");
 yes(html.includes('id="crossingShowcaseBtn"')&&html.includes("Visit Next Crossing"),"crossing tour actually offered inside iPhone Journey Menu");
-yes(sw.includes('veilward-hollowreach-v1317-lived-in-snow-trails'),"installed Home Screen service worker version rotated");
+yes(sw.includes('veilward-hollowreach-v1318-rooted-winter-landscape'),"installed Home Screen service worker version rotated");
 yes(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"'),"approved eight-direction Wanderer kept");
 yes(source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"independent Warden art kept");
 console.log("Veilward Phase 8 PASS:",checks,"full connected roads, seven different decks, island roundtrip, grounded rails, rich render, PWA; route steps:",steps);

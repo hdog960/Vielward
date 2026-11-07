@@ -27,8 +27,8 @@ const factory=()=>({width:0,height:0,getContext:()=>context()});
 const host={console:{warn(){},error(){},log(){}}};host.window=host;
 vm.runInNewContext(geometrySource,host);vm.runInNewContext(source,host);vm.runInNewContext(streamSource,host);
 const G=host.VeilwardGeometry,A=host.VeilwardTerrainArt,W=host.VeilwardWorldStream;
-eq(A.version,"1.3.17","versioned authored material system");
-eq(W.version,"1.3.17","world stream includes the new art");
+eq(A.version,"1.3.18","versioned authored material system");
+eq(W.version,"1.3.18","world stream includes the new art");
 eq(G.version,"1.2.8","verified Phase 4 collision unchanged");
 eq(A.sourceTileSize,32,"pixel-source tile is 32×32");
 eq(A.variants,4,"four handcrafted deterministic variations per material");
@@ -110,14 +110,14 @@ const foothills=stream.jumpToNode("worldscar_ring");
 yes(foothills.node==="worldscar_ring"&&stream.player.groundHeight>=4,"stone terrain showcase updates foot elevation");
 stream.renderForeground(context(),stream.player);
 yes(stream.player.x>0,"foreground occlusion does not relocate player or sprites");
-const refs=["world_review.js?v=4","world_routes.js?v=12","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=17","world_stream.js?v=17","game.js?v=38","visual.css?v=15","manifest.webmanifest?v=1317"];
+const refs=["world_review.js?v=4","world_routes.js?v=13","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=18","world_stream.js?v=18","game.js?v=39","visual.css?v=15","manifest.webmanifest?v=1318"];
 for(const ref of refs)yes(html.includes(ref)&&sw.includes(ref),"PWA/HTML contain version-identical art module "+ref);
-yes(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=5")&&html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=17")&&
-    html.indexOf("terrain_art.js?v=17")<html.indexOf("world_stream.js?v=17")&&
-    html.indexOf("world_stream.js?v=17")<html.indexOf("game.js?v=38"),"HTML resolves geometry→art→stream→game");
+yes(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_footprint.js?v=5")&&html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=18")&&
+    html.indexOf("terrain_art.js?v=18")<html.indexOf("world_stream.js?v=18")&&
+    html.indexOf("world_stream.js?v=18")<html.indexOf("game.js?v=39"),"HTML resolves geometry→art→stream→game");
 yes(html.includes('id="materialShowcaseBtn"')&&game.includes("cycleTerrainShowcase"),"real game includes five material biome inspection trips");
-yes(game.includes('const APP_VERSION="1.3.17";'),"actual game version set");
-yes(sw.includes('veilward-hollowreach-v1317-lived-in-snow-trails'),"Home Screen cache rotated");
+yes(game.includes('const APP_VERSION="1.3.18";'),"actual game version set");
+yes(sw.includes('veilward-hollowreach-v1318-rooted-winter-landscape'),"Home Screen cache rotated");
 yes(game.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure save key never modified");
 yes(visual.includes('load("hero","hero_approved_8way_v12.webp"'),"approved Wanderer atlas preserved");
 yes(visual.includes('load("warden","warden_hal_v13.png"'),"approved Warden separate art preserved");
