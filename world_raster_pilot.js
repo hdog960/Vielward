@@ -729,7 +729,11 @@ function create(model,geometry,options={}){
     player.y>=part.y-part.height*1.07);
    if(!near)continue;
    ctx.save();ctx.beginPath();
-   ctx.rect(player.x-84,player.y-135,168,147);ctx.clip();
+   ctx.moveTo(player.x-84,player.y-135);
+   ctx.lineTo(player.x+84,player.y-135);
+   ctx.lineTo(player.x+84,player.y+12);
+   ctx.lineTo(player.x-84,player.y+12);
+   ctx.closePath();ctx.clip();
    ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?ctx.globalAlpha:1)*.68;
    drawRetainingWall(ctx,wall);
    ctx.restore();count++
