@@ -40,7 +40,20 @@ assert.equal(widescreen.zoom,.78,"desktop landscape retains sharp source pixel s
 assert.equal(widescreen.anchorY,.77,"desktop camera also displays the complete roof");
 stream.jumpToNode("greenwood_hearth");
 const hearth=stream.framing(720,405,.78);
-assert.equal(hearth.zoom,.78,"other forest buildings do not force camera zoom");
+assert.equal(hearth.zoom,.78,
+ "ordinary Greenwood crossroads stays at original camera scale");
+const forestHouse=stream.setpieces?.objects.find(o=>
+ o.anchor==="greenwood_hearth"&&o.kind==="forest_cottage");
+if(forestHouse){
+ stream.player.x=forestHouse.x+150;stream.player.y=forestHouse.y+100;
+ const close=stream.framing(720,405,.78);
+ assert.equal(close.landmark,"greenwood_hearth");
+ assert.ok(close.zoom<.67&&close.zoom>.63&&close.focus>.99,
+  "close to actual existing house: keep the blue roof and player in landscape");
+ const target=stream.render(ctx(),720,405,close.zoom,.016);
+ const roofTop=(forestHouse.y-340-target.camera.y)*close.zoom;
+ assert.ok(roofTop>=0,"new painted cottage top stays visible in the actual camera");
+}
 const code=read("game.js"),html=read("index.html"),sw=read("sw.js");
 assert.ok(code.includes("s.framing?.(vw,vh,WORLD_ZOOM).zoom||WORLD_ZOOM"));
 assert.ok(code.includes("g.scale(adaptiveZoom,adaptiveZoom)"));

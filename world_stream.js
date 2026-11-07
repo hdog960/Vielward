@@ -94,9 +94,23 @@ function create(model,options={}){
  // keep player and roof in one image without zooming the entire world out.
  function framing(screenW,screenH,baseZoom=.78){
   const hub=points.hermit;
-  // This composition applies only to landscape views. Portrait has enough
-  // vertical space with the normal game camera; no sudden portrait zoom.
+  // Landscape-only framing: actor and painted roofs share the same camera.
   if(!hub||screenW<screenH*1.25||screenH<220)return{zoom:baseZoom,anchorY:.52,focus:0};
+  // R23 source-anchored *second* cottage is an existing physical setpiece.
+  // Do not alter the camera at the Greenwich crossroads: it is over 400
+  // world units away from the house, so regular travel scale remains intact.
+  const hearth=setpieces?.objects?.find(o=>
+   o.anchor==="greenwood_hearth"&&o.kind==="forest_cottage");
+  if(hearth){
+   const distance=Math.hypot(player.x-hearth.x,player.y-hearth.y);
+   const t=clamp((420-distance)/240,0,1);
+   const focus=t*t*(3-2*t);
+   if(focus>0){
+    const safeZoom=Math.min(baseZoom,Math.max(.43,screenH*.72/445));
+    return{zoom:baseZoom+(safeZoom-baseZoom)*focus,
+      anchorY:.52+.27*focus,focus,landmark:"greenwood_hearth"}
+   }
+  }
   const hx=hub.point[0]*unit,hy=hub.point[1]*unit;
   const distance=Math.hypot(player.x-hx,player.y-hy);
   const t=clamp((850-distance)/650,0,1);

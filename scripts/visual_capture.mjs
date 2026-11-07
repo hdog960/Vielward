@@ -389,14 +389,18 @@ try{
   let view=null;
   for(let radius=0;radius<480&&!view;radius+=35)
    for(let k=0;k<24;k++){
-    const angle=2*Math.PI*k/24,x=o.x+115+radius*Math.cos(angle),
-     y=o.y+175+radius*Math.sin(angle);
+    const angle=2*Math.PI*k/24,x=o.x+150+radius*Math.cos(angle),
+     y=o.y+100+radius*Math.sin(angle);
     if(!s.blocked(x,y)){view={x,y};break}
    }
   if(!view)throw Error("R23 hearth house has no original walkable approach");
   s.player.x=view.x;s.player.y=view.y;s.player.moving=false;
   s.warm(view.x,view.y,1950,1300);
-  return{view,cottage:{id:o.id,x:o.x,y:o.y,r:o.r},stamps:painter.stats().stamps}
+  const f=s.framing(720,405,.78);
+  if(f.landmark!=="greenwood_hearth"||f.focus<.96||f.anchorY<.78)
+   throw Error("R23 real-cottage camera composition did not activate");
+  return{view,cottage:{id:o.id,x:o.x,y:o.y,r:o.r},stamps:painter.stats().stamps,
+   framing:f}
  });
  console.log("R23_REAL_HEARTH_COTTAGE "+JSON.stringify(hearthView));
  await sleep(1400);await capture(page,"GREENWOOD_R23_HEARTH_COTTAGE");
@@ -528,7 +532,26 @@ async function capture(page,name){
  // Let the actual moving camera settle at the NEW viewport. Otherwise
  // screenshot() can photograph the old 1136x640 camera one frame too early,
  // falsely making a corrected tall roof appear clipped.
- await sleep(name==="GREENWOOD_R22_FULL_ROOF"?900:90);
+ await sleep(name==="GREENWOOD_R22_FULL_ROOF"||
+  name==="GREENWOOD_R23_HEARTH_COTTAGE"?900:90);
+ if(name==="GREENWOOD_R23_HEARTH_COTTAGE"){
+  const px=await page.evaluate(()=>{
+   const s=window.__veilwardCaptureStream;
+   const o=s.setpieces.objects.find(o=>o.kind==="forest_cottage"&&
+    o.anchor==="greenwood_hearth");
+   const f=s.framing(720,405,.78);
+   return{roofTop:(o.y-340-s.camera.y)*f.zoom,
+     foot:(s.player.y-s.camera.y)*f.zoom,
+     left:(o.x-175-s.camera.x)*f.zoom,
+     right:(o.x+175-s.camera.x)*f.zoom,
+     focus:f.focus}
+  });
+  console.log("R23_REAL_COTTAGE_SCREEN_BOUNDS "+JSON.stringify(px));
+  if(px.roofTop<12||px.foot>370||px.foot<250||
+   px.left<0||px.right>720||px.focus<.96)
+   throw Error("R23 actual resized gameplay crop still clips house or hero: "+
+    JSON.stringify(px))
+ }
  if(name==="GREENWOOD_R22_FULL_ROOF"){
   const projected=await page.evaluate(()=>{
    const s=window.__veilwardCaptureStream,frame=s.framing(720,405,.78);
