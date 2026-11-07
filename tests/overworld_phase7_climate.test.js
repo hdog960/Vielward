@@ -107,15 +107,15 @@ for(const road of geo.roads){
  }
 }
 const html=sources["index.html"],sw=sources["sw.js"],game=sources["game.js"];
-for(const path of ["world_review.js?v=4","world_routes.js?v=10","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=14","world_stream.js?v=15","game.js?v=36","manifest.webmanifest?v=1315"]){
+for(const path of ["world_review.js?v=4","world_routes.js?v=10","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=15","world_stream.js?v=15","game.js?v=36","manifest.webmanifest?v=1315"]){
  ok(html.includes(path)&&sw.includes(path),"HTML and iPhone service worker cache share asset revision "+path)
 }
 ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_climate.js?v=4")&&
    html.indexOf("world_climate.js?v=4")<html.indexOf("world_footprint.js?v=5")&&
-   html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=14")&&
-   html.indexOf("terrain_art.js?v=14")<html.indexOf("world_stream.js?v=15"),"browser climate module load order correct");
+   html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=15")&&
+   html.indexOf("terrain_art.js?v=15")<html.indexOf("world_stream.js?v=15"),"browser climate module load order correct");
 ok(game.includes('const APP_VERSION="1.3.15";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"player save preserved with correct new build version");
-ok(sw.includes("veilward-hollowreach-v1315-west-spruce-verge"),"new Home Screen build cache rotated");
+ok(sw.includes("veilward-hollowreach-v1315-west-spruce-occlusion"),"new Home Screen build cache rotated");
 ok(sources["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"'),"approved hero preserved");
 ok(sources["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved Warden preserved");
 console.log("Veilward Phase 7 PASS:",checks,"climate, foliage, atlas continuity, route geometry and PWA checks.");
