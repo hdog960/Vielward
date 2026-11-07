@@ -40,11 +40,11 @@ for(const path of paths)vm.runInNewContext(sources[path],host,{filename:path});
  await host.VeilwardRasterPilot.load();
  assert.equal(host.VeilwardRasterPilot.ready,true,"Art asynchronously decoded from real PNG");
  const stream=host.VeilwardWorldStream.create(model,{geometry,footprint,canvasFactory:canvas});
- assert.equal(stream.version,"1.3.16");
- assert.equal(stream.art.version,"1.3.16");
- assert.equal(stream.illustration.version,"1.3.16");
+ assert.equal(stream.version,"1.3.17");
+ assert.equal(stream.art.version,"1.3.17");
+ assert.equal(stream.illustration.version,"1.3.17");
  assert.equal(stream.setpieces.version,"1.3.8");
- assert.equal(stream.raster?.version,"1.3.16","Running game actually uses authored art");
+ assert.equal(stream.raster?.version,"1.3.17","Running game actually uses authored art");
  assert.equal(stream.raster.stats().creatorApproved,false,"Creator's art gate remains pending");
  assert.equal(stream.raster.stats().geometryChanged,false);
  assert.equal(stream.art.diagnostics().rasterPilot,true);
@@ -89,18 +89,18 @@ for(const path of paths)vm.runInNewContext(sources[path],host,{filename:path});
  const html=fs.readFileSync("index.html","utf8"),
   sw=fs.readFileSync("sw.js","utf8"),
   game=fs.readFileSync("game.js","utf8");
- const assets=["world_raster_pilot.js?v=12","assets/hollowreach_pilot_sprites_v1.png?v=1",
+ const assets=["world_raster_pilot.js?v=13","assets/hollowreach_pilot_sprites_v1.png?v=1",
   "assets/hollowreach_bridge_stairs_lamp_v2.png?v=1","assets/hollowreach_ground_painted_v2.webp?v=1",
   "assets/hollowreach_neighborhood_r6.png?v=1",
-  "world_stream.js?v=16","terrain_art.js?v=16","world_illustration.js?v=10","game.js?v=37"];
+  "world_stream.js?v=17","terrain_art.js?v=17","world_illustration.js?v=11","game.js?v=38"];
  for(const path of assets){
   assert.ok(html.includes(path)||path.startsWith("assets/"),"Browser loads "+path);
   assert.ok(sw.includes(path),"iPhone service worker caches "+path)
  }
- assert.ok(html.indexOf("world_raster_pilot.js?v=12")<html.indexOf("world_stream.js?v=16"));
+ assert.ok(html.indexOf("world_raster_pilot.js?v=13")<html.indexOf("world_stream.js?v=17"));
  assert.ok(game.includes("await window.VeilwardRasterPilot.load()"),"Real art load precedes streaming");
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"Original game save key untouched");
- assert.ok(sw.includes("veilward-hollowreach-v1316-stone-retaining-walls"));
+ assert.ok(sw.includes("veilward-hollowreach-v1317-lived-in-snow-trails"));
  console.log("RASTER PILOT SOURCE PASS:",calls.draws,"real PNG draws; ",steps,
   "original roads sampled; 48 node anchors safe; 0% creator approval until review.");
 })().catch(err=>{console.error(err);process.exit(1)});
