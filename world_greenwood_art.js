@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.25",SIZE=192,HEIGHT=240,VARIANTS=5;
+const V="1.3.26",SIZE=192,HEIGHT=240,VARIANTS=5;
 const A={
  oak:["#192b27","#264337","#355745","#4b7551","#64875a","#83a06b","#b2b57a"],
  pine:["#172e2b","#26443d","#2b5447","#46705a","#5c8165","#80a17b","#bbc296"]
@@ -220,11 +220,80 @@ function create({footprint,geometry}={}){
   if(!["oak","pine","flowerbed","scrub","boulder"].includes(o.kind))return false;
   const n=Math.floor(o.variant*849),r=o.radius;
   if(o.kind==="oak"||o.kind==="pine"){
-   const w=r*(o.kind==="oak"?3.3:2.9),h=r*(o.kind==="oak"?4.2:4.6);
+   // Mature canopies tower over the Wanderer, while retaining the exact
+   // original physical trunk root and collision anchor.
+   const w=r*(o.kind==="oak"?5.4:4.6),h=r*(o.kind==="oak"?7.0:7.6);
    return stamp(ctx,o.kind,o.x,o.y,w,h,n)
   }
   if(o.kind==="boulder")return stamp(ctx,"rock",o.x,o.y,r*2.6,r*1.9,n);
   return stamp(ctx,"shrubs",o.x,o.y,r*2.1,r*1.5,n)
+ }
+
+ // R19: a continuous woodland verge follows each genuine Greenwood road
+ // geometry. This is passable painted ground BELOW the original path, not
+ // a freestanding obstacle, invented route, or decorative false clearing.
+ function paintRoadVerges(ctx,bounds){
+  if(!Array.isArray(geometry.roads))return 0;
+  let segments=0;
+  const margin=220;
+  for(const edge of geometry.roads){
+   if(edge.crossing||!edge.path||edge.path.length<2)continue;
+   const line=edge.path,hw=edge.halfWidth||65;
+   for(let i=1;i<line.length;i++){
+    const a=line[i-1],b=line[i];
+    const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy);
+    if(len<20||!Number.isFinite(len))continue;
+    const mx=(a[0]+b[0])*.5,my=(a[1]+b[1])*.5;
+    if(!forest(mx,my)||geometry.waterAt(mx,my,40))continue;
+    if(Math.max(a[0],b[0])+margin<bounds[0]||
+       Math.min(a[0],b[0])-margin>bounds[2]||
+       Math.max(a[1],b[1])+margin<bounds[1]||
+       Math.min(a[1],b[1])-margin>bounds[3])continue;
+    const nx=-dy/len,ny=dx/len;
+    const steps=Math.max(3,Math.ceil(len/78));
+    for(const side of [-1,1]){
+     function strip(near,far,col){
+      const nearPts=[],farPts=[];
+      for(let j=0;j<=steps;j++){
+       const t=j/steps,x=a[0]+dx*t,y=a[1]+dy*t;
+       const wiggle=(Math.sin(x*.013+y*.004+side*2.1)+
+        Math.cos(y*.019-x*.006+i))*.5*15;
+       const inner=hw+near+wiggle*.27,outer=hw+far+wiggle;
+       nearPts.push([x+nx*side*inner,y+ny*side*inner]);
+       farPts.push([x+nx*side*outer,y+ny*side*outer])
+      }
+      ctx.beginPath();
+      nearPts.forEach((p,j)=>j?ctx.lineTo(...p):ctx.moveTo(...p));
+      for(let j=farPts.length-1;j>=0;j--)ctx.lineTo(...farPts[j]);
+      ctx.closePath();ctx.fillStyle=col;ctx.fill()
+     }
+     // Two irregular, connected ground layers make the illustrated soil,
+     // woodland duff and source path merge instead of appearing as ribbons.
+     strip(14,182,"rgba(37,70,49,.25)");
+     strip(12,89,"rgba(44,87,54,.23)");
+     // Sparse painterly fern material grows only inside the SOURCE verges;
+     // no invisible collisions or off-road free-standing decoration.
+     if(painted&&ctx.drawImage){
+      for(let j=1;j<steps;j+=4){
+       const t=j/steps,x=a[0]+dx*t,y=a[1]+dy*t;
+       const seed=Math.floor(hash(i,j,side)*9973);
+       const offset=hw+74+hash(j,i,side)*31;
+       const xx=x+nx*side*offset,yy=y+ny*side*offset;
+       if(!forest(xx,yy)||geometry.waterAt(xx,yy,7))continue;
+       const sz=91+hash(seed,j,51)*38;
+       ctx.save();ctx.globalAlpha=.38;
+       ctx.imageSmoothingEnabled=true;
+       ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
+        Math.round(xx-sz*.5),Math.round(yy-sz*.53),
+        Math.round(sz),Math.round(sz*.65));
+       ctx.restore()
+      }
+     }
+    }
+    segments++
+   }
+  }
+  return segments
  }
  function paintForestFloor(ctx,bounds){
   let count=0;
@@ -272,6 +341,9 @@ function create({footprint,geometry}={}){
       v>.38?"rgba(45,88,52,.31)":"rgba(122,150,81,.29)")
     }
    }
+  // Connect the original roads to their own forest-floor material BEFORE
+  // the actual road surfaces are drawn later in the terrain compositor.
+  paintRoadVerges(ctx,bounds);
   // A forest's undergrowth grows around established source tree roots, not
   // on random new solid objects or painted pathways. Roads render afterward.
   const anchored=[...footprint.cells(bounds,310),...footprint.groves(bounds,310)];
@@ -307,9 +379,10 @@ function create({footprint,geometry}={}){
   sourceHeightPixels:HEIGHT,variantsPerKind:VARIANTS,
   kindCount:3,totalSprites:VARIANTS*3,ready:!!atlas,
   physicsChanged:false,originalRootAnchors:true,creatorApproved:false,
+  roadVergesFromSource:true,matureTreeCanopyScale:1.65,
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRoadVerges,stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},

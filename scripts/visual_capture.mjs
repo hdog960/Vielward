@@ -15,7 +15,7 @@ try{
  // The installed PWA service worker can navigate clients once on activation.
  // Supply the known build selector up front so it cannot destroy the
  // image-inspection execution context mid-check.
- await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.25",{waitUntil:"networkidle"});
+ await page.goto("http://127.0.0.1:"+port+"/?vwbuild=1.3.26",{waitUntil:"networkidle"});
  await sleep(450);
  // Capture the approved illustrated scenes from the original authored assets,
  // for a truthful source-to-playable-world comparison. Never fabricate an
@@ -355,6 +355,26 @@ try{
  });
  console.log("R18_SOURCE_PAINTED_GREENWOOD_TREE "+JSON.stringify(paintedView));
  await sleep(1400);await capture(page,"GREENWOOD_R18_PAINTED_TREE");
+ // R19: show the real walkable Greenwood junction and painted road shoulders.
+ const vergeView=await page.evaluate(()=>{
+  const stream=window.__veilwardCaptureStream;
+  if(!window.VeilwardGreenwoodArt?.paintedReady)
+   throw Error("R19 Greenwood source paintings missing");
+  const art=window.VeilwardGreenwoodArt.create({
+   footprint:stream.footprint,geometry:stream.geometry
+  });
+  if(!art.stats().roadVergesFromSource||
+     art.stats().matureTreeCanopyScale<1.5)
+   throw Error("R19 forest corridor not active");
+  stream.jumpToNode("greenwood_hearth");
+  const view={x:stream.player.x,y:stream.player.y};
+  if(stream.blocked(view.x,view.y))
+   throw Error("R19 physical Greenwood junction not walkable");
+  stream.warm(view.x,view.y,2100,1450);
+  return view
+ });
+ console.log("R19_GREENWOOD_PHYSICAL_PATH "+JSON.stringify(vergeView));
+ await sleep(1550);await capture(page,"GREENWOOD_R19_ROAD_CORRIDOR");
  await page.click("#pauseBtn");
  await page.click("#reviewAtlasBtn");
  await page.locator('.reviewRegion[aria-label="Explore Coldpine Ridge"]').click();
@@ -382,6 +402,10 @@ try{
   sourceFansR16:window.__veilwardCaptureStream?.raster?.stats()?.sourceLinkedSnowFans===true,
   greenwoodR17:window.__veilwardCaptureStream?.illustration?.stats()?.greenwoodAtlasSprites===15,
   greenwoodR18:window.VeilwardGreenwoodArt?.paintedReady===true,
+  greenwoodR19:window.VeilwardGreenwoodArt?.create({
+   footprint:window.__veilwardCaptureStream?.footprint,
+   geometry:window.__veilwardCaptureStream?.geometry
+  }).stats().roadVergesFromSource===true,
   sourceContours:window.__veilwardCaptureStream?.raster?.stats()?.physicallyBoundSnowContours===true,
   architectureRejected:window.__veilwardCaptureStream?.raster?.stats()?.architectureExperimentActive===false,
   cottageVariants:window.__veilwardCaptureStream?.raster?.stats()?.sourceCottageVariants,
@@ -392,10 +416,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.25"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
-  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||
+ if(state.build!=="v1.3.26"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+  !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.25 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.26 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
