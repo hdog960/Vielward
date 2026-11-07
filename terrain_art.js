@@ -414,6 +414,10 @@ function create(model,geometry,options={}){
  function paintForeground(ctx,player){
   if(illustration)illustration.drawForeground(ctx,player);
   else if(footprint)footprint.drawForeground(ctx,player);
+  // House roofs with physically nearer footpoints must cover actors BEHIND
+  // them; cached chunks are otherwise always underneath the actor sprite.
+  if(raster?.drawArchitectureForeground)
+   raster.drawArchitectureForeground(ctx,player,setpieces?.objects||[]);
   // Painter's order: only trees physically *in front* of the player's boots
   // gain a translucent crown overlap. Roots and shadows remain on terrain.
   for(const s of solids){
