@@ -1,0 +1,8 @@
+# Phase 9 R33 — real tree-canopy actor depth (v1.3.34)
+
+The actual R32 phone-proportioned Chromium capture confirmed the woodland upper frame was improving, but its tree crowns remained flattened into background chunks while the Wanderer was always rendered above them. **R33 fixes the 2.5D physical layering**, not by creating new fake background art: the original independent 128-pixel AVIF oak/pine paintings are redrawn in the foreground *only where the Wanderer's head and torso actually intersect the visible upper crown of an existing, solid, Greenwood tree whose physical footpoint is in front of the actor*. The source width/height, flipping and native cutout are matched to the same sprite already painted in the world chunk. The obsolete green/turquoise oval overlay in Greenwood is removed.
+
+The real-time painter `paintForegroundCanopy` caches nearby physical root lookups over multiple animation frames, culls offscreen/unrelated trees, skips non-solid flowers/procedural fallback mismatches, and never changes movement/collision. A genuine browser gameplay capture `GREENWOOD_R33_REAL_CANOPY_DEPTH` repositions the *actual Wanderer* on proven walkable ground under a real tree and verifies the source-only overlay. The dedicated `tests/greenwood_depth_r33.test.js` locks positive and negative occlusion cases, cache efficiency, source crop, and intact saves. iPhone PWA version and cache advance to v1.3.34.
+
+**The forest composition and the snowy world still require major original-art work.** Creator acceptance stays at **0%**. Phase 9 is active; Phase 10 is locked until explicit actual-device approval. Browser simulation is not physical iPhone verification.
+

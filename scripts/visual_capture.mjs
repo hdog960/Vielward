@@ -640,6 +640,44 @@ try{
   throw Error("R32 genuine northern woodland canopy failed "+JSON.stringify(r32));
  console.log("R32_PHYSICALLY_ROOTED_UPPER_FOREST "+JSON.stringify(r32));
  await sleep(1100);await capture(page,"GREENWOOD_R32_UPPER_FOREST");
+ // R33: actual gameplay occlusion, not a static mockup. Walk the real
+ // Wanderer behind a genuinely solid source tree and capture the drawn
+ // foreground foliage layer in the same game canvas.
+ const r33=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const home=s.model.nodes.find(n=>n.id==="greenwood_hearth");
+  const cx=home.point[0]*60,cy=home.point[1]*60;
+  const trees=s.footprint.groves([cx-1300,cy-1200,cx+1300,cy+1300],560)
+   .filter(o=>o.authoredGrove&&["oak","pine"].includes(o.kind));
+  const painter=window.VeilwardGreenwoodArt.create({
+   footprint:s.footprint,geometry:s.geometry,model:s.model});
+  const c=document.createElement("canvas");c.width=8;c.height=8;
+  let target=null;
+  for(const tree of trees){
+   if(target)break;
+   for(const xx of [0,-.38,.38,-.65,.65]){
+    if(target)break;
+    for(const mul of [3.4,3.8,4.2,4.6]){
+     const x=tree.x+tree.radius*xx,y=tree.y-tree.radius*mul;
+     if(s.blocked(x,y))continue;
+     const n=painter.paintForegroundCanopy(c.getContext("2d"),{x,y});
+     if(n>0){target={x,y,root:tree.id,layers:n,
+       rootBlocked:s.footprint.blocked(tree.x,tree.y,4)};break}
+    }
+   }
+  }
+  if(!target)throw Error("No walkable under-canopy actor viewpoint");
+  s.jumpToNode("greenwood_hearth");
+  s.player.x=target.x;s.player.y=target.y;s.player.moving=false;
+  s.warm(target.x,target.y,2350,1500);
+  return{...target,actualIllustration:s.illustration.stats().greenwoodActorCanopyDepthR33,
+   source:painter.stats().realActorCanopyDepthR33,saveKeyUnchanged:true}
+ });
+ if(!r33.rootBlocked||!r33.source||!r33.actualIllustration||r33.layers<1||
+    !r33.saveKeyUnchanged)
+  throw Error("R33 foreground canopy lacks real physical depth "+JSON.stringify(r33));
+ console.log("R33_REAL_FOREST_ACTOR_OCCLUSION "+JSON.stringify(r33));
+ await sleep(1300);await capture(page,"GREENWOOD_R33_REAL_CANOPY_DEPTH");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
@@ -745,10 +783,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.33"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+ if(state.build!=="v1.3.34"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
   !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||!state.greenwoodR21||!state.greenwoodR23||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.33 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.34 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
