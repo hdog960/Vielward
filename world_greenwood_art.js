@@ -922,42 +922,40 @@ function create({footprint,geometry,model}={}){
   for(const run of runs){
    if(!run.some(inFrame))continue;
    const water=run.map(o=>({x:o.wx,y:o.wy}));
-   const lower=run.map(o=>inset(o,10));
-   const mid=run.map(o=>inset(o,66));
+   const mid=run.map(o=>inset(o,64));
    const upper=run.map(o=>inset(o,137));
-   const center=a=>a.reduce((p,q)=>({x:p.x+q.x/a.length,
-    y:p.y+q.y/a.length}),{x:0,y:0});
-   const near=center(water),far=center(upper);
-   ctx.save();
-   ctx.lineJoin="round";ctx.lineCap="round";
-   // Underbank contact shadow: follows the exact physical water edge.
-   // A wide stone underpainting reads as one joined landform instead of
-   // parallel road-like lines.
-   ctx.beginPath();smooth(water);smooth(upper.slice().reverse(),false);
-   ctx.closePath();
-   if(ctx.createLinearGradient){
-    const face=ctx.createLinearGradient(near.x,near.y,far.x,far.y);
-    face.addColorStop(0,"rgba(33,63,60,.18)");
-    face.addColorStop(.20,"rgba(57,78,64,.28)");
-    face.addColorStop(.51,"rgba(98,114,91,.32)");
-    face.addColorStop(.82,"rgba(106,128,92,.24)");
-    face.addColorStop(1,"rgba(68,106,70,0)");
-    ctx.fillStyle=face
-   }else ctx.fillStyle="rgba(74,100,79,.23)";
-   ctx.fill();
-   // The carved lower lip and grassy upper lip are two separate
-   // hand-shaped silhouettes, never bars of equal width.
-   ctx.beginPath();smooth(lower);smooth(mid.slice().reverse(),false);
-   ctx.closePath();ctx.fillStyle="rgba(49,74,64,.12)";ctx.fill();
-   ctx.beginPath();smooth(mid);smooth(upper.slice().reverse(),false);
-   ctx.closePath();ctx.fillStyle="rgba(88,122,84,.085)";ctx.fill();
-   // Fine longitudinal fracture follows an actual ledge midway up.
-   ctx.beginPath();smooth(run.map(o=>inset(o,45)));
-   ctx.strokeStyle="rgba(157,170,135,.10)";ctx.lineWidth=4;ctx.stroke();
-   // A broken cool rim belongs to the *water*, not the route.
+   // R35c: actual captured play showed huge rectangular seams from the
+   // opaque filled face polygons. Never paint cliff-shaped polygons over
+   // independent streamed terrain chunks. The genuine authored river
+   // stays visible beneath faint, joined, source-positioned contours.
+   ctx.save();ctx.lineJoin="round";ctx.lineCap="round";
+   ctx.beginPath();smooth(mid);
+   ctx.strokeStyle="rgba(43,77,58,.085)";ctx.lineWidth=116;ctx.stroke();
+   ctx.beginPath();smooth(upper);
+   ctx.strokeStyle="rgba(116,145,102,.085)";ctx.lineWidth=85;ctx.stroke();
+   ctx.beginPath();smooth(run.map(o=>inset(o,34)));
+   ctx.strokeStyle="rgba(143,161,126,.10)";ctx.lineWidth=11;ctx.stroke();
    ctx.beginPath();smooth(water);
-   ctx.strokeStyle="rgba(188,210,194,.13)";ctx.lineWidth=4;ctx.stroke();
+   ctx.strokeStyle="rgba(189,209,194,.12)";ctx.lineWidth=5;ctx.stroke();
    ctx.restore();
+   // Organic shaded shelves grow directly from individual dry, physically
+   // sourced ledges and fade smoothly to zero. Native moss and stone art
+   // sits above them; nothing creates straight boxed cliff edges.
+   if(ctx.createRadialGradient){
+    for(let i=3;i<run.length;i+=9){
+     const o=run[i],p=inset(o,83);
+     if(!inFrame(o)||geometry.waterAt(p.x,p.y,0)||
+        geometry.nearRoad(p.x,p.y,()=>true,115))continue;
+     const span=220+hash(o.segment,i,o.side)*65;
+     ctx.save();ctx.translate(p.x,p.y);ctx.scale(span,span*.43);
+     const stone=ctx.createRadialGradient(0,0,.05,0,0,1);
+     stone.addColorStop(0,"rgba(53,84,68,.15)");
+     stone.addColorStop(.43,"rgba(80,108,80,.095)");
+     stone.addColorStop(1,"rgba(91,119,84,0)");
+     ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
+     ctx.fillStyle=stone;ctx.fill();ctx.restore()
+    }
+   }
    terraces++;
    // Substantial R18 painted moss/fern banks attach to dry, genuinely
    // walkable upper terrace. Keep composition sparse and varied rather
@@ -1096,7 +1094,7 @@ function create({footprint,geometry,model}={}){
   sourceRootedEavesR31c:true,upperForestGalleryR32:true,realActorCanopyDepthR33:true,
   rootedOverstoryR30:true,fallsPhysicalRiverBanksR34:true,
   fallsNativeWaterAndWoodlandR34b:true,
-  riverSourcedEscarpmentR35:true,sculptedBankContrastR35b:true,
+  riverSourcedEscarpmentR35:true,sculptedBankContrastR35b:true,nonGeometricBankBlendR35c:true,
   nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
