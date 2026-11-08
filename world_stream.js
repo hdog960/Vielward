@@ -157,7 +157,9 @@ function create(model,options={}){
   if(!ctx)throw Error("Canvas unavailable for streamed outdoor chunk");
   const x0=col*size,y0=row*size;
   if(art){
+   ctx.dynamicGreenwoodTrees=!!illustration?.drawDynamicForest;
    art.paintChunk(ctx,[x0,y0,x0+size,y0+size],resolution);
+   delete ctx.dynamicGreenwoodTrees;
    tilesBuilt++;return c
   }
   // Sampling on the GLOBAL world grid makes textures meet at chunk edges.
@@ -265,8 +267,10 @@ function create(model,options={}){
   previewTime+=dt;
   return dist
  }
+ let lastViewW=1200,lastViewH=740;
  function render(ctx,screenW,screenH,zoom=.78,dt=.016){
   const viewW=screenW/zoom,viewH=screenH/zoom;
+  lastViewW=viewW;lastViewH=viewH;
   const targetX=clamp(player.x-viewW*.5,0,Math.max(0,width-viewW));
   const targetY=clamp(player.y-viewH*framing(screenW,screenH).anchorY,
    0,Math.max(0,height-viewH));
@@ -288,6 +292,9 @@ function create(model,options={}){
    if(tile){ctx.drawImage(tile,px,py,size,size)}
    else{ctx.fillStyle=tint(colorAt(model,px+size*.5,py+size*.5),0);ctx.fillRect(px,py,size,size);missing.push(t)}
   }
+  if(illustration?.drawDynamicForest)
+   illustration.drawDynamicForest(ctx,
+    [camera.x,camera.y,camera.x+viewW,camera.y+viewH],player,"back");
   ctx.restore();
   // Stream only a couple of tiles per rendered frame; cull old tiles.
   const queue=[...missing,...nearby.filter(t=>!cache.has(t.key)&&!missing.some(m=>m.key===t.key))];
@@ -307,7 +314,14 @@ function create(model,options={}){
   return{node:id,x:player.x,y:player.y}
  }
  function renderForeground(ctx,playerPosition=player){
-  if(art)art.paintForeground(ctx,playerPosition)
+  if(illustration?.drawDynamicForest){
+   ctx.dynamicGreenwoodLive=true;
+   illustration.drawDynamicForest(ctx,
+    [camera.x,camera.y,camera.x+lastViewW,camera.y+lastViewH],
+    playerPosition,"front")
+  }
+  if(art)art.paintForeground(ctx,playerPosition);
+  delete ctx.dynamicGreenwoodLive
  }
  function renderDebug(ctx,screenW,screenH,zoom=.78){
   if(!geometry)return;

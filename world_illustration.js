@@ -325,17 +325,17 @@ function create(model,geometry,options={}){
   // share one painter's order and the same physical root coordinates.
   const features=[...footprint.cells(bounds,440),...footprint.groves(bounds,440)]
    .sort((a,b)=>a.y-b.y);
-  // An existing pair of physical rooted crowns may visually interweave;
-  // never create a walkable-looking tree trunk without a collider.
-  greenwood?.paintCanopyLinks(ctx,bounds,features);
-  // Real side-oak canopy eaves sit below their own complete painted
-  // physical trees. The original hero clearway and every route remain.
-  greenwood?.paintHearthEdgeBoughs(ctx,bounds,features);
-  // R32: source-rooted illustrated upper woodland from the same original
-  // physical trees, before their complete sprites and the real houses.
-  greenwood?.paintHearthUpperForest(ctx,bounds,features);
+  // R33b: true Greenwood tree sprites are rendered in a world-space live
+  // Y-sorted layer rather than baked into static ground tiles.
+  if(!ctx.dynamicGreenwoodTrees){
+   greenwood?.paintCanopyLinks(ctx,bounds,features);
+   greenwood?.paintHearthEdgeBoughs(ctx,bounds,features);
+   greenwood?.paintHearthUpperForest(ctx,bounds,features)
+  }
   for(const f of features){
    if(skipWinter&&raster?.covers(f.x,f.y))continue;
+   if(ctx.dynamicGreenwoodTrees&&["oak","pine"].includes(f.kind)&&
+      footprint.regionAt(f.x,f.y)?.id==="greenwood")continue;
    drawFeature(ctx,f)
   }
   for(const h of hubs)if(inView(h.x,h.y,bounds,h.r+460)){
@@ -350,6 +350,8 @@ function create(model,geometry,options={}){
  }
  function drawStatic(ctx,s){
   if(s.material!=="pine-trunk"&&s.material!=="tree-trunk")return false;
+  if(ctx.dynamicGreenwoodTrees&&
+     footprint.regionAt(s.cx,s.cy)?.id==="greenwood")return true;
   if(raster?.drawStatic(ctx,s))return true;
   const pineType=s.material==="pine-trunk",x=s.cx,y=s.cy;
   if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(s.radius))return false;
@@ -357,11 +359,72 @@ function create(model,geometry,options={}){
    variant:hash(Math.floor(x/100),Math.floor(y/100),3),snow:lightSnow(x,y)});
   return true
  }
+
+ // R33b: render from the SAME real roots, but separately from the terrain
+ // cache. Sort relative to the moving actor's feet so that an adult tree
+ // can genuinely be behind or in front of the character.
+ let liveForestCache={x:Infinity,y:Infinity,w:0,h:0,trees:[]};
+ function livingForest(bounds){
+  const x=(bounds[0]+bounds[2])*.5,y=(bounds[1]+bounds[3])*.5,
+   w=bounds[2]-bounds[0],h=bounds[3]-bounds[1];
+  if(Math.hypot(x-liveForestCache.x,y-liveForestCache.y)<85&&
+   liveForestCache.w===w&&liveForestCache.h===h)return liveForestCache.trees;
+  const b=[bounds[0]-650,bounds[1]-740,bounds[2]+650,bounds[3]+740];
+  const features=[...footprint.cells(b,480),...footprint.groves(b,480)];
+  for(const s of geometry.solids){
+   if(!["pine-trunk","tree-trunk"].includes(s.material)||
+    !Number.isFinite(s.cx)||!Number.isFinite(s.cy))continue;
+   features.push({id:s.id,x:s.cx,y:s.cy,radius:s.radius,
+    kind:s.material==="pine-trunk"?"pine":"oak",solid:true,
+    variant:hash(Math.floor(s.cx/100),Math.floor(s.cy/100),3)})
+  }
+  const seen=new Set(),trees=features.filter(o=>{
+   if(!o?.solid||!o.id||seen.has(o.id)||
+     !["oak","pine"].includes(o.kind)||
+     footprint.regionAt(o.x,o.y)?.id!=="greenwood")return false;
+   seen.add(o.id);return true
+  }).sort((a,b)=>a.y-b.y);
+  liveForestCache={x,y,w,h,trees};return trees
+ }
+ function drawDynamicForest(ctx,bounds,player,pass="back"){
+  if(!greenwood||!ctx?.drawImage||!player)return 0;
+  const roots=livingForest(bounds);
+  if(pass==="back"){
+   // Existing cropped foliage remains attached only to its physical
+   // source trees. Draw before characters, not into a fake backdrop.
+   greenwood.paintCanopyLinks(ctx,bounds,roots);
+   greenwood.paintHearthEdgeBoughs(ctx,bounds,roots);
+   greenwood.paintHearthUpperForest(ctx,bounds,roots)
+  }
+  let count=0;
+  for(const tree of roots){
+   const front=tree.y>player.y;
+   if(front!==(pass==="front"))continue;
+   const elder=tree.authoredGrove?(tree.kind==="oak"?1.20:1.08):1;
+   const w=tree.radius*(tree.kind==="oak"?5.4:4.6)*elder,
+     h=tree.radius*(tree.kind==="oak"?7.0:7.6)*elder;
+   if(tree.x+w*.5<bounds[0]-35||tree.x-w*.5>bounds[2]+35||
+      tree.y<bounds[1]-35||tree.y-h>bounds[3]+35)continue;
+   const inLeaves=front&&Math.abs(tree.x-player.x)<w*.48+23&&
+    player.y-95<tree.y-h*.30&&player.y>tree.y-h-5;
+   ctx.save();
+   // Unlike a static background tree, this entire real tree can fade
+   // while the Wanderer walks *under* its branches. The original
+   // walkable ground now genuinely remains visible under the sprite.
+   if(inLeaves)ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?
+    ctx.globalAlpha:1)*.24;
+   drawFeature(ctx,tree);
+   ctx.restore();count++
+  }
+  return count
+ }
+
  function foreground(ctx,player){
   if(raster?.drawForeground(ctx,player))return;
-  // R33: authentic original painted foliage, reprojected only when a
-  // real foreground tree partially hides the actor in three-quarter view.
-  // Greenwood no longer uses disconnected teal oval "occlusion" props.
+  // R33b foreground trees have already been drawn, with authentic
+  // per-tree fade. Never add a second leaf layer over the hero.
+  if(ctx.dynamicGreenwoodLive&&
+    footprint.regionAt(player.x,player.y)?.id==="greenwood")return;
   if(greenwood&&footprint.regionAt(player.x,player.y)?.id==="greenwood"){
    greenwood.paintForegroundCanopy(ctx,player);return
   }
@@ -373,8 +436,8 @@ function create(model,geometry,options={}){
    ctx.restore()
   }
  }
- function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster,greenwoodAtlasSprites:greenwood?.stats().totalSprites||0,greenwoodOriginalAnchors:!!greenwood,greenwoodSanctuaryIllustration:!!window.VeilwardGreenwoodSanctuary?.ready,greenwoodActorCanopyDepthR33:true}}
- return{version:V,drawGround,drawFeatures,drawStatic,drawForeground:foreground,stats}
+ function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster,greenwoodAtlasSprites:greenwood?.stats().totalSprites||0,greenwoodOriginalAnchors:!!greenwood,greenwoodSanctuaryIllustration:!!window.VeilwardGreenwoodSanctuary?.ready,greenwoodActorCanopyDepthR33:true,greenwoodLiveSortedDepthR33b:true}}
+ return{version:V,drawGround,drawFeatures,drawStatic,drawForeground:foreground,drawDynamicForest,stats}
 }
 window.VeilwardIllustration={version:V,create};
 })();
