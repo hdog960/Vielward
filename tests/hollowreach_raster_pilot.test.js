@@ -92,7 +92,7 @@ for(const path of paths)vm.runInNewContext(sources[path],host,{filename:path});
  const assets=["world_raster_pilot.js?v=28","assets/hollowreach_pilot_sprites_v1.png?v=1",
   "assets/hollowreach_bridge_stairs_lamp_v2.png?v=1","assets/hollowreach_ground_painted_v2.webp?v=1",
   "assets/hollowreach_neighborhood_r6.png?v=1",
-  "world_stream.js?v=32","terrain_art.js?v=32","world_illustration.js?v=26","game.js?v=53"];
+  "world_stream.js?v=32","terrain_art.js?v=32","world_illustration.js?v=27","game.js?v=54"];
  for(const path of assets){
   assert.ok(html.includes(path)||path.startsWith("assets/"),"Browser loads "+path);
   assert.ok(sw.includes(path),"iPhone service worker caches "+path)
