@@ -121,7 +121,7 @@ ok(game.includes('const APP_VERSION="1.3.35";')&&
  game.includes('const SAVE="veilward-hollowreach-v01";'),"preserved legacy save and correct R2 build");
 ok(game.includes('!stream.setpieces')&&game.includes("show&&worldPreview.debug"),
  "real preview requires full R2 art and keeps debug diagnostics off gameplay screen");
-ok(sw.includes("veilward-hollowreach-v1334-source-tree-depth-r33"),"iPhone offline cache invalidates R1 scene art");
+ok(sw.includes("veilward-hollowreach-v1335-greenwood-falls-r34"),"iPhone offline cache invalidates R1 scene art");
 ok(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&
  source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved hero and Warden sprite assets unchanged");
 console.log("Veilward R2 SOURCE PASS",assertions,"assertions,",scene.objects.length,"physical compositions,",

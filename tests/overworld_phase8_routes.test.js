@@ -127,7 +127,7 @@ yes(game.includes('const APP_VERSION="1.3.35";')&&game.includes('const SAVE="vei
 yes(game.includes('if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!stream.illustration||!stream.setpieces||!stream.raster||!window.VeilwardReview)'),"game rejects incomplete physical road runtime");
 yes(game.includes('id,name')&&game.includes('crossingStops')&&game.includes('cycleCrossingShowcase')&&game.includes('crossingShowcaseBtn'),"real seven-stop iPhone crossing menu wired");
 yes(html.includes('id="crossingShowcaseBtn"')&&html.includes("Visit Next Crossing"),"crossing tour actually offered inside iPhone Journey Menu");
-yes(sw.includes('veilward-hollowreach-v1334-source-tree-depth-r33'),"installed Home Screen service worker version rotated");
+yes(sw.includes('veilward-hollowreach-v1335-greenwood-falls-r34'),"installed Home Screen service worker version rotated");
 yes(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"'),"approved eight-direction Wanderer kept");
 yes(source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"independent Warden art kept");
 console.log("Veilward Phase 8 PASS:",checks,"full connected roads, seven different decks, island roundtrip, grounded rails, rich render, PWA; route steps:",steps);

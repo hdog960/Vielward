@@ -125,7 +125,7 @@ ok(html.includes('id="materialShowcaseBtn"')&&html.includes("12-Region World Sur
 ok(body.includes('const APP_VERSION="1.3.35";'),"actual live game version is 1.3.0");
 ok(body.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure save key preserved");
 ok(body.includes("if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!stream.illustration||!stream.setpieces||!stream.raster||!window.VeilwardReview)"),"game refuses partial mismatched world modules");
-ok(sw.includes("veilward-hollowreach-v1334-source-tree-depth-r33"),"installed Home Screen cache rotated");
+ok(sw.includes("veilward-hollowreach-v1335-greenwood-falls-r34"),"installed Home Screen cache rotated");
 ok(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"'),"approved eight-direction player art never changed");
 ok(source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"distinct Warden Hal sprite never changed");
 console.log("Veilward Phase 6 PASS:",checks,"footprint, reachable regions, scenery, physics, source/compositing and PWA checks;",routeSteps,"sampled walk steps.");

@@ -140,7 +140,7 @@ for(const id of ["reviewAtlasBtn","worldReview","reviewMap","reviewRegionGrid","
 yes(game.includes("review.paintRegion")&&game.includes("review.paintOverview")&&game.includes("jumpReviewRegion"),"review cards render real in-game art and physically teleport to source anchors for walking");
 yes(css.includes(".reviewThumb")&&css.includes("touch-action:pan-y"),"landscape iPhone atlas is scrollable and uses pixelated source snapshots");
 yes(game.includes('const SAVE="veilward-hollowreach-v01";')&&game.includes('const APP_VERSION="1.3.35";'),"original adventure saved progress preserved in review build");
-yes(sw.includes("veilward-hollowreach-v1334-source-tree-depth-r33"),"installed iPhone app rotates 1.3.6 cache");
+yes(sw.includes("veilward-hollowreach-v1335-greenwood-falls-r34"),"installed iPhone app rotates 1.3.6 cache");
 yes(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&
  source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"golden reference character sprites remain protected");
 yes(source["OVERWORLD_REBUILD_ROADMAP.md"].includes("### MANDATORY CHECKPOINT"),"creator signoff after Phase 9 remains a hard stop");
