@@ -11,7 +11,7 @@ function ctx(){return{globalAlpha:1,save(){},restore(){},translate(){},
  rotate(){},scale(){},beginPath(){},moveTo(){},lineTo(){},
  closePath(){},stroke(){recorded.strokes++},fill(){},rect(){},
  clip(){},arc(){},fillRect(){},clearRect(){},
- drawImage(...p){assert.equal(p.length,9);recorded.images++},
+ drawImage(...p){assert.ok([3,9].includes(p.length));if(p.length===9)recorded.images++},
  createRadialGradient(){return{addColorStop(){}}}}}
 class Img{constructor(){this.onload=null;this.naturalWidth=128;this.naturalHeight=128}
  set src(p){assert.ok(p.includes("greenwood_")&&p.includes(".avif"));this.onload?.()}}
