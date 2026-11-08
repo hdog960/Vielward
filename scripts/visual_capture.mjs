@@ -457,8 +457,32 @@ try{
    });
    await sleep(500)
   }
- }
 
+ }
+ // Second test-only A/B isolates the remaining white rectangles by painter
+ // stage, rather than claiming any absent visual changes are successful.
+ for(const [name,layer,key] of [
+  ["GREENWOOD_R25_NO_GROUND_PASS","illustration","drawGround"],
+  ["GREENWOOD_R25_NO_ROAD_PASS","routeArt","draw"],
+  ["GREENWOOD_R25_NO_FEATURE_PASS","illustration","drawFeatures"]
+ ]){
+  await page.evaluate(({layer,key})=>{
+   const s=window.__veilwardCaptureStream,owner=s[layer];
+   window.__r25TempPainter={owner,key,previous:owner[key]};
+   owner[key]=()=>{};s.clearCache()
+  },{layer,key});
+  try{
+   await sleep(750);await capture(page,name)
+  }finally{
+   await page.evaluate(()=>{
+    const s=window.__veilwardCaptureStream;
+    const slot=window.__r25TempPainter;
+    slot.owner[slot.key]=slot.previous;s.clearCache();
+    delete window.__r25TempPainter
+   });
+   await sleep(500)
+  }
+ }
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
