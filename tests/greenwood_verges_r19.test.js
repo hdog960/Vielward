@@ -69,7 +69,7 @@ vm.runInNewContext(src,host,{filename:"world_greenwood_art.js"});
  assert.equal(art.stats().creatorApproved,false);
  const html=read("index.html"),worker=read("sw.js"),game=read("game.js");
  assert.ok(html.includes("world_greenwood_art.js?v=12"));
- assert.ok(worker.includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
+ assert.ok(worker.includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R19 PASS: source-road woodland margins, mature 270x350 oak / 230x380 pine at original roots, preserved route geometry and save, forest still unapproved");
 })().catch(err=>{console.error(err);process.exitCode=1});

@@ -89,7 +89,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
    "original route anchor stays traversable: "+anchor.id);
  const sw=read("sw.js"),html=read("index.html");
  assert.ok(sw.includes("./assets/hollowreach_environment_r15.webp?v=1"));
- assert.ok(sw.includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
+ assert.ok(sw.includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
  assert.ok(html.includes("world_raster_pilot.js?v=28"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R15 PASS: 4 original source RGBA sprites, two real cliff faces, 3 passable drifts, 12 regions, 39 solids, 48 route nodes, 65 roads, 7 crossings, preserved saves. Artist approval still 0%");

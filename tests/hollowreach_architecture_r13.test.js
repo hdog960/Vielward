@@ -90,7 +90,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.ok(html.indexOf("world_architecture_atlas.js?v=1")<
   html.indexOf("world_raster_pilot.js?v=28"),"Raster art source loads before world compositor");
  assert.ok(sw.includes('"./world_architecture_atlas.js?v=1"'));
- assert.ok(sw.includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
+ assert.ok(sw.includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  assert.equal(world.raster.stats().creatorApproved,false);
  console.log("R13 PASS: protected painterly original default; four 256px variants remain experimental only; 39 obstacles, 48 anchors, 65 roads, 7 crossings, original saves");
