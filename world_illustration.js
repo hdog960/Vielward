@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.32",PI=Math.PI;
+const V="1.3.33",PI=Math.PI;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 function hash(a,b,c=0){let n=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
 function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))}
@@ -331,6 +331,9 @@ function create(model,geometry,options={}){
   // Real side-oak canopy eaves sit below their own complete painted
   // physical trees. The original hero clearway and every route remain.
   greenwood?.paintHearthEdgeBoughs(ctx,bounds,features);
+  // R32: source-rooted illustrated upper woodland from the same original
+  // physical trees, before their complete sprites and the real houses.
+  greenwood?.paintHearthUpperForest(ctx,bounds,features);
   for(const f of features){
    if(skipWinter&&raster?.covers(f.x,f.y))continue;
    drawFeature(ctx,f)
