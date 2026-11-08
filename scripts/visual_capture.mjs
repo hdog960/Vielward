@@ -812,6 +812,26 @@ try{
   throw Error("R35c natural-source seam-free bank painter missing "+JSON.stringify(r35c));
  console.log("R35C_NON_GEOMETRIC_BANK_BLEND "+JSON.stringify(r35c));
  await sleep(900);await capture(page,"GREENWOOD_R35C_NATIVE_SOURCE_SHORE");
+ // R35d: verify the REAL physical river centerline, never a fake path.
+ const r35d=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const art=s.art,p=s.player;
+  const river=s.model.waterways.find(w=>w.id==="frostbridge_river");
+  const q=river.centerline[7].map(v=>v*60);
+  const c=document.createElement("canvas");c.width=8;c.height=8;
+  const painted=art.paintFallsWaterChannel(c.getContext("2d"),
+   [p.x-1100,p.y-950,p.x+1100,p.y+1100]);
+  return{painted,channel:art.diagnostics().continuousFallsWaterR35d,
+   physical: s.geometry.waterAt(q[0],q[1],0)?.id,
+   walkable:!s.blocked(p.x,p.y),roads:s.routeArt.stats().roads}
+ });
+ if(r35d.painted<1||!r35d.channel||
+    r35d.physical!=="frostbridge_river"||
+    !r35d.walkable||r35d.roads!==65)
+  throw Error("R35d actual native source river invalid "+JSON.stringify(r35d));
+ console.log("R35D_ORIGINAL_WATER_CHANNEL "+JSON.stringify(r35d));
+ await sleep(1000);await capture(page,"GREENWOOD_R35D_CONTINUOUS_WATER");
+
 
 
  // An additional angle, from the authored overlook, checks whether the
