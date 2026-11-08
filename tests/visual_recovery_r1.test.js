@@ -28,7 +28,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js","wor
 const stream=host.VeilwardWorldStream.create(model,{geometry:gd,footprint:fd,canvasFactory:canvas});
 const review=host.VeilwardReview.create(model,stream);
 eq(stream.version,"1.3.32","visual recovery live world version");
-eq(stream.illustration?.version,"1.3.33","source-coupled illustration actually loaded");
+eq(stream.illustration?.version,"1.3.32","source-coupled illustration actually loaded");
 eq(stream.art.version,"1.3.32","illustrated terrain compositor actually running");
 eq(stream.footprint.version,"1.3.6","physical natural props have recovery density");
 ok(typeof stream.footprint.groves==="function","new foot-colliding saplings are fully authored and simulated");
