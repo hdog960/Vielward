@@ -32,7 +32,7 @@ for(const o of roots){
 }
 assert.equal(f.blocked(cx,cy,10),false);
 assert.equal(geo.roads.length,65);
-assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=31b"));
-assert.ok(read("sw.js").includes("world_footprint.js?v=5&rev=31b"));
+assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=31c"));
+assert.ok(read("sw.js").includes("world_footprint.js?v=5&rev=31c"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 console.log("R31b PASS: "+added.length+" actual source-rooted woodland edge trees, "+roots.length+" total curated and all roads/actor/saves protected");

@@ -1,3 +1,3 @@
-# Vielward Phase 9 R31b — Genuine illustrated woodland edge
-
-Adds validated real old-growth oak/pine roots on the far margins of the existing Hearth landscape camera, avoiding all 65 source road sections, built structures, protected house entrances, water and existing physical roots. Retains the R28d hero canopy guard. Each new tree is fully painted from original R18 source artwork and has a true matching boot collider, not a simulated or static background. All 48 nodes, 65 roads, seven crossings and the saved character state remain unchanged. Full regression and Chromium scene GREENWOOD_R31B_PAINTED_FOREST_EDGE are required; user artistic acceptance remains 0%, Phase 10 locked.
+undefined
+## R31c: actual illustrated bough structure
+The R31b screenshot proved physical additions alone were off-camera crown slivers. The original source oak crown painting is now cropped from its upper 128×78 pixel region and drawn as branching foliage reaching into the wooded clearing from two exact physical side trees, with unchanged aspect ratio, restricted hero-clearway margins and no additional collision or root. Every canvas draw is tied to a source oak ID and the same original AVIF art source. New source-painter test and browser capture GREENWOOD_R31C_ILLUSTRATED_CANOPY distinguish this from unchanged previous frames. User aesthetic approval remains 0%.

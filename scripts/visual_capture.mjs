@@ -597,6 +597,28 @@ try{
   throw Error("R31b real forest edge placement failed "+JSON.stringify(r31b));
  console.log("R31B_PAINTED_FOREST_EDGE "+JSON.stringify(r31b));
  await sleep(1050);await capture(page,"GREENWOOD_R31B_PAINTED_FOREST_EDGE");
+ const r31c=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player,
+   b=[p.x-1000,p.y-750,p.x+1000,p.y+1000];
+  const oakRoots=s.footprint.groves(b,540).filter(o=>
+   ["hearth_root_20","hearth_root_23"].includes(o.id));
+  const painter=window.VeilwardGreenwoodArt.create({
+   model:s.model,geometry:s.geometry,footprint:s.footprint});
+  const canvas=document.createElement("canvas");
+  canvas.width=8;canvas.height=8;
+  const painted=painter.paintHearthEdgeBoughs(canvas.getContext("2d"),b,oakRoots);
+  return{rootedOaks:oakRoots.map(o=>({id:o.id,kind:o.kind,
+    physical:s.footprint.blocked(o.x,o.y,4)})),
+    paintedBoughs:painted,
+    visualSource:painter.stats().sourceRootedEavesR31c,
+    walkable:!s.blocked(p.x,p.y)}
+ });
+ if(r31c.rootedOaks.length!==2||
+  r31c.rootedOaks.some(o=>o.kind!=="oak"||!o.physical)||
+  !r31c.visualSource||r31c.paintedBoughs<2||!r31c.walkable)
+  throw Error("R31c physical side-oak illustrated boughs missing "+JSON.stringify(r31c));
+ console.log("R31C_SOURCE_PAINTED_CANOPY "+JSON.stringify(r31c));
+ await sleep(1050);await capture(page,"GREENWOOD_R31C_ILLUSTRATED_CANOPY");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");

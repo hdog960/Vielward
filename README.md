@@ -1,3 +1,7 @@
+## Phase 9 R31c — physically rooted illustrated canopy eaves
+
+R31b added three genuine physical forest edge trees, but the real phone screenshot showed only narrow crown slivers. R31c extends **original R18 transparent oak canopy artwork** as two proportionate interlocking upper boughs growing from each of the two specific, collision-backed side oaks. No fake trunks, static forest background, detached sprite billboard, hero overlap, new roads, or changed saves. The center of the real Hearth crossroads remains readable; rooted trees and original cottage are preserved. Final Chromium capture: GREENWOOD_R31C_ILLUSTRATED_CANOPY. Creator aesthetic acceptance still 0%, Phase 10 locked.
+
 ## Phase 9 R31b — physically rooted illustrated woodland edges
 
 R31 showed additional original forest but left the crossroads largely empty. R31b adds a small number of full R18 painted oak/pine trees along actual physical forest margins beside the Hearth, selected under every existing road, water, house, root and player-clearance rule. Trees use the same original footprint for art and collision: no pasted wallpaper or fake trunks. Real-browser scene GREENWOOD_R31B_PAINTED_FOREST_EDGE; visual acceptance remains 0%, Phase 10 locked.

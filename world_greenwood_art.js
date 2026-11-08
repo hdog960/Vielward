@@ -1,4 +1,4 @@
-/* VEILWARD Phase 9 R30 — existing-root canopy-light forest surround. R17 originals remain.
+/* VEILWARD Phase 9 R31c — source-rooted painted canopy eaves, original R18 art preserved.
  * This is NOT a pasted scenery screenshot and NOT creator-approved art.
  * Render one cached pixel atlas from source algorithms, then stamp only
  * on original footprint tree/undergrowth roots without any new collisions.
@@ -458,6 +458,49 @@ function create({footprint,geometry,model}={}){
  // a fake trunk, invisible collider, new road or ambient wallpaper tree.
  // Cropped painted upper foliage has no trunk and lies UNDER the whole
  // rooted tree painter, keeping the real footpoint and crown silhouette.
+
+ // R31c: hand-placed branch reach derived from two approved, physically
+ // rooted side-oaks, never billboard trees or ungrounded canopy wallpaper.
+ // Crops only the ORIGINAL transparent R18 oak leaf painting (upper 78px),
+ // preserves its inherent proportions, and visually attaches to the same
+ // full rooted tree drawn immediately afterwards in this scene layer.
+ function paintHearthEdgeBoughs(ctx,bounds,roots){
+  if(!painted||!Array.isArray(roots)||!ctx?.drawImage)return 0;
+  const hearth=habitatAnchors.find(h=>h.id==="greenwood_hearth");
+  if(!hearth)return 0;
+  let applied=0;
+  for(const root of roots){
+   if(!root?.authoredGrove||root.kind!=="oak"||
+      !/^hearth_root_(20|23)$/.test(root.id)||
+      !forest(root.x,root.y))continue;
+   const dx=root.x-hearth.x,dy=root.y-hearth.y;
+   // Only two actual source oak roots at the sides of the authentic
+   // clearing are allowed to create eaves; hero's middle remains clear.
+   if(Math.abs(dx)<500||dy<260||dy>690)continue;
+   const direction=dx>0?1:-1,r=root.radius;
+   for(let i=0;i<2;i++){
+    const sideDist=r*(i===0?2.75:5.2),
+     x=root.x-direction*sideDist,
+     y=root.y-r*(i===0?5.4:4.9),
+     w=r*(i===0?4.0:3.45),
+     h=w*78/128;
+    // No bough crosses the protected actor corridor, even if the
+    // player stands at the exact original Hearth waypoint.
+    if(Math.abs(x-hearth.x)<w*.5+125)continue;
+    if(x+w*.5<bounds[0]||x-w*.5>bounds[2]||
+       y<bounds[1]-20||y-h>bounds[3]+20)continue;
+    ctx.save();ctx.globalAlpha=i===0?.91:.83;
+    ctx.imageSmoothingEnabled=true;
+    ctx.translate(Math.round(x),0);
+    ctx.scale(direction>0?-1:1,1);
+    ctx.drawImage(painted,0,0,PAINTED_SIZE,78,
+     Math.round(-w*.5),Math.round(y-h),Math.round(w),Math.round(h));
+    ctx.restore();applied++
+   }
+  }
+  return applied
+ }
+
  function paintCanopyLinks(ctx,bounds,roots){
   if(!painted||!ctx?.drawImage||!Array.isArray(roots))return 0;
   const trees=roots.filter(o=>["oak","pine"].includes(o.kind)&&
@@ -706,11 +749,12 @@ function create({footprint,geometry,model}={}){
   featheredRoadEdges:true,rootedUnderstoryMats:true,
   retiredConfettiFloor:true,paintedGladeHabitat:true,rootLinkedCanopy:true,
   connectedSafeGladeBeds:true,rootFilteredCanopyLight:true,
+  sourceRootedEavesR31c:true,
   rootedOverstoryR30:true,nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},

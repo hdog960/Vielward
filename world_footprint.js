@@ -206,7 +206,7 @@ function create(model,geo,source,options={}){
    // R31b: physically grounded painted oaks/pines at the woodland edge,
    // all still subject to roads, water, cottage, other roots and hero clearway.
    [560,470,"oak"],[-550,500,"oak"],[650,330,"pine"],
-   [-660,365,"pine"],[625,625,"oak"],[555,375,"pine"],
+   [-660,365,"oak"],[625,625,"oak"],[555,375,"pine"],
    [-600,565,"oak"],[685,480,"oak"],[-750,485,"oak"],
    [785,370,"pine"],[510,510,"oak"]
   ];

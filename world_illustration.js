@@ -328,6 +328,9 @@ function create(model,geometry,options={}){
   // An existing pair of physical rooted crowns may visually interweave;
   // never create a walkable-looking tree trunk without a collider.
   greenwood?.paintCanopyLinks(ctx,bounds,features);
+  // Real side-oak canopy eaves sit below their own complete painted
+  // physical trees. The original hero clearway and every route remain.
+  greenwood?.paintHearthEdgeBoughs(ctx,bounds,features);
   for(const f of features){
    if(skipWinter&&raster?.covers(f.x,f.y))continue;
    drawFeature(ctx,f)
