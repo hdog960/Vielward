@@ -232,7 +232,33 @@ function create({footprint,geometry,model}={}){
     h=r*(o.kind==="oak"?7.0:7.6)*elder;
    return stamp(ctx,o.kind,o.x,o.y,w,h,n)
   }
-  if(o.kind==="boulder")return stamp(ctx,"rock",o.x,o.y,r*2.6,r*1.9,n);
+  if(o.kind==="boulder"){
+   // R35b: the original physically collidable Falls boulder remains a
+   // painted R18 rock, but now shares an attached, painted moss and fern
+   // foot instead of resembling a lone square sitting on green carpet.
+   const falls=footprint.regionAt(o.x,o.y)?.id==="greenwood_falls";
+   if(falls&&painted){
+    ctx.save();ctx.globalAlpha=.66;ctx.imageSmoothingEnabled=true;
+    const ww=r*3.6,hh=r*.92;
+    ctx.drawImage(painted,PAINTED_SIZE*2,0,
+     PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(o.x-ww*.5),Math.round(o.y-hh*.80),
+     Math.round(ww),Math.round(hh));
+    ctx.restore()
+   }
+   const ok=stamp(ctx,"rock",o.x,o.y,r*(falls?2.85:2.6),
+    r*(falls?1.76:1.9),n);
+   if(falls&&painted&&ok){
+    ctx.save();ctx.globalAlpha=.36;ctx.imageSmoothingEnabled=true;
+    const w=r*2.30,h=r*.60;
+    ctx.drawImage(painted,PAINTED_SIZE*2,0,
+     PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(o.x-w*.5),Math.round(o.y-h*.93),
+     Math.round(w),Math.round(h));
+    ctx.restore()
+   }
+   return ok
+  }
   return stamp(ctx,"shrubs",o.x,o.y,r*2.1,r*1.5,n)
  }
 
@@ -663,7 +689,7 @@ function create({footprint,geometry,model}={}){
    if(x+w*.5<bounds[0]||x-w*.5>bounds[2]||
       y+h*.5<bounds[1]||y-h*.5>bounds[3])continue;
    const kind=a.kind==="pine"&&b.kind==="pine"?1:0;
-   ctx.save();ctx.globalAlpha=.57;ctx.imageSmoothingEnabled=true;
+   ctx.save();ctx.globalAlpha=.68;ctx.imageSmoothingEnabled=true;
    ctx.drawImage(painted,kind*PAINTED_SIZE,0,PAINTED_SIZE,78,
     Math.round(x-w*.5),Math.round(y-h*.5),Math.round(w),Math.round(h));
    ctx.restore();
@@ -853,7 +879,10 @@ function create({footprint,geometry,model}={}){
    return {x:dx/d,y:dy/d}
   };
   const inset=(o,depth)=>{
-   const n=normal(o),bend=Math.sin(o.x*.0041+o.y*.0032)*8;
+   const n=normal(o),bend=(Math.sin(o.x*.0041+o.y*.0032)*37+
+    Math.cos(o.y*.0083-o.x*.0051)*17)*(depth/137);
+   // Only the outer dry face meanders. The inner shoreline remains
+   // faithful to the original water hazard and bridge continuity.
    return {x:o.x+n.x*(depth+bend),y:o.y+n.y*(depth+bend)}
   };
   const smooth=(points,move=true)=>{
@@ -908,26 +937,26 @@ function create({footprint,geometry,model}={}){
    ctx.closePath();
    if(ctx.createLinearGradient){
     const face=ctx.createLinearGradient(near.x,near.y,far.x,far.y);
-    face.addColorStop(0,"rgba(21,44,45,.76)");
-    face.addColorStop(.20,"rgba(45,64,57,.80)");
-    face.addColorStop(.51,"rgba(88,102,84,.77)");
-    face.addColorStop(.82,"rgba(99,123,92,.56)");
-    face.addColorStop(1,"rgba(68,106,70,.03)");
+    face.addColorStop(0,"rgba(33,63,60,.18)");
+    face.addColorStop(.20,"rgba(57,78,64,.28)");
+    face.addColorStop(.51,"rgba(98,114,91,.32)");
+    face.addColorStop(.82,"rgba(106,128,92,.24)");
+    face.addColorStop(1,"rgba(68,106,70,0)");
     ctx.fillStyle=face
-   }else ctx.fillStyle="rgba(58,79,68,.62)";
+   }else ctx.fillStyle="rgba(74,100,79,.23)";
    ctx.fill();
    // The carved lower lip and grassy upper lip are two separate
    // hand-shaped silhouettes, never bars of equal width.
    ctx.beginPath();smooth(lower);smooth(mid.slice().reverse(),false);
-   ctx.closePath();ctx.fillStyle="rgba(47,63,57,.37)";ctx.fill();
+   ctx.closePath();ctx.fillStyle="rgba(49,74,64,.12)";ctx.fill();
    ctx.beginPath();smooth(mid);smooth(upper.slice().reverse(),false);
-   ctx.closePath();ctx.fillStyle="rgba(77,112,77,.20)";ctx.fill();
+   ctx.closePath();ctx.fillStyle="rgba(88,122,84,.085)";ctx.fill();
    // Fine longitudinal fracture follows an actual ledge midway up.
    ctx.beginPath();smooth(run.map(o=>inset(o,45)));
-   ctx.strokeStyle="rgba(158,161,131,.24)";ctx.lineWidth=7;ctx.stroke();
+   ctx.strokeStyle="rgba(157,170,135,.10)";ctx.lineWidth=4;ctx.stroke();
    // A broken cool rim belongs to the *water*, not the route.
    ctx.beginPath();smooth(water);
-   ctx.strokeStyle="rgba(187,210,194,.20)";ctx.lineWidth=8;ctx.stroke();
+   ctx.strokeStyle="rgba(188,210,194,.13)";ctx.lineWidth=4;ctx.stroke();
    ctx.restore();
    terraces++;
    // Substantial R18 painted moss/fern banks attach to dry, genuinely
@@ -1067,7 +1096,7 @@ function create({footprint,geometry,model}={}){
   sourceRootedEavesR31c:true,upperForestGalleryR32:true,realActorCanopyDepthR33:true,
   rootedOverstoryR30:true,fallsPhysicalRiverBanksR34:true,
   fallsNativeWaterAndWoodlandR34b:true,
-  riverSourcedEscarpmentR35:true,
+  riverSourcedEscarpmentR35:true,sculptedBankContrastR35b:true,
   nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
