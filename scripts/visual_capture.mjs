@@ -492,6 +492,24 @@ try{
   throw Error("R28c source-painted oak crown not actually rooted in Hearth frame "+JSON.stringify(r28c));
  console.log("R28C_OAK_FRAME "+JSON.stringify(r28c));
  await sleep(850);await capture(page,"GREENWOOD_R28C_LAYERED_OAK");
+ const r28d=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player,
+   roots=s.footprint.groves([p.x-900,p.y-650,p.x+900,p.y+850],680)
+    .filter(o=>o.authoredGrove);
+  const unsafe=roots.filter(o=>{
+   const dx=o.x-p.x,dy=o.y-p.y,r=o.radius,
+    f=o.kind==="oak"?1.20:1.08,
+    w=r*(o.kind==="oak"?5.4:4.6)*f,
+    h=r*(o.kind==="oak"?7.0:7.6)*f;
+   return dy>=-25&&Math.abs(dx)<w*.5+38&&dy-h<46
+  });
+  return{trees:roots.length,heroCanopyOverlap:unsafe.map(o=>o.id),
+   walkable:!s.blocked(p.x,p.y)}
+ });
+ if(!r28d.walkable||r28d.heroCanopyOverlap.length)
+  throw Error("R28d player appears on a foreground tree: "+JSON.stringify(r28d));
+ console.log("R28D_ACTOR_CLEARWAY "+JSON.stringify(r28d));
+ await sleep(850);await capture(page,"GREENWOOD_R28D_CLEAR_FOREST_BORDER");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");

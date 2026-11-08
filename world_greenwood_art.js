@@ -226,7 +226,7 @@ function create({footprint,geometry,model}={}){
    if(o.authoredGrove&&n%VARIANTS===1)n++;
    // Source-original R18 artwork keeps its native proportions. Only
    // selected, real old-growth roots get a slightly taller/wider crown.
-   const elder=o.authoredGrove?(o.kind==="oak"?1.26:1.15):1;
+   const elder=o.authoredGrove?(o.kind==="oak"?1.20:1.08):1;
    const w=r*(o.kind==="oak"?5.4:4.6)*elder,
     h=r*(o.kind==="oak"?7.0:7.6)*elder;
    return stamp(ctx,o.kind,o.x,o.y,w,h,n)

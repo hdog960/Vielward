@@ -1,4 +1,4 @@
-/* VEILWARD Phase 9 R28c — rooted painted oak-canopy composition at Greenwood Hearth.
+/* VEILWARD Phase 9 R28d — grounded forest-edge canopy protecting hero readability.
  * A physically traversable 12-region landmass and reproducible region scenery.
  * All natural blockers are rendered from the very same positions/footprint as
  * their boot-level collision. No NPC/player art is touched or copied.
@@ -192,20 +192,34 @@ function create(model,geo,source,options={}){
   // R28b puts physical source roots along the VIEWABLE woodland edge,
   // not above the small landscape camera as the first R28 set did.
   // All suggestions must pass the original physical collision audit.
+  // R28d: establish the forest border beside, never ABOVE, the actor.
+  // Natural crowns may overlap one another offroad, but the character
+  // must not appear standing on a huge tree that is actually in front.
   const positions=[
-   [65,360,"oak"],[195,490,"pine"],[-65,490,"oak"],
-   [130,555,"oak"],[-130,555,"pine"],[260,555,"oak"],
-   [65,295,"oak"],[110,610,"pine"],[-65,555,"oak"],
-   [-350,-350,"oak"],[-85,-405,"pine"],[530,-310,"oak"],
-   [420,610,"oak"],[-485,-395,"pine"],[635,-325,"pine"],
-   [545,-225,"oak"],[-370,-540,"oak"],[-510,540,"oak"],
-   [625,620,"pine"],[-125,-530,"pine"],[325,-530,"oak"]
+   [260,555,"oak"],[-130,555,"pine"],[195,490,"pine"],
+   [130,555,"oak"],[65,360,"oak"],[65,295,"oak"],
+   [110,610,"pine"],[-65,555,"oak"],[-350,-350,"oak"],
+   [-85,-405,"pine"],[530,-310,"oak"],[420,610,"oak"],
+   [-485,-395,"pine"],[635,-325,"pine"],[545,-225,"oak"],
+   [-370,-540,"oak"],[-510,540,"oak"],[625,620,"pine"],
+   [-125,-530,"pine"],[325,-530,"oak"]
   ];
+  // The painted canopy projects vertically ABOVE its physical tree root.
+  // A source-valid trunk can still make the sprite appear UNDER the hero
+  // if its broad upper crown is painted into the central camera clearway.
+  function crownCoversHero(dx,dy,r,kind){
+   if(dy< -25)return false;
+   const factor=kind==="oak"?1.20:1.08,
+    width=r*(kind==="oak"?5.4:4.6)*factor,
+    height=r*(kind==="oak"?7.0:7.6)*factor;
+   return Math.abs(dx)<width*.5+38&&dy-height<46
+  }
   const rooted=[];
   for(let index=0;index<positions.length;index++){
    if(rooted.length>=9)break;
    const [dx,dy,kind]=positions[index],
     x=hx+dx,y=hy+dy,r=52+Math.floor(hash(index,217,seed)*9);
+   if(crownCoversHero(dx,dy,r,kind))continue;
    if(!onLand(x,y)||regionAt(x,y)?.id!=="greenwood"||
       geo.waterAt(x,y,r+26)||geo.obstacle(x,y,r+60)||
       inProtectedSite(x,y,r)||!rootClearOfRoads(x,y,r))continue;

@@ -44,6 +44,14 @@ assert.ok(aroundView>=2,"new trees must materially frame the real landscape came
  assert.ok(visible.length>=2,"two source-painted physical canopies must intersect the phone view");
  assert.ok(visible.some(o=>o.kind==="oak"),
   "a broad painted old-growth oak must actually frame the phone view");
+ for(const o of trees){
+  const dx=o.x-cx,dy=o.y-cy,r=o.radius,
+   factor=o.kind==="oak"?1.20:1.08,
+   w=r*(o.kind==="oak"?5.4:4.6)*factor,
+   h=r*(o.kind==="oak"?7.0:7.6)*factor;
+  assert.ok(!(dy>=-25&&Math.abs(dx)<w*.5+38&&dy-h<46),
+   "painted roots must frame the Hearth hero, not grow on top of his sprite: "+o.id);
+ }
 const house=setpieces.objects.filter(o=>o.anchor==="greenwood_hearth"&&o.kind==="forest_cottage");
 assert.equal(house.length,1,"original illustrated Hearth cottage remains present");
 for(const id of ["greenwood_hearth","hermit"]){
@@ -63,8 +71,8 @@ for(const road of geometry.roads){
 assert.ok(walkSamples>4000);
 assert.equal(JSON.stringify(model.nodes),originalNodes);
 assert.equal(JSON.stringify(model.edges),originalEdges);
-assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=28c"));
-assert.ok(read("sw.js").includes("source-glade-habitat-r25b-r26-r27-r28c"));
+assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=28d"));
+assert.ok(read("sw.js").includes("source-glade-habitat-r25b-r26-r27-r28d"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 
 // R28b diagnostic only: world-space root/visible-camera placement audit.
