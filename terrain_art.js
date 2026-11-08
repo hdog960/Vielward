@@ -276,12 +276,78 @@ function create(model,geometry,options={}){
    }
   }
  }
+
+ // R35d: the physical Frostbridge River is 180 world units either side
+ // of its authoritative centerline. Sampling at a 96-unit square CELL
+ // center produced hard blue stair-step edges at Greenwood Falls.
+ // Paint the actual continuous channel as one clipped native-material
+ // surface; do not change its collision, source point order or crossings.
+ const fallsChannel=water.find(w=>w.id==="frostbridge_river")?.line.slice(6)||[];
+ const fallsChannelBounds=fallsChannel.length>1?[
+  Math.min(...fallsChannel.map(p=>p[0]))-205,
+  Math.min(...fallsChannel.map(p=>p[1]))-205,
+  Math.max(...fallsChannel.map(p=>p[0]))+205,
+  Math.max(...fallsChannel.map(p=>p[1]))+205]:null;
+ function paintFallsWaterChannel(ctx,bounds){
+  if(!fallsChannelBounds||bounds[2]<fallsChannelBounds[0]||
+   bounds[0]>fallsChannelBounds[2]||
+   bounds[3]<fallsChannelBounds[1]||
+   bounds[1]>fallsChannelBounds[3])return 0;
+  const sides=[[],[]],half=180;
+  for(let i=0;i<fallsChannel.length;i++){
+   const p=fallsChannel[i],before=fallsChannel[Math.max(0,i-1)],
+    after=fallsChannel[Math.min(fallsChannel.length-1,i+1)],
+    dx=after[0]-before[0],dy=after[1]-before[1],
+    length=Math.hypot(dx,dy)||1,nx=-dy/length,ny=dx/length;
+   sides[0].push([p[0]+nx*half,p[1]+ny*half]);
+   sides[1].push([p[0]-nx*half,p[1]-ny*half])
+  }
+  ctx.save();ctx.beginPath();
+  const left=sides[0],right=sides[1],last=fallsChannel.length-1;
+  ctx.moveTo(...left[0]);
+  for(let i=1;i<left.length;i++)ctx.lineTo(...left[i]);
+  const end=fallsChannel[last],prev=fallsChannel[last-1],
+   etx=(end[0]-prev[0])/Math.hypot(end[0]-prev[0],end[1]-prev[1]),
+   ety=(end[1]-prev[1])/Math.hypot(end[0]-prev[0],end[1]-prev[1]);
+  // Rounded endcap approximates the same 180-unit radius hazard.
+  if(ctx.quadraticCurveTo)
+   ctx.quadraticCurveTo(end[0]+etx*half*1.1,
+    end[1]+ety*half*1.1,...right[last]);
+  else ctx.lineTo(...right[last]);
+  for(let i=last-1;i>=0;i--)ctx.lineTo(...right[i]);
+  const first=fallsChannel[0],second=fallsChannel[1],
+   fdx=(second[0]-first[0]),fdy=(second[1]-first[1]),
+   len=Math.hypot(fdx,fdy)||1;
+  if(ctx.quadraticCurveTo)ctx.quadraticCurveTo(
+   first[0]-fdx/len*half*1.1,first[1]-fdy/len*half*1.1,...left[0]);
+  ctx.closePath();ctx.clip();
+  // World grid + original native source palette: no new sprites, no
+  // checkerboard at bank edges and no per-chunk local noise origin.
+  ctx.fillStyle="#427f92";
+  ctx.fillRect(bounds[0],bounds[1],
+   bounds[2]-bounds[0],bounds[3]-bounds[1]);
+  const plate=greenwoodFloor?.river;
+  if(plate)for(const c of boundsCells(bounds)){
+   const srcX=((c.gx%16+16)%16)*16,
+    srcY=((c.gy%16+16)%16)*16;
+   ctx.drawImage(plate,srcX,srcY,16,16,
+    c.x,c.y,WORLD_CELL,WORLD_CELL)
+  }
+  ctx.restore();return 1
+ }
+
  function drawBase(ctx,bounds){
   const cells=boundsCells(bounds);
   for(const c of cells){
-   const material=materialAt(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5);
-   stamp(ctx,material,c.gx,c.gy,c.x,c.y);
-   climateDetails(ctx,c,material)
+   const cx=c.x+WORLD_CELL*.5,cy=c.y+WORLD_CELL*.5,
+    material=materialAt(cx,cy);
+   // Replace square-sampled blue pixels with native river geometry. On
+   // the dry fringe of the channel the source woodland material remains.
+   const renderMaterial=material==="river"&&
+    footprint?.regionAt(cx,cy)?.id==="greenwood_falls"?
+     (climate?.groundMaterial(cx,cy)||"moss"):material;
+   stamp(ctx,renderMaterial,c.gx,c.gy,c.x,c.y);
+   climateDetails(ctx,c,renderMaterial)
   }
   // Rock/ice/river/grass transition edges use the SAME world grid on either
   // side of streaming chunk boundaries; no per-chunk seed or white mattes.
@@ -478,6 +544,8 @@ function create(model,geometry,options={}){
   ctx.scale(resolution/worldSize,resolution/worldSize);
   ctx.translate(-bounds[0],-bounds[1]);
   drawBase(ctx,bounds);
+  // R35d: exact-world continuous native river beneath physical paths.
+  paintFallsWaterChannel(ctx,bounds);
   if(footprint)footprint.draws(ctx,bounds);
   drawSurfaces(ctx,bounds);
   if(illustration)illustration.drawGround(ctx,bounds);
@@ -520,9 +588,10 @@ function create(model,geometry,options={}){
  }
  function diagnostics(){return{version:VERSION,atlasWidth:atlas.width,atlasHeight:atlas.height,
   materials:MATERIALS.length,variants:VARIANTS,sourceTilePixels:TILE,worldCellSize:WORLD_CELL,
-  biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,illustrationEnabled:!!illustration,setpiecesEnabled:!!setpieces,rasterPilot:!!raster,usesAuthoritativeSolids:true}}
+  biomeCount:Object.keys(biomeMaterial).length,
+  continuousFallsWaterR35d:true,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,illustrationEnabled:!!illustration,setpiecesEnabled:!!setpieces,rasterPilot:!!raster,usesAuthoritativeSolids:true}}
  return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,illustration,setpieces,raster,paintChunk,paintForeground,
-  materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,diagnostics}
+  materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,paintFallsWaterChannel,diagnostics}
 }
 window.VeilwardTerrainArt={version:VERSION,create,makeGreenwoodFloorPlates,palettes:PALETTES,materials:MATERIALS,
  sourceTileSize:TILE,variants:VARIANTS,worldTileSpan:WORLD_CELL};
