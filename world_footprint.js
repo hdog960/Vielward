@@ -269,10 +269,10 @@ function create(model,geo,source,options={}){
   // These are deliberate SITE-RELATIVE candidates only: each candidate
   // must still pass the exact unchanged physical road/water/root tests.
   const composed=[
-   [-445,310,"oak"],[-605,130,"pine"],[-745,350,"oak"],
-   [-535,-115,"oak"],[-825,-260,"pine"],[-350,515,"oak"],
+   [-625,300,"oak"],[-525,105,"pine"],[-745,350,"oak"],
+   [-535,-115,"oak"],[-825,-260,"pine"],[-470,575,"oak"],
    [-665,535,"pine"],[-990,85,"oak"],[-880,-545,"pine"],
-   [405,355,"oak"],[590,205,"pine"],[665,-115,"oak"],
+   [605,360,"oak"],[595,140,"pine"],[665,-115,"oak"],
    [800,400,"pine"],[395,-480,"oak"],[945,-255,"pine"],
    [1020,110,"oak"],[920,630,"pine"],[-285,-685,"oak"],
    [270,-655,"pine"],[-1180,510,"oak"]
@@ -294,6 +294,13 @@ function create(model,geo,source,options={}){
      geo.nearRoad(x,y,()=>true,r+105))continue;
    if(clearings.some(c=>Math.hypot(x-c.x,y-c.y)<
      Math.min(c.r,205)+r+62))continue;
+   // R38c: preserve the actual R2 source-authored Falls stone wall,
+   // obelisk and brazier at their ORIGINAL fixed landmark coordinates.
+   // These are real architecture with collision; a native tree cannot
+   // silently suppress them from the setpiece generator.
+   const reservedFalls=[[-400,360,60],[-250,-340,38],[350,300,33]];
+   if(reservedFalls.some(([ox,oy,rr])=>
+      Math.hypot(x-(hx+ox),y-(hy+oy))<r+rr+105))continue;
    // Front-side painted crowns must not cover the player's vista.
    const w=r*(kind==="oak"?5.4:4.6)*1.2,
     h=r*(kind==="oak"?7:7.6)*1.2;
