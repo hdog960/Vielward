@@ -67,7 +67,7 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{filename:"world_greenwood
   "source-only woodland floor replaces repeated decoration in both forests");
  assert.ok(materials.includes('["greenwood","greenwood_falls"].includes('),
   "no legacy micrograss across Greenwood and Falls");
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
  assert.ok(read("index.html").includes("world_greenwood_art.js?v=12"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R20 PASS: illustrated root-grown fern mats and retired Greenwood confetti, no source geometry mutation, saved progress retained; visual approval remains 0%");

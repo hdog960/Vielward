@@ -84,7 +84,7 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{filename:"world_greenwood
  assert.ok(read("index.html").includes("world_greenwood_art.js?v=12&rev=34"),
   "newer production revision must continue to load the R25 Greenwood atlas");;
  assert.ok(read("index.html").includes("terrain_art.js?v=32&rev=25"));
- assert.ok(read("sw.js").includes("greenwood-falls-r34"));
+ assert.ok(read("sw.js").includes("greenwood-escarpment-r35"));
  const illustrationSource=read("world_illustration.js");
  const roadSource=read("world_routes.js");
  assert.ok(!illustrationSource.includes('rect(ctx,xx,yy,10,7,'),
