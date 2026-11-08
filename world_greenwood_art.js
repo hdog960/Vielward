@@ -1010,73 +1010,88 @@ function create({footprint,geometry,model}={}){
   if(!ctx||hub?.kind!=="lookout"||
      footprint.regionAt(hub.x,hub.y)?.id!=="greenwood_falls")return 0;
   const cx=hub.x,cy=hub.y;
-  const shelves=[
-   // Two opposed, asymmetric stone-and-fern landscape wings leave the
-   // center (|dx|<100) free for the true stairs and the Wanderer.
-   {dx:-273,dy:-163,rx:252,ry:93,rock:-265,fern:-236,scale:1.10,flip:false},
-   {dx:258,dy:-195,rx:233,ry:86,rock:244,fern:268,scale:.97,flip:true},
-   {dx:-400,dy:-65,rx:162,ry:64,rock:-410,fern:-370,scale:.68,flip:true},
-   {dx:382,dy:-60,rx:170,ry:68,rock:402,fern:359,scale:.75,flip:false}
+  // R36b visual QA: the earlier four wide fern cutouts looked like
+  // horizontal stripes. TWO deliberately asymmetric, larger low-relief
+  // bank masses now support a full-height R18 stone painting each. Only
+  // small fern details adorn their grounded feet, never tiled ribbons.
+  // Both masses stay OUTSIDE the real stair's central walking corridor.
+  const banks=[
+   {dx:-286,dy:-150,rx:232,ry:128,rock:-268,scale:1.13,flip:false},
+   {dx:262,dy:-184,rx:196,ry:116,rock:248,scale:.88,flip:true}
   ];
   let paintedRock=0;
-  for(const [i,s] of shelves.entries()){
+  for(const [i,s] of banks.entries()){
    const x=cx+s.dx,y=cy+s.dy;
-   // No painted ledge can pretend to block the existing corridor or
-   // bridge approaches. The outline sits OUTSIDE the center tread.
    if(Math.abs(s.dx)<130||geometry.waterAt(x,y,0))continue;
-   ctx.save();
-   // Smooth underside and three-quarter moss shelf: gradients become
-   // transparent at the edges, not large flat polygons or tile squares.
-   ctx.translate(x,y);
-   ctx.scale(s.rx,s.ry);
+   ctx.save();ctx.translate(x,y);
+   // First, a site-anchored, three-quarter-view gently eroded shelf.
+   // Soft bank silhouette and moss crest have NONRECTANGULAR edges;
+   // there is no square billboard, new trunk, wall or path collider.
+   ctx.beginPath();
+   ctx.moveTo(-s.rx*.96,s.ry*.12);
+   ctx.quadraticCurveTo(-s.rx*.88,-s.ry*.35,-s.rx*.56,-s.ry*.56);
+   ctx.quadraticCurveTo(-s.rx*.28,-s.ry*.86,s.rx*.05,-s.ry*.62);
+   ctx.quadraticCurveTo(s.rx*.42,-s.ry*.85,s.rx*.70,-s.ry*.39);
+   ctx.quadraticCurveTo(s.rx*1.00,-s.ry*.17,s.rx*.94,s.ry*.18);
+   ctx.quadraticCurveTo(s.rx*.42,s.ry*.42,-s.rx*.96,s.ry*.12);
+   ctx.closePath();
+   if(ctx.createLinearGradient){
+    const rock=ctx.createLinearGradient(-30,-s.ry,45,s.ry*.2);
+    rock.addColorStop(0,"rgba(105,129,103,.38)");
+    rock.addColorStop(.46,"rgba(66,89,79,.36)");
+    rock.addColorStop(.78,"rgba(49,72,67,.31)");
+    rock.addColorStop(1,"rgba(31,59,52,.07)");
+    ctx.fillStyle=rock;
+   }else ctx.fillStyle="rgba(73,95,79,.32)";
+   ctx.fill();
+   // Organic moss on upper shelf merges into original woodland tones,
+   // not an outlined cartoon boulder or an arc of square stones.
+   ctx.beginPath();
+   ctx.moveTo(-s.rx*.82,-s.ry*.29);
+   ctx.quadraticCurveTo(-s.rx*.52,-s.ry*.86,-s.rx*.20,-s.ry*.70);
+   ctx.quadraticCurveTo(s.rx*.17,-s.ry*1.01,s.rx*.53,-s.ry*.52);
+   ctx.quadraticCurveTo(s.rx*.73,-s.ry*.40,s.rx*.84,-s.ry*.19);
+   ctx.quadraticCurveTo(s.rx*.47,-s.ry*.35,s.rx*.12,-s.ry*.36);
+   ctx.quadraticCurveTo(-s.rx*.22,-s.ry*.28,-s.rx*.82,-s.ry*.29);
+   ctx.closePath();ctx.fillStyle="rgba(91,131,84,.26)";ctx.fill();
    if(ctx.createRadialGradient){
-    const contact=ctx.createRadialGradient(0,.18,.06,0,0,1.02);
-    contact.addColorStop(0,"rgba(27,52,47,.31)");
-    contact.addColorStop(.42,"rgba(63,91,68,.17)");
-    contact.addColorStop(.83,"rgba(107,138,88,.065)");
-    contact.addColorStop(1,"rgba(93,123,81,0)");
-    ctx.fillStyle=contact;ctx.beginPath();
-    ctx.arc(0,0,1,0,Math.PI*2);ctx.fill()
+    const halo=ctx.createRadialGradient(0,s.ry*.13,.02,0,0,s.rx*.88);
+    halo.addColorStop(0,"rgba(37,71,51,.18)");
+    halo.addColorStop(.48,"rgba(75,102,68,.10)");
+    halo.addColorStop(1,"rgba(92,125,74,0)");
+    ctx.beginPath();ctx.ellipse?.(0,s.ry*.17,s.rx*.89,s.ry*.49,
+      0,0,Math.PI*2);
+    ctx.fillStyle=halo;ctx.fill();
    }
    ctx.restore();
-   // The independent native-pixel moss and rock images contain alpha
-   // cutouts, avoiding cloned cuboids. Oversized stones remain visually
-   // LOW, walkable-looking relief with no new stone-wall collider.
    if(painted&&ctx.drawImage){
-    const size=PAINTED_SIZE,
-     stoneW=205*s.scale,stoneH=96*s.scale,
-     mossW=290*s.scale,mossH=107*s.scale;
-    ctx.save();ctx.globalAlpha=.72;
-    ctx.imageSmoothingEnabled=true;
-    if(s.flip){
-     ctx.translate(cx+s.rock,0);ctx.scale(-1,1);
-     ctx.drawImage(painted,size*3,0,size,size,
-      -Math.round(stoneW*.5),Math.round(y-stoneH*.83),
+    const unit=PAINTED_SIZE,
+     stoneW=194*s.scale,stoneH=171*s.scale,
+     mossW=109*s.scale,mossH=102*s.scale;
+    // One full-height original R18 hand-painted stone mass per side.
+    ctx.save();ctx.globalAlpha=.92;ctx.imageSmoothingEnabled=true;
+    if(s.flip){ctx.translate(cx+s.rock,0);ctx.scale(-1,1);
+     ctx.drawImage(painted,unit*3,0,unit,unit,
+      -Math.round(stoneW*.5),Math.round(y-stoneH*.94),
       Math.round(stoneW),Math.round(stoneH))
-    }else ctx.drawImage(painted,size*3,0,size,size,
-     Math.round(cx+s.rock-stoneW*.5),Math.round(y-stoneH*.83),
-     Math.round(stoneW),Math.round(stoneH));
+    }else ctx.drawImage(painted,unit*3,0,unit,unit,
+      Math.round(cx+s.rock-stoneW*.5),Math.round(y-stoneH*.94),
+      Math.round(stoneW),Math.round(stoneH));
     ctx.restore();
-    ctx.save();ctx.globalAlpha=.81;ctx.imageSmoothingEnabled=true;
-    if(!s.flip){
-     ctx.translate(cx+s.fern,0);ctx.scale(-1,1);
-     ctx.drawImage(painted,size*2,0,size,size,
-      -Math.round(mossW*.5),Math.round(y-mossH*.33),
-      Math.round(mossW),Math.round(mossH))
-    }else ctx.drawImage(painted,size*2,0,size,size,
-     Math.round(cx+s.fern-mossW*.5),Math.round(y-mossH*.33),
+    // A SMALL original native-pixel fern cluster remains at the foot,
+    // never a clone stretched into a 300px horizontal strip.
+    ctx.save();ctx.globalAlpha=.47;ctx.imageSmoothingEnabled=true;
+    const fernX=cx+s.rock+(s.flip?68:-67);
+    ctx.drawImage(painted,unit*2,0,unit,unit,
+     Math.round(fernX-mossW*.5),Math.round(y-mossH*.35),
      Math.round(mossW),Math.round(mossH));
     ctx.restore();paintedRock++
    }
   }
-  // One shallow, visibly open curved stone apron recognizes the source
-  // landmark, rather than surrounding the Wanderer with fake obelisks.
-  ctx.save();ctx.beginPath();
-  ctx.moveTo(cx-114,cy-120);
-  if(ctx.quadraticCurveTo){
-   ctx.quadraticCurveTo(cx,cy-204,cx+114,cy-120);
-  }else ctx.lineTo(cx+114,cy-120);
-  ctx.strokeStyle="rgba(169,173,139,.17)";ctx.lineWidth=7;
+  // A single faint open apron is just the ground behind the REAL stairs.
+  ctx.save();ctx.beginPath();ctx.moveTo(cx-102,cy-123);
+  ctx.quadraticCurveTo(cx,cy-193,cx+105,cy-123);
+  ctx.strokeStyle="rgba(170,177,143,.12)";ctx.lineWidth=4;
   ctx.stroke();ctx.restore();
   return paintedRock||1
  }
@@ -1176,7 +1191,7 @@ function create({footprint,geometry,model}={}){
   sourceRootedEavesR31c:true,upperForestGalleryR32:true,realActorCanopyDepthR33:true,
   rootedOverstoryR30:true,fallsPhysicalRiverBanksR34:true,
   fallsNativeWaterAndWoodlandR34b:true,
-  fallsOriginalLookoutR36:true,
+  fallsOriginalLookoutR36:true,fallsLookoutReducedStripesR36b:true,
   riverSourcedEscarpmentR35:true,sculptedBankContrastR35b:true,nonGeometricBankBlendR35c:true,
   nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
