@@ -1,3 +1,10 @@
+## Phase 9 R36b — actual-game correction to the Falls overlook's native stone shapes
+
+The first real R36 screenshot proved the original fake gray cubes were removed, but the four enlarged native fern stamps created **unacceptable stretched horizontal stripes** above the player. R36b corrects the visual composition, not just the tests. The site uses two deliberately asymmetric, continuous low-profile scalloped moss-and-stone masses instead of four repeated horizontal fern bands. Each mass is hand-contoured with a softly lit upper cap and an eroded rock face, carries one **full-height original R18 painted native stone image**, and has only one small native fern accent at its physical ground foot. The central approach remains visually and physically clear, with no freestanding false rock-wall collider.
+
+The two linked gameplay captures are `GREENWOOD_R36_PAINTED_FALLS_OVERLOOK` (source removal checkpoint) and `GREENWOOD_R36B_SCULPTED_OVERLOOK` (final visible composition). `tests/greenwood_lookout_shape_r36b.test.js` rejects horizontally stretched four-stripe scenery and requires real native stone/fern cutouts, unchanged 48 map nodes, original 65 roads/seven crossings, unchanged player saves and no older square lookout placeholders. The PWA source and cache receive a fresh R36b revision.
+
+**Phase 9 stays active, creator artistic acceptance 0%, Phase 10 locked and physical iPhone playtesting outstanding.**
 ## Phase 9 R36 — replace the actual Falls overlook's five identical block placeholders
 
 The **real R35d Chromium screenshot** exposed five uniformly spaced square grey pillars immediately above the Wanderer, despite the river itself now following true continuous physical geometry. Source inspection confirmed this was **duplicate placeholder artwork in two independent world renderers**: `world_illustration.marker` and `world_footprint.hubDraw`, both of which painted five fake, nonphysical cuboid columns at every lookout. These were *not* authored collisions. R36 removes both versions specifically for the existing Falls `lookout`, leaving other regions and their paths unchanged.

@@ -872,6 +872,24 @@ try{
   throw Error("R36 true native-pixel Falls overlook failed "+JSON.stringify(r36));
  console.log("R36_ORIGINAL_ROCK_AND_FERN_OVERLOOK "+JSON.stringify(r36));
  await sleep(850);await capture(page,"GREENWOOD_R36_PAINTED_FALLS_OVERLOOK");
+ // R36b: use the same REAL play scene to catch wide repetitive banding.
+ const r36b=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,g=window.VeilwardGreenwoodArt.create({
+   model:s.model,geometry:s.geometry,footprint:s.footprint});
+  const target=s.model.nodes.find(n=>n.id==="falls_overlook");
+  const canvas=document.createElement("canvas");canvas.width=8;canvas.height=8;
+  return{drawn:g.paintFallsOverlook(canvas.getContext("2d"),{
+   kind:"lookout",x:target.point[0]*60,y:target.point[1]*60}),
+   composed:g.stats().fallsLookoutReducedStripesR36b,
+   walkable:!s.blocked(s.player.x,s.player.y),
+   routes:s.routeArt.stats().roads,source:g.stats().paintedAssetReady}
+ });
+ if(!r36b.composed||r36b.drawn!==2||!r36b.walkable||
+    !r36b.source||r36b.routes!==65)
+  throw Error("R36b overlook artwork still repeated/disconnected "+JSON.stringify(r36b));
+ console.log("R36B_NATIVE_SCULPTED_OVERLOOK "+JSON.stringify(r36b));
+ await sleep(1100);await capture(page,"GREENWOOD_R36B_SCULPTED_OVERLOOK");
+
 
 
 
