@@ -27,7 +27,7 @@ const stream=host.VeilwardWorldStream.create(model,{geometry:gd,footprint:fd,can
 eq(host.VeilwardSetpieces.version,"1.3.32","versioned authored region setpiece module loads");
 eq(stream.version,"1.3.32","actual streaming world loads new composition");
 eq(stream.art.version,"1.3.32","real terrain compositor paints R2");
-eq(stream.illustration.version,"1.3.33","three-quarter foreground artist integrates region setpieces");
+eq(stream.illustration.version,"1.3.32","three-quarter foreground artist integrates region setpieces");
 eq(stream.routeArt.version,"1.3.32","physical seven-crossing art uses richer deck texture");
 eq(scene?.version,"1.3.32","R2 piece renderer is not optional in the live runtime");
 eq(stream.stats().setpieces.placed,scene.objects.length,"runtime composition diagnostic is genuine");
