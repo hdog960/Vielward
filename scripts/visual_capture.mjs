@@ -526,6 +526,29 @@ try{
   throw Error("R29 source-geometry woodland trail mismatch "+JSON.stringify(r29));
  console.log("R29_SOURCE_WOODLAND_TREAD "+JSON.stringify(r29));
  await sleep(950);await capture(page,"GREENWOOD_R29_WOODLAND_PATHS");
+ const r30=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player;
+  const painter=window.VeilwardGreenwoodArt.create({
+   model:s.model,footprint:s.footprint,geometry:s.geometry
+  });
+  const stats=painter.stats();
+  const n=s.model.nodes.find(n=>n.id==="greenwood_hearth");
+  const center=[n.point[0]*60,n.point[1]*60];
+  const c=document.createElement("canvas");
+  c.width=2;c.height=2;
+  const bounds=[center[0]-1150,center[1]-850,
+    center[0]+1150,center[1]+900];
+  const shadows=painter.paintRootedForestEdge(c.getContext("2d"),bounds);
+  return{shadows,rootAnchored:stats.rootedOverstoryR30,
+   nonBlocking:stats.nonBlockingCanopyProjection,
+   originalHearthWalkable:!s.blocked(center[0],center[1]),
+   roadCount:s.geometry.roads.length}
+ });
+ if(!r30.rootAnchored||!r30.nonBlocking||r30.shadows<3||
+    !r30.originalHearthWalkable||r30.roadCount!==65)
+  throw Error("R30 physically sourced overstory missing or blocking: "+JSON.stringify(r30));
+ console.log("R30_ROOTED_OVERSTORY "+JSON.stringify(r30));
+ await sleep(1000);await capture(page,"GREENWOOD_R30_OVERSTORY_LIGHT");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");

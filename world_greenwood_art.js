@@ -1,4 +1,4 @@
-/* VEILWARD Phase 9 R26 — connected habitat ground, existing tree-root filtered canopy. R17 roots remain.
+/* VEILWARD Phase 9 R30 — existing-root canopy-light forest surround. R17 originals remain.
  * This is NOT a pasted scenery screenshot and NOT creator-approved art.
  * Render one cached pixel atlas from source algorithms, then stamp only
  * on original footprint tree/undergrowth roots without any new collisions.
@@ -499,6 +499,123 @@ function create({footprint,geometry,model}={}){
   return count
  }
 
+
+ // R30: a broad forest-overstory FLOOR projection from *existing* trees.
+ // The R29 Hearth was flat/open because its safe trunks are off the
+ // immediate camera. This is an underpainting of crown-filtered light and
+ // shade, not more little ferns or imaginary non-colliding tree trunks.
+ // Everything is derived from the original landmass source and cached
+ // per renderer, in stable world coordinates across streamed chunk seams.
+ let hearthOverstory=null;
+ function rootedHearthForest(){
+  if(hearthOverstory)return hearthOverstory;
+  const home=habitatAnchors.find(h=>h.id==="greenwood_hearth");
+  if(!home)return hearthOverstory=[];
+  const b=[home.x-1570,home.y-1270,home.x+1570,home.y+1370];
+  const all=[...(footprint.cells?.(b,430)||[]),
+   ...(footprint.groves?.(b,430)||[])];
+  const used=new Set();
+  hearthOverstory=all.filter(o=>{
+   if(!o?.id||used.has(o.id)||!["oak","pine"].includes(o.kind)||
+    !forest(o.x,o.y)||geometry.waterAt(o.x,o.y,25))return false;
+   used.add(o.id);
+   // Keep a real authored root as the sole anchor for every shadow.
+   return Math.abs(o.x-home.x)<1260&&Math.abs(o.y-home.y)<1120;
+  }).sort((a,b)=>a.y-b.y||a.x-b.x);
+  return hearthOverstory
+ }
+ function paintRootedForestEdge(ctx,bounds){
+  const hub=habitatAnchors.find(h=>h.id==="greenwood_hearth");
+  if(!hub||hub.x+1450<bounds[0]||hub.x-1450>bounds[2]||
+   hub.y+1450<bounds[1]||hub.y-1450>bounds[3]||
+   !ctx?.createRadialGradient)return 0;
+  const roots=rootedHearthForest();
+  if(!roots.length)return 0;
+  let shadows=0;
+  // First establish a continuous shady forest surround; every shadow is
+  // the footprint of a REAL collision-backed rooted oak or pine.
+  for(const tree of roots){
+   const r=tree.radius,oak=tree.kind==="oak",
+    sid=Math.floor(tree.variant*1048576),
+    rx=r*(oak?5.1:3.85),ry=r*(oak?3.25:3.85),
+    ox=tree.x-r*(oak?.46:.30),
+    oy=tree.y-r*(oak?.68:.34);
+   if(ox+rx<bounds[0]-55||ox-rx>bounds[2]+55||
+      oy+ry<bounds[1]-55||oy-ry>bounds[3]+55)continue;
+   ctx.save();
+   ctx.translate(ox,oy);
+   ctx.rotate?.((hash(sid,19,29)-.5)*.30);
+   // World-space elliptical canopy silhouettes naturally join when tree
+   // crowns are close; no ellipse is promoted to fake foliage collision.
+   ctx.scale(rx,ry);
+   const shade=ctx.createRadialGradient(0,0,.03,0,0,1);
+   shade.addColorStop(0,oak?"rgba(17,49,34,.35)":"rgba(14,46,39,.31)");
+   shade.addColorStop(.37,oak?"rgba(27,65,43,.23)":"rgba(28,62,48,.19)");
+   shade.addColorStop(.72,"rgba(43,84,53,.075)");
+   shade.addColorStop(1,"rgba(43,84,53,0)");
+   ctx.fillStyle=shade;ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
+   ctx.fill();ctx.restore();shadows++;
+   // Layered filtered sunlight is a broken, softly tapering leaf-shadow,
+   // not tiny white highlights or dotted procedural confetti.
+   if(ctx.quadraticCurveTo){
+    for(let k=0;k<2;k++){
+     const angle=hash(sid,k,53)*1.1-.55,
+      x=tree.x-r*(1.3+k*.33),
+      y=tree.y-r*(1.66+k*.39),
+      w=r*(.48+hash(k,sid,59)*.40),
+      h=r*(1.30+hash(sid,k,61)*.57);
+     if(x+w<bounds[0]||x-w>bounds[2]||
+       y+h<bounds[1]||y-h>bounds[3])continue;
+     ctx.save();ctx.translate(x,y);ctx.rotate?.(angle);
+     const sun=ctx.createRadialGradient(0,0,2,0,0,h);
+     sun.addColorStop(0,"rgba(193,186,112,.18)");
+     sun.addColorStop(.48,"rgba(170,175,100,.065)");
+     sun.addColorStop(1,"rgba(170,175,100,0)");
+     ctx.fillStyle=sun;
+     ctx.beginPath();
+     ctx.moveTo(0,-h);
+     ctx.quadraticCurveTo(w*1.4,-h*.15,w*.56,h*.72);
+     ctx.quadraticCurveTo(-w*.38,h,-w*.78,h*.35);
+     ctx.quadraticCurveTo(-w*1.12,-h*.52,0,-h);
+     ctx.fill();ctx.restore()
+    }
+   }
+  }
+  // The continuity between nearby real crowns is an UNDERPAINTING, not a
+  // canopy sprite pasted over the Wanderer or over existing road sprites.
+  // Source road, water, and buildings always retain visible priority.
+  let bridges=0;
+  for(let i=0;i<roots.length&&bridges<20;i++){
+   const a=roots[i];let b=null,distance=Infinity;
+   for(let j=i+1;j<roots.length;j++){
+    const c=roots[j],d=Math.hypot(a.x-c.x,a.y-c.y);
+    if(d<140||d>440||d>=distance)continue;
+    let allowed=true;
+    for(const t of [.25,.5,.75]){
+     const x=a.x+(c.x-a.x)*t,y=a.y+(c.y-a.y)*t;
+     if(!forest(x,y)||geometry.waterAt(x,y,25)||
+      geometry.nearRoad(x,y,()=>true,75)){
+      allowed=false;break
+     }
+    }
+    if(allowed){b=c;distance=d}
+   }
+   if(!b||!ctx.quadraticCurveTo)continue;
+   const minx=Math.min(a.x,b.x)-150,maxx=Math.max(a.x,b.x)+150,
+    miny=Math.min(a.y,b.y)-150,maxy=Math.max(a.y,b.y)+150;
+   if(maxx<bounds[0]||minx>bounds[2]||
+      maxy<bounds[1]||miny>bounds[3])continue;
+   const mx=(a.x+b.x)*.5,my=(a.y+b.y)*.5;
+   ctx.save();ctx.lineCap="round";
+   ctx.strokeStyle="rgba(20,57,39,.085)";
+   ctx.lineWidth=Math.min(135,(a.radius+b.radius)*1.3);
+   ctx.beginPath();ctx.moveTo(a.x,a.y);
+   ctx.quadraticCurveTo(mx-26,my+18,b.x,b.y);
+   ctx.stroke();ctx.restore();bridges++
+  }
+  return shadows
+ }
+
  function paintForestFloor(ctx,bounds){
   let count=0;
   // R17b: continuous forest-floor pools fill the entire SOURCE Greenwood
@@ -534,6 +651,9 @@ function create({footprint,geometry,model}={}){
     // R20 removes detached repeated ground confetti; grounded vegetation
     // comes from source trees in one cohesive canvas pass below.
    }
+  // Large source-root canopy light and shade establishes a shaded forest
+  // perimeter while leaving all streets, structures and collision untouched.
+  paintRootedForestEdge(ctx,bounds);
   // Connect the original roads to their own forest-floor material BEFORE
   // the actual road surfaces are drawn later in the terrain compositor.
   paintRoadVerges(ctx,bounds);
@@ -586,10 +706,11 @@ function create({footprint,geometry,model}={}){
   featheredRoadEdges:true,rootedUnderstoryMats:true,
   retiredConfettiFloor:true,paintedGladeHabitat:true,rootLinkedCanopy:true,
   connectedSafeGladeBeds:true,rootFilteredCanopyLight:true,
+  rootedOverstoryR30:true,nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},
