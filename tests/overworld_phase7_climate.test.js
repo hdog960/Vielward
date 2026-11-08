@@ -107,14 +107,14 @@ for(const road of geo.roads){
  }
 }
 const html=sources["index.html"],sw=sources["sw.js"],game=sources["game.js"];
-for(const path of ["world_review.js?v=4","world_routes.js?v=27","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=32","world_stream.js?v=32","game.js?v=53","manifest.webmanifest?v=1332"]){
+for(const path of ["world_review.js?v=4","world_routes.js?v=27","world_climate.js?v=4","world_footprint.js?v=5","terrain_art.js?v=32","world_stream.js?v=32","game.js?v=54","manifest.webmanifest?v=1332"]){
  ok(html.includes(path)&&sw.includes(path),"HTML and iPhone service worker cache share asset revision "+path)
 }
 ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_climate.js?v=4")&&
    html.indexOf("world_climate.js?v=4")<html.indexOf("world_footprint.js?v=5")&&
    html.indexOf("world_footprint.js?v=5")<html.indexOf("terrain_art.js?v=32")&&
    html.indexOf("terrain_art.js?v=32")<html.indexOf("world_stream.js?v=32"),"browser climate module load order correct");
-ok(game.includes('const APP_VERSION="1.3.32";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"player save preserved with correct new build version");
+ok(game.includes('const APP_VERSION="1.3.33";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"player save preserved with correct new build version");
 ok(sw.includes("veilward-hollowreach-v1332-source-glade-habitat"),"new Home Screen build cache rotated");
 ok(sources["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"'),"approved hero preserved");
 ok(sources["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved Warden preserved");
