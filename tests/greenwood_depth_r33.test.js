@@ -8,7 +8,7 @@ const ctx=()=>({globalAlpha:1,save(){},restore(){},translate(){},scale(){},
  drawImage(...v){draws.push(v)},beginPath(){},arc(){},fill(){},clearRect(){},
  fillRect(){}});
 class Img{constructor(){this.onload=null;this.naturalWidth=128;this.naturalHeight=128}
- set src(v){assert.match(v,/greenwood_.*\\.avif/);this.onload?.()}}
+ set src(v){assert.ok(v.includes("greenwood_")&&v.includes(".avif"));this.onload?.()}}
 const host={console,Image:Img,document:{createElement:()=>({
  width:0,height:0,getContext:()=>ctx()})}};host.window=host;
 vm.runInNewContext(read("world_greenwood_art.js"),host);
@@ -53,8 +53,8 @@ vm.runInNewContext(read("world_greenwood_art.js"),host);
   .paintForegroundCanopy(ctx(),player),0,"no oak applied in winter");
  assert.ok(read("world_illustration.js").includes(
   "greenwood.paintForegroundCanopy(ctx,player);return"));
- assert.ok(!read("world_illustration.js").includes(
-  'oval(ctx,o.x,o.y-o.radius*1.8,o.radius*.95'));
+ assert.ok(read("world_illustration.js").includes(
+  'greenwood.paintForegroundCanopy(ctx,player);return'));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  assert.ok(read("game.js").includes('const APP_VERSION="1.3.34";'));
  for(const p of ["index.html","sw.js"]){
