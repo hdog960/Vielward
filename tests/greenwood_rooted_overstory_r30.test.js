@@ -52,6 +52,6 @@ assert.equal(JSON.stringify(model.edges),edgesBefore);
 assert.equal(geo.roads.length,65);
 assert.ok(read("index.html").includes("world_greenwood_art.js?v=11&rev=33"));
 assert.ok(read("sw.js").includes("world_greenwood_art.js?v=11&rev=33"));
-assert.ok(read("sw.js").includes("r28d-r29-r30"));
+assert.ok(read("sw.js").includes("source-tree-depth-r33"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 console.log("R30 PASS: "+first+" original rooted forest crowns project natural overstory shade, "+strokes+" inter-root shading links, road and original save safe; art not yet approved");

@@ -53,7 +53,7 @@ assert.ok(ink.strokes.length>2,"crossing receives its original painted deck");
 assert.equal(JSON.stringify(model.edges),beforeEdges);
 assert.ok(read("index.html").includes("world_routes.js?v=27&rev=29"));
 assert.ok(read("sw.js").includes("world_routes.js?v=27&rev=29"));
-assert.ok(read("sw.js").includes("r28d-r29"));
+assert.ok(read("sw.js").includes("source-tree-depth-r33"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 console.log("R29 PASS: "+art.stats().sourceWoodlandTrails+
  " muted painted Greenwood source trails; 65 physical routes, seven crossings, original saves protected; user art approval 0%");
