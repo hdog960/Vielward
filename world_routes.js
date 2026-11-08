@@ -142,9 +142,57 @@ function create(model,geometry,options={}){
   return !e.crossing&&nodes[e.from]?.region==="greenwood"&&
    nodes[e.to]?.region==="greenwood"
  }
+
+ // R35b: the SOURCE stair from Falls east bank to the existing overlook
+ // is a broad, moss-inlaid stone ascent. The old generic staircase drew
+ // dozens of ruler-straight bright crossbars, like a railway track.
+ // Road centerline, exact collision floor width, step elevation and all
+ // original endpoints remain from the original authoritative route.
+ function fallsStoneAscent(ctx,e,bounds){
+  const half=e.halfWidth||76;
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  strokePath(ctx,e.path,"rgba(28,58,47,.16)",half*1.21);
+  strokePath(ctx,e.path,"rgba(82,104,82,.33)",half*.91);
+  strokePath(ctx,e.path,"rgba(125,139,110,.28)",half*.68);
+  for(const [a,b,prior,len] of e.parts){
+   if(len<1||!closeTo(bounds,a,b,120))continue;
+   const dx=(b[0]-a[0])/len,dy=(b[1]-a[1])/len,
+    nx=-dy,ny=dx;
+   // Larger, less repetitive irregular flagstone shoulders are
+   // an integrated walking route, never freestanding blocks.
+   for(let dist=57;dist<len;dist+=112){
+    const seed=hash(Math.floor((prior+dist)/67),e.id.length,351),
+     x=a[0]+dx*dist+nx*(seed-.5)*8,
+     y=a[1]+dy*dist+ny*(seed-.5)*8;
+    if(x<bounds[0]-130||x>bounds[2]+130||
+       y<bounds[1]-130||y>bounds[3]+130)continue;
+    const w=half*(.47+seed*.16),depth=21+seed*8;
+    const pts=[
+     [x-nx*w-dx*depth*.55,y-ny*w-dy*depth*.55],
+     [x+nx*w*.88-dx*depth*.49,y+ny*w*.88-dy*depth*.49],
+     [x+nx*w*.95+dx*depth*.43,y+ny*w*.95+dy*depth*.43],
+     [x-nx*w*.89+dx*depth*.47,y-ny*w*.89+dy*depth*.47]
+    ];
+    ctx.beginPath();pts.forEach((p,i)=>i?
+     ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+    ctx.closePath();
+    ctx.fillStyle=seed>.5?"rgba(151,152,130,.42)":
+     "rgba(111,132,110,.38)";
+    ctx.fill();
+    // A single subdued back-edge marks a worn step and the rising
+    // level without a glaring full-width slab or geometric handrail.
+    segment(ctx,pts[0],pts[1],"rgba(198,195,160,.17)",3);
+   }
+  }
+  ctx.restore()
+ }
+
  function ribbon(ctx,e,bounds){
   if(raster?.paintedRoad(ctx,e,bounds))return;
   if(woodlandEdge(e)){paintWoodlandTrail(ctx,e,bounds);return}
+  if(e.id==="falls_e--falls_overlook"){
+   fallsStoneAscent(ctx,e,bounds);return
+  }
   const first=e.path[0],last=e.path[e.path.length-1];
   const colors=palette((first[0]+last[0])/2,(first[1]+last[1])/2);
   const wide=e.kind==="street"||e.kind==="road"||e.kind==="old-road",stair=e.kind==="stairs"||e.slope==="stairs",steep=e.kind==="switchback"||e.slope==="switchback";
@@ -351,7 +399,7 @@ function create(model,geometry,options={}){
  }
  function stats(){return{version:VERSION,...categorized,railGuards:"source-coupled bridge rail clearance",
   climatePaths:!!climate,authoredWinterRoads:!!raster,waterCrossingOnly:true,
-  sourceWoodlandTrails:roads.filter(woodlandEdge).length,greenwoodTrailR29:true}}
+  sourceWoodlandTrails:roads.filter(woodlandEdge).length,greenwoodTrailR29:true,fallsMossStoneAscentR35b:true}}
  return{version:VERSION,roads,crossings,stats,nearestRoad,edgeGuard,draw,drawDebug}
 }
 window.VeilwardRoutes={version:VERSION,create,deckTypes};
