@@ -1,3 +1,7 @@
+## Phase 9 R31b — physically rooted illustrated woodland edges
+
+R31 showed additional original forest but left the crossroads largely empty. R31b adds a small number of full R18 painted oak/pine trees along actual physical forest margins beside the Hearth, selected under every existing road, water, house, root and player-clearance rule. Trees use the same original footprint for art and collision: no pasted wallpaper or fake trunks. Real-browser scene GREENWOOD_R31B_PAINTED_FOREST_EDGE; visual acceptance remains 0%, Phase 10 locked.
+
 ## Phase 9 R31 — original rooted woodland in Greenwood landscape framing
 
 The R30 actual gameplay image showed an empty crossroad because the compact landscape camera cropped the existing physical oak and pine forest just south of Hearth. R31 composes the camera to reveal those original illustrated, collidable roots by easing the small landscape zoom to 0.70 and positioning the Wanderer 42% from the top. No fake tree art, roads, hitboxes or saved positions are created. The Hermit, close-cottage, portrait and desktop camera rules are unchanged. Actual browser screenshot: GREENWOOD_R31_REAL_FOREST_FRAME. Phase 9 active, user visual acceptance 0%, Phase 10 locked.

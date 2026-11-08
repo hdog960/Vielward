@@ -573,6 +573,30 @@ try{
   throw Error("R31 original painted forest camera composition failed "+JSON.stringify(r31));
  console.log("R31_REAL_WOODLAND_FRAME "+JSON.stringify(r31));
  await sleep(950);await capture(page,"GREENWOOD_R31_REAL_FOREST_FRAME");
+ const r31b=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player,
+   b=[p.x-1150,p.y-950,p.x+1150,p.y+1100];
+  const rooted=s.footprint.groves(b,520).filter(o=>o.authoredGrove);
+  const edges=rooted.filter(o=>Number(o.id.replace("hearth_root_",""))>=20);
+  const bounds=edges.map(o=>{
+   const scale=o.kind==="oak"?1.20:1.08,
+    w=o.radius*(o.kind==="oak"?5.4:4.6)*scale,
+    h=o.radius*(o.kind==="oak"?7:7.6)*scale,
+    dx=o.x-p.x,dy=o.y-p.y;
+   return{id:o.id,kind:o.kind,dx:Math.round(dx),dy:Math.round(dy),
+    visible:dx+w/2>-515&&dx-w/2<515&&dy>-242&&dy-h<335,
+    solid:s.footprint.blocked(o.x,o.y,4)}
+  });
+  return{newCount:edges.length,total:rooted.length,trees:bounds,
+   clearHero:!s.blocked(p.x,p.y),
+   cottage:s.setpieces.objects.filter(o=>o.anchor==="greenwood_hearth"&&
+    o.kind==="forest_cottage").length}
+ });
+ if(r31b.newCount<1||!r31b.trees.some(o=>o.visible)||
+  r31b.trees.some(o=>!o.solid)||!r31b.clearHero||r31b.cottage!==1)
+  throw Error("R31b real forest edge placement failed "+JSON.stringify(r31b));
+ console.log("R31B_PAINTED_FOREST_EDGE "+JSON.stringify(r31b));
+ await sleep(1050);await capture(page,"GREENWOOD_R31B_PAINTED_FOREST_EDGE");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");

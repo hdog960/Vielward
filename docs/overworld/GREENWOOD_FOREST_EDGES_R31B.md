@@ -1,0 +1,3 @@
+# Vielward Phase 9 R31b — Genuine illustrated woodland edge
+
+Adds validated real old-growth oak/pine roots on the far margins of the existing Hearth landscape camera, avoiding all 65 source road sections, built structures, protected house entrances, water and existing physical roots. Retains the R28d hero canopy guard. Each new tree is fully painted from original R18 source artwork and has a true matching boot collider, not a simulated or static background. All 48 nodes, 65 roads, seven crossings and the saved character state remain unchanged. Full regression and Chromium scene GREENWOOD_R31B_PAINTED_FOREST_EDGE are required; user artistic acceptance remains 0%, Phase 10 locked.

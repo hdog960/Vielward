@@ -1,4 +1,4 @@
-/* VEILWARD Phase 9 R28d — grounded forest-edge canopy protecting hero readability.
+/* VEILWARD Phase 9 R31b — physically rooted illustrated forest edges and hero readability.
  * A physically traversable 12-region landmass and reproducible region scenery.
  * All natural blockers are rendered from the very same positions/footprint as
  * their boot-level collision. No NPC/player art is touched or copied.
@@ -202,7 +202,13 @@ function create(model,geo,source,options={}){
    [-85,-405,"pine"],[530,-310,"oak"],[420,610,"oak"],
    [-485,-395,"pine"],[635,-325,"pine"],[545,-225,"oak"],
    [-370,-540,"oak"],[-510,540,"oak"],[625,620,"pine"],
-   [-125,-530,"pine"],[325,-530,"oak"]
+   [-125,-530,"pine"],[325,-530,"oak"],
+   // R31b: physically grounded painted oaks/pines at the woodland edge,
+   // all still subject to roads, water, cottage, other roots and hero clearway.
+   [560,470,"oak"],[-550,500,"oak"],[650,330,"pine"],
+   [-660,365,"pine"],[625,625,"oak"],[555,375,"pine"],
+   [-600,565,"oak"],[685,480,"oak"],[-750,485,"oak"],
+   [785,370,"pine"],[510,510,"oak"]
   ];
   // The painted canopy projects vertically ABOVE its physical tree root.
   // A source-valid trunk can still make the sprite appear UNDER the hero
@@ -216,7 +222,7 @@ function create(model,geo,source,options={}){
   }
   const rooted=[];
   for(let index=0;index<positions.length;index++){
-   if(rooted.length>=9)break;
+   if(rooted.length>=10)break;
    const [dx,dy,kind]=positions[index],
     x=hx+dx,y=hy+dy,r=52+Math.floor(hash(index,217,seed)*9);
    if(crownCoversHero(dx,dy,r,kind))continue;

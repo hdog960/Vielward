@@ -19,7 +19,7 @@ const unit=model.worldDesign.worldUnitScale,
  cx=hearth.point[0]*unit,cy=hearth.point[1]*unit,
  bounds=[cx-1100,cy-1020,cx+1100,cy+1020],
  trees=foot.groves(bounds,500).filter(o=>o.authoredGrove);
-assert.ok(trees.length>=2&&trees.length<=9,
+assert.ok(trees.length>=2&&trees.length<=10,
  "curated physically rooted canopy should add genuine limited old growth");
 assert.equal(trees.length,foot.stats().hearthRootedOldGrowth);
 assert.equal(new Set(trees.map(o=>o.id)).size,trees.length);
@@ -71,7 +71,7 @@ for(const road of geometry.roads){
 assert.ok(walkSamples>4000);
 assert.equal(JSON.stringify(model.nodes),originalNodes);
 assert.equal(JSON.stringify(model.edges),originalEdges);
-assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=28d"));
+assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=31b"));
 assert.ok(read("sw.js").includes("source-glade-habitat-r25b-r26-r27-r28d"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 
