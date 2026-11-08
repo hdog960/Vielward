@@ -575,7 +575,7 @@ try{
  }
  // Additive pass isolation is more conclusive than single-pass masking:
  // only the genuine production base + one specific original painter.
- for(const layer of ["footprint","surfaces","props","setpieces","raster"]){
+ for(const layer of ["ground","features","routes","footprint","surfaces","props","setpieces","raster"]){
   const name="GREENWOOD_R25_BASE_PLUS_"+layer.toUpperCase();
   await page.evaluate(layer=>{
    const s=window.__veilwardCaptureStream;
