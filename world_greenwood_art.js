@@ -816,6 +816,75 @@ function create({footprint,geometry,model}={}){
  }
 
 
+
+ // R37: native Greenwood Falls forest is rooted in actual physical
+ // off-road trunks. No false collision, pasted scenery photo, or
+ // randomly tiled backdrop: the ground shade and high canopy share
+ // the same source root used by the live tree painter and movement.
+ const fallsNode=(model?.nodes||[]).find(n=>n.id==="falls_overlook");
+ const fallsAnchor=fallsNode?{
+  x:fallsNode.point[0]*(model.worldDesign.worldUnitScale||60),
+  y:fallsNode.point[1]*(model.worldDesign.worldUnitScale||60)}:null;
+ function fallsRoots(bounds){
+  if(!fallsAnchor||!footprint?.groves)return[];
+  const s=fallsAnchor;
+  if(bounds[2]<s.x-2250||bounds[0]>s.x+2250||
+     bounds[3]<s.y-2050||bounds[1]>s.y+2050)return[];
+  const vicinity=[s.x-1850,s.y-1650,s.x+1850,s.y+1750];
+  return footprint.groves(vicinity,250).filter(o=>
+   o.authoredFallsGrove&&["oak","pine"].includes(o.kind)&&
+   !geometry.waterAt(o.x,o.y,10)).sort((x,y)=>x.y-y.y)
+ }
+ function paintFallsRootedGorge(ctx,bounds){
+  if(!painted||!ctx?.drawImage||!ctx?.createRadialGradient)return 0;
+  let count=0;
+  for(const o of fallsRoots(bounds)){
+   const r=o.radius,rx=r*(o.kind==="oak"?5.4:4.2),
+    px=o.x-r*.30,py=o.y-r*.94;
+   if(px+rx<bounds[0]||px-rx>bounds[2]||
+     py+rx<bounds[1]||py-rx>bounds[3])continue;
+   const shade=ctx.createRadialGradient(px,py,r*.20,px,py,rx);
+   shade.addColorStop(0,"rgba(22,53,38,.26)");
+   shade.addColorStop(.48,"rgba(40,75,47,.15)");
+   shade.addColorStop(.85,"rgba(74,113,66,.045)");
+   shade.addColorStop(1,"rgba(76,113,66,0)");
+   ctx.save();ctx.fillStyle=shade;
+   ctx.fillRect(px-rx,py-rx,rx*2,rx*2);
+   const w=r*2.30,h=r*1.40;
+   ctx.globalAlpha=.39;ctx.imageSmoothingEnabled=true;
+   ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
+    Math.round(o.x-w*.5),Math.round(o.y-h*.81),
+    Math.round(w),Math.round(h));
+   ctx.restore();count++
+  }
+  return count
+ }
+ function paintFallsCanopyBoughs(ctx,bounds,roots){
+  if(!painted||!ctx?.drawImage||!fallsAnchor||!Array.isArray(roots))
+   return 0;
+  let count=0;
+  const seen=new Set();
+  for(const root of roots){
+   if(!root?.authoredFallsGrove||seen.has(root.id)||
+      geometry.waterAt(root.x,root.y,12))continue;
+   seen.add(root.id);
+   const r=root.radius,w=r*(root.kind==="oak"?3.65:3.25),
+    h=w*(root.kind==="oak"?.58:.70),
+    x=root.x+r*(root.kind==="oak"?.40:-.35),
+    y=root.y-r*(root.kind==="oak"?3.65:4.25);
+   if(x-w*.5>bounds[2]||x+w*.5<bounds[0]||
+      y-h>bounds[3]||y<bounds[1])continue;
+   if(Math.abs(x-fallsAnchor.x)<w*.5+105&&
+      y+h>fallsAnchor.y-145)continue;
+   ctx.save();ctx.globalAlpha=.76;ctx.imageSmoothingEnabled=true;
+   const src=root.kind==="oak"?0:PAINTED_SIZE;
+   ctx.drawImage(painted,src,0,PAINTED_SIZE,78,
+    Math.round(x-w*.5),Math.round(y-h),Math.round(w),Math.round(h));
+   ctx.restore();count++
+  }
+  return count
+ }
+
  // R34: Greenwood Falls' banks are drawn from the authoritative
  // FROSTBRIDGE RIVER centreline and dry, walkable shore, not guessed
  // decorative stepping stones or an invented waterfall collision mesh.
@@ -1145,6 +1214,7 @@ function create({footprint,geometry,model}={}){
   paintRootedUnderstory(ctx,bounds,anchored);
   // R34: physically sourced moss/stone riverbanks beneath existing decks.
   paintFallsRiverBanks(ctx,bounds);
+  paintFallsRootedGorge(ctx,bounds);
   for(const o of anchored){
    if(!["oak","pine","scrub"].includes(o.kind)||!forest(o.x,o.y)||
        geometry.waterAt(o.x,o.y,2))continue;
@@ -1192,12 +1262,13 @@ function create({footprint,geometry,model}={}){
   rootedOverstoryR30:true,fallsPhysicalRiverBanksR34:true,
   fallsNativeWaterAndWoodlandR34b:true,
   fallsOriginalLookoutR36:true,fallsLookoutReducedStripesR36b:true,
+  fallsCollisionRootedGorgeR37:true,fallsNativeCanopyFrameR37:true,
   riverSourcedEscarpmentR35:true,sculptedBankContrastR35b:true,nonGeometricBankBlendR35c:true,
   nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,paintFallsRiverBanks,paintFallsOverlook,fallsBankSources:()=>sourceFallsBanks().map(o=>({...o})),stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,paintFallsRiverBanks,paintFallsOverlook,paintFallsRootedGorge,paintFallsCanopyBoughs,fallsBankSources:()=>sourceFallsBanks().map(o=>({...o})),stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},

@@ -1,3 +1,8 @@
+## Phase 9 R37 — Greenwood Falls rooted woodland composition (November 8, 2026)
+R37 is an actual-game artwork and physical-source slice. Up to 14 individually collision-audited native oak/pine roots surround the genuine Falls overlook. Native R18 painted forest-floor moss and tree canopy are rendered from those same tree roots, preserving original player depth/occlusion, roads, stairs, water and save data. Files: `world_footprint.js`, `world_greenwood_art.js`, `world_illustration.js`; tests: `tests/greenwood_rooted_falls_r37.test.js`; live capture: `GREENWOOD_R37_ROOTED_FOREST_CLIFF`. Full details: `docs/overworld/GREENWOOD_ROOTED_FALLS_R37.md`.
+
+**Phase 9 remains active; creator visual acceptance 0%; Phase 10 locked; physical iPhone testing outstanding.**
+
 ## Phase 9 R24 — Greenwood landmark forest-floor habitat, v1.3.32
 
 R23's real screenshots show sophisticated source-painted houses sitting against largely empty, uncomposed green ground. R24 adds walkable, independent R18 painted fern material around **the two original waypoints** `greenwood_hearth` and `hermit` in the actual streamed Greenwood painter. Non-grid golden-angle clusters vary scale, spacing and rotation, with low-opacity forest canopy light/contact shadow, and check the authoritative original physical water, road corridor, obstacle and tree-trunk occupancy before drawing. This is ground-only artwork beneath the real road and building passes; it creates **no roads, obstacles, building duplicates, or new tree colliders**.

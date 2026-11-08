@@ -259,6 +259,57 @@ function create(model,geo,source,options={}){
  }
  const hearthGroveRoots=buildHearthGrove();
 
+ // R37: source-anchored, physically rooted Greenwood Falls forest.
+ // Candidate positions cannot override roads, water, steps or older roots.
+ function buildFallsGrove(){
+  const n=nodes.falls_overlook;if(!n)return[];
+  const hx=n.point[0]*scale,hy=n.point[1]*scale,rooted=[];
+  for(let i=0;i<168&&rooted.length<14;i++){
+   const angle=(i+.73)*2.399963229728653,
+    distance=485+(i%9)*131+hash(i,seed,431)*77;
+   const x=hx+Math.cos(angle)*distance*1.12,
+    y=hy+Math.sin(angle)*distance*.90-55,
+    r=53+hash(i,seed,433)*14,dx=x-hx,dy=y-hy;
+   if(Math.hypot(dx,dy)<430||
+     (dy>0&&dy<520&&Math.abs(dx)<245))continue;
+   const kind=(i%5===0||i%7===0)?"pine":"oak";
+   if(!onLand(x,y)||regionAt(x,y)?.id!=="greenwood_falls"||
+     geo.waterAt(x,y,r+40)||geo.obstacle(x,y,r+70)||
+     inProtectedSite(x,y,r)||!rootClearOfRoads(x,y,r)||
+     geo.nearRoad(x,y,()=>true,r+105))continue;
+   if(clearings.some(c=>Math.hypot(x-c.x,y-c.y)<
+     Math.min(c.r,205)+r+62))continue;
+   // Front-side painted crowns must not cover the player's vista.
+   const w=r*(kind==="oak"?5.4:4.6)*1.2,
+    h=r*(kind==="oak"?7:7.6)*1.2;
+   if(dy>0&&Math.abs(dx)<w*.5+92&&dy-h<70)continue;
+   if(rooted.some(o=>Math.hypot(o.x-x,o.y-y)<o.radius+r+68))
+    continue;
+   let crowded=false;
+   const fx=Math.floor(x/span),fy=Math.floor(y/span),
+    gx=Math.floor(x/GROVE_SPAN),gy=Math.floor(y/GROVE_SPAN);
+   for(let oy=-2;oy<=2&&!crowded;oy++)for(let ox=-2;ox<=2;ox++){
+    const old=fieldCell(fx+ox,fy+oy);
+    if(old?.solid&&Math.hypot(old.x-x,old.y-y)<old.radius+r+35)
+     crowded=true
+   }
+   for(let oy=-2;oy<=2&&!crowded;oy++)for(let ox=-2;ox<=2;ox++){
+    const old=groveCell(gx+ox,gy+oy);
+    if(old&&Math.hypot(old.x-x,old.y-y)<old.radius+r+35)
+     crowded=true
+   }
+   if(crowded)continue;
+   const weather=climate?.sample(x,y);
+   rooted.push({id:"falls_root_"+i,x,y,radius:r,kind,solid:true,
+    biome:"greenwood_falls",variant:hash(i,seed,439),
+    snow:weather?.snow??.04,moisture:weather?.wet??.65,
+    authoredGrove:true,authoredFallsGrove:true})
+  }
+  return rooted
+ }
+ const fallsGroveRoots=buildFallsGrove();
+
+
  function groves(bounds,pad=220){
   const [x0,y0,x1,y1]=bounds,result=[];
   for(let iy=Math.floor((y0-pad)/GROVE_SPAN)-1;iy<=Math.floor((y1+pad)/GROVE_SPAN)+1;iy++)
@@ -267,7 +318,7 @@ function create(model,geo,source,options={}){
     if(o&&o.x+o.radius+190>=x0&&o.x-o.radius-190<=x1&&
        o.y+o.radius+240>=y0&&o.y-o.radius-240<=y1)result.push(o)
    }
-  for(const o of hearthGroveRoots){
+  for(const o of [...hearthGroveRoots,...fallsGroveRoots]){
    if(o.x+o.radius+200>=x0-pad&&o.x-o.radius-200<=x1+pad&&
       o.y+o.radius+320>=y0-pad&&o.y-o.radius-320<=y1+pad)
     result.push(o)
@@ -286,7 +337,7 @@ function create(model,geo,source,options={}){
    const obj=groveCell(cx+dx,cy+dy);
    if(obj&&Math.hypot(x-obj.x,y-obj.y)<obj.radius+r)return true
   }
-  for(const o of hearthGroveRoots)
+  for(const o of [...hearthGroveRoots,...fallsGroveRoots])
    if(Math.hypot(x-o.x,y-o.y)<o.radius+r)return true;
   return false
  }
@@ -474,7 +525,7 @@ function create(model,geo,source,options={}){
  function stats(){
   return{version:VERSION,regions:regions.size,majorHubs:hubs.length,routeClearings:clearings.length,
    sourceFieldCell:span,outlinePoints:poly.length,cachedFields:cachedFields.size,maximumCachedFields:MAX_CACHE,groveCells:groveCache.size,maximumGroves:MAX_GROVE_CACHE,
-   hearthRootedOldGrowth:hearthGroveRoots.length,fallsPlaceholderPylonsRemovedR36:true,landmassCollision:true,climateEnabled:!!climate};
+   hearthRootedOldGrowth:hearthGroveRoots.length,fallsRootedGroveR37:fallsGroveRoots.length,fallsPlaceholderPylonsRemovedR36:true,landmassCollision:true,climateEnabled:!!climate};
  }
  return{version:VERSION,source,climate,onLand,regionAt,fieldCell,cells,groves,blocked,safePoint,draws,drawScenery,drawForeground,debug,stats,
   featureAt:(x,y)=>fieldCell(Math.floor(x/span),Math.floor(y/span))}

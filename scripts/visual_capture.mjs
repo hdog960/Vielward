@@ -890,6 +890,35 @@ try{
  console.log("R36B_NATIVE_SCULPTED_OVERLOOK "+JSON.stringify(r36b));
  await sleep(1100);await capture(page,"GREENWOOD_R36B_SCULPTED_OVERLOOK");
 
+ // R37: capture the real game with original native trees at physical
+ // forest roots; the previous R36b scene is the comparison frame.
+ const r37=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,
+   n=s.model.nodes.find(n=>n.id==="falls_overlook"),
+   x=n.point[0]*60,y=n.point[1]*60,
+   bounds=[x-1700,y-1400,x+1700,y+1450],
+   roots=s.footprint.groves(bounds,250).filter(o=>o.authoredFallsGrove),
+   art=window.VeilwardGreenwoodArt.create({
+    model:s.model,geometry:s.geometry,footprint:s.footprint});
+  const canvas=document.createElement("canvas");canvas.width=8;canvas.height=8;
+  const ctx=canvas.getContext("2d");
+  return{roots:roots.length,terrain:art.paintFallsRootedGorge(ctx,bounds),
+   canopy:art.paintFallsCanopyBoughs(ctx,bounds,roots),
+   native:art.stats().fallsNativeCanopyFrameR37,
+   physicallyRooted:s.footprint.stats().fallsRootedGroveR37,
+   sourceArt:art.stats().paintedAssetReady,
+   walkable:!s.blocked(s.player.x,s.player.y),
+   roads:s.routeArt.stats().roads,crossings:s.routeArt.stats().crossings}
+ });
+ if(r37.roots<2||r37.terrain<2||r37.canopy<1||
+    !r37.native||r37.physicallyRooted<2||!r37.sourceArt||
+    !r37.walkable||r37.roads!==65||r37.crossings!==7)
+  throw Error("R37 physical Falls grove / native painted backdrop missing "+
+   JSON.stringify(r37));
+ console.log("R37_ACTUAL_ROOTED_FALLS_GORGE "+JSON.stringify(r37));
+ await sleep(1200);await capture(page,"GREENWOOD_R37_ROOTED_FOREST_CLIFF");
+
+
 
 
 

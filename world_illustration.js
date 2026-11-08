@@ -402,7 +402,8 @@ function create(model,geometry,options={}){
    // source trees. Draw before characters, not into a fake backdrop.
    greenwood.paintCanopyLinks(ctx,bounds,roots);
    greenwood.paintHearthEdgeBoughs(ctx,bounds,roots);
-   greenwood.paintHearthUpperForest(ctx,bounds,roots)
+   greenwood.paintHearthUpperForest(ctx,bounds,roots);
+   greenwood.paintFallsCanopyBoughs(ctx,bounds,roots)
   }
   let count=0;
   for(const tree of roots){
