@@ -766,6 +766,38 @@ try{
   throw Error("R34c Falls land material recovery failed "+JSON.stringify(r34c));
  console.log("R34C_WALKABLE_NATIVE_BANK "+JSON.stringify(r34c));
  await sleep(850);await capture(page,"GREENWOOD_R34C_ALL_NATIVE_SURFACES");
+ // R35: validate composition from the actual playable 12-region map.
+ const r35=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const painter=window.VeilwardGreenwoodArt.create({
+   model:s.model,geometry:s.geometry,footprint:s.footprint});
+  const p=s.player,c=document.createElement("canvas");
+  c.width=8;c.height=8;
+  const view=[p.x-1100,p.y-900,p.x+1100,p.y+1100];
+  const drawn=painter.paintFallsRiverBanks(c.getContext("2d"),view);
+  const sources=painter.fallsBankSources();
+  return{drawn,sources:sources.length,landform:painter.stats().riverSourcedEscarpmentR35,
+   walkable:!s.blocked(p.x,p.y),water:!s.geometry.waterAt(p.x,p.y,0),
+   crossings:s.routeArt.stats().crossings,roads:s.routeArt.stats().roads}
+ });
+ if(!r35.landform||r35.drawn<4||r35.sources<20||
+    !r35.walkable||!r35.water||r35.crossings!==7||r35.roads!==65)
+  throw Error("R35 linked geological shoreline missing "+JSON.stringify(r35));
+ console.log("R35_ACTUAL_GEOLOGICAL_TERRACES "+JSON.stringify(r35));
+ await sleep(950);await capture(page,"GREENWOOD_R35_SCULPTED_RIVERBANK");
+ // An additional angle, from the authored overlook, checks whether the
+ // *whole* landscape composes correctly rather than only the shore edge.
+ const outlook=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const v=s.jumpToNode("falls_overlook");
+  if(s.blocked(s.player.x,s.player.y))
+   throw Error("R35 actual overlook blocked");
+  s.warm(s.player.x,s.player.y,2250,1600);
+  return{x:s.player.x,y:s.player.y,landmark:v.node}
+ });
+ console.log("R35_GENUINE_FALLS_OVERLOOK "+JSON.stringify(outlook));
+ await sleep(1700);await capture(page,"GREENWOOD_R35_FALLS_OVERLOOK");
+
 
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
@@ -872,10 +904,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.35"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+ if(state.build!=="v1.3.36"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
   !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||!state.greenwoodR21||!state.greenwoodR23||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.35 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.36 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
