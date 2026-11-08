@@ -573,6 +573,26 @@ try{
    await sleep(300)
   }
  }
+ // Additive pass isolation is more conclusive than single-pass masking:
+ // only the genuine production base + one specific original painter.
+ for(const layer of ["footprint","surfaces","props","setpieces","raster"]){
+  const name="GREENWOOD_R25_BASE_PLUS_"+layer.toUpperCase();
+  await page.evaluate(layer=>{
+   const s=window.__veilwardCaptureStream;
+   window.__r25OriginalPainter=s.art.paintChunk;
+   s.art.paintChunk=(ctx,bounds,resolution)=>
+    s.art.inspectGroundPlus(ctx,bounds,resolution,layer);
+   s.clearCache()
+  },layer);
+  try{await sleep(580);await capture(page,name)}
+  finally{
+   await page.evaluate(()=>{
+    const s=window.__veilwardCaptureStream;
+    s.art.paintChunk=window.__r25OriginalPainter;
+    s.clearCache();delete window.__r25OriginalPainter
+   });await sleep(280)
+  }
+ }
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
