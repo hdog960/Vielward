@@ -111,17 +111,17 @@ ok(source["world_stream.js"].includes("setpieces?.blocked(x,y,10,o=>"),
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
 for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_setpieces.js?v=3",
  "world_illustration.js?v=28","terrain_art.js?v=32","world_routes.js?v=27",
- "world_stream.js?v=32","world_review.js?v=4","game.js?v=56",
- "manifest.webmanifest?v=1335"])
+ "world_stream.js?v=32","world_review.js?v=4","game.js?v=57",
+ "manifest.webmanifest?v=1336"])
  ok(html.includes(asset)&&sw.includes(asset),"Safari and iPhone PWA cache exactly same R2 source "+asset);
 ok(html.indexOf("world_setpieces.js?v=3")<html.indexOf("world_illustration.js?v=28")&&
  html.indexOf("world_illustration.js?v=28")<html.indexOf("world_stream.js?v=32"),
  "order builds solid fixtures and artist before stream boot");
-ok(game.includes('const APP_VERSION="1.3.35";')&&
+ok(game.includes('const APP_VERSION="1.3.36";')&&
  game.includes('const SAVE="veilward-hollowreach-v01";'),"preserved legacy save and correct R2 build");
 ok(game.includes('!stream.setpieces')&&game.includes("show&&worldPreview.debug"),
  "real preview requires full R2 art and keeps debug diagnostics off gameplay screen");
-ok(sw.includes("veilward-hollowreach-v1335-greenwood-falls-r34"),"iPhone offline cache invalidates R1 scene art");
+ok(sw.includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"),"iPhone offline cache invalidates R1 scene art");
 ok(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&
  source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved hero and Warden sprite assets unchanged");
 console.log("Veilward R2 SOURCE PASS",assertions,"assertions,",scene.objects.length,"physical compositions,",
