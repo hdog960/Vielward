@@ -79,7 +79,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.ok(read("terrain_art.js").includes("raster.drawWinterFootpaths(ctx,bounds)"),
   "REAL chunk renderer must paint impressions after the existing roads");
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
  assert.ok(read("index.html").includes("world_raster_pilot.js?v=28"));
  for(const anchor of model.nodes)
   assert.equal(world.blocked(anchor.point[0]*60,anchor.point[1]*60),false,

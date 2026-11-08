@@ -65,7 +65,7 @@ for(const f of ["world_geometry.js","world_climate.js","world_footprint.js",
   old.map(n=>n*2),"deterministic world-space snow painting");
  assert.ok(read("world_raster_pilot.js").includes("drawSourceSnowFans(ctx,bounds);"));
  assert.ok(read("terrain_art.js").includes("raster.drawVillageGround(ctx,bounds"));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
  assert.ok(read("index.html").includes("world_raster_pilot.js?v=28"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  for(const anchor of model.nodes)
