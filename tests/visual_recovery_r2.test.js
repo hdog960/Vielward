@@ -111,13 +111,13 @@ ok(source["world_stream.js"].includes("setpieces?.blocked(x,y,10,o=>"),
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
 for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_setpieces.js?v=3",
  "world_illustration.js?v=28","terrain_art.js?v=32","world_routes.js?v=27",
- "world_stream.js?v=32","world_review.js?v=4","game.js?v=55",
- "manifest.webmanifest?v=1334"])
+ "world_stream.js?v=32","world_review.js?v=4","game.js?v=56",
+ "manifest.webmanifest?v=1335"])
  ok(html.includes(asset)&&sw.includes(asset),"Safari and iPhone PWA cache exactly same R2 source "+asset);
 ok(html.indexOf("world_setpieces.js?v=3")<html.indexOf("world_illustration.js?v=28")&&
  html.indexOf("world_illustration.js?v=28")<html.indexOf("world_stream.js?v=32"),
  "order builds solid fixtures and artist before stream boot");
-ok(game.includes('const APP_VERSION="1.3.34";')&&
+ok(game.includes('const APP_VERSION="1.3.35";')&&
  game.includes('const SAVE="veilward-hollowreach-v01";'),"preserved legacy save and correct R2 build");
 ok(game.includes('!stream.setpieces')&&game.includes("show&&worldPreview.debug"),
  "real preview requires full R2 art and keeps debug diagnostics off gameplay screen");
