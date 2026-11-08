@@ -424,6 +424,41 @@ try{
  await sleep(1250);await capture(page,"GREENWOOD_R24_HABITAT");
  // R25 must be judged in the SAME playable Hearth camera, not a concept.
  await capture(page,"GREENWOOD_R25_GROUND");
+ // Test-only A/B diagnostic: temporarily mask the SINGLE original fern
+ // atlas cell to locate which source produces the unwanted white squares.
+ // Restore the source pixel data immediately: not a player-facing game mode.
+ const fernDiagnostic=await page.evaluate(()=>{
+  const art=window.VeilwardGreenwoodArt?.paintedSource;
+  const s=window.__veilwardCaptureStream;
+  const node=s.model.nodes.find(n=>n.id==="greenwood_hearth");
+  const x=node.point[0]*s.model.worldDesign.worldUnitScale,
+   y=node.point[1]*s.model.worldDesign.worldUnitScale;
+  const materials=[[0,0],[190,0],[-190,90],[380,220]]
+   .map(([dx,dy])=>({
+    at:[dx,dy],ground:s.art.materialAt(x+dx,y+dy),
+    region:s.footprint.regionAt(x+dx,y+dy)?.id
+   }));
+  const t=art?.getContext("2d");
+  if(!t?.getImageData)return{materials,masked:false};
+  window.__savedGreenwoodFernCell=t.getImageData(256,0,128,128);
+  t.clearRect(256,0,128,128);s.clearCache();
+  return{materials,masked:true}
+ });
+ console.log("R25_GROUND_SOURCE_DIAGNOSTIC "+JSON.stringify(fernDiagnostic));
+ if(fernDiagnostic.masked){
+  try{
+   await sleep(1000);await capture(page,"GREENWOOD_R25_DIAGNOSTIC_FERNS_MASKED");
+  }finally{
+   await page.evaluate(()=>{
+    const t=window.VeilwardGreenwoodArt.paintedSource.getContext("2d");
+    t.putImageData(window.__savedGreenwoodFernCell,256,0);
+    window.__veilwardCaptureStream.clearCache();
+    delete window.__savedGreenwoodFernCell
+   });
+   await sleep(500)
+  }
+ }
+
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
