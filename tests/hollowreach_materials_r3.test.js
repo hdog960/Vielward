@@ -91,14 +91,14 @@ for(const path of paths)vm.runInNewContext(S[path],sandbox,{filename:path});
  "assets/hollowreach_ground_painted_v2.webp?v=1",
   "assets/hollowreach_neighborhood_r6.png?v=1",
  "world_raster_pilot.js?v=28","world_routes.js?v=27",
- "world_illustration.js?v=26","terrain_art.js?v=32","world_stream.js?v=32","game.js?v=53"]){
+ "world_illustration.js?v=27","terrain_art.js?v=32","world_stream.js?v=32","game.js?v=54"]){
   assert.ok(sw.includes(asset),"all iPhone offline assets precached "+asset);
   if(!asset.startsWith("assets/"))assert.ok(html.includes(asset),"game references same updated code "+asset)
  }
  assert.ok(sw.includes("veilward-hollowreach-v1332-source-glade-habitat"));
  const game=fs.readFileSync("game.js","utf8");
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure saved unchanged");
- assert.ok(game.includes('const APP_VERSION="1.3.32";'));
+ assert.ok(game.includes('const APP_VERSION="1.3.33";'));
  console.log("ART MATERIALS R3 PASS",ops,
  "30 authored image elements, real roads and all 48 travel anchors preserved; ART NOT ACCEPTED.");
 })().catch(e=>{console.error(e);process.exit(1)});
