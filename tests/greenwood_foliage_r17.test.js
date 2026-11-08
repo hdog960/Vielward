@@ -80,7 +80,7 @@ for(const name of ["world_geometry.js","world_climate.js","world_footprint.js",
    "original waypoint remains reachable");
  assert.ok(read("index.html").includes("world_greenwood_art.js?v=12"));
  assert.ok(read("sw.js").includes("world_greenwood_art.js?v=12"));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1334-source-tree-depth-r33"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  assert.equal(world.raster.stats().creatorApproved,false);
  console.log("R17 PASS: 15 cached native-pixel Greenwood tree/shrub variants, original physical roots, zero world physics edits, 12 regions, 39 solids, 48 safe nodes, 65 roads, 7 crossings, original save; art unapproved");
