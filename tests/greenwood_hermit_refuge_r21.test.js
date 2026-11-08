@@ -34,7 +34,7 @@ const sprite=scope.VeilwardGreenwoodSanctuary;
  assert.ok(art.includes('kind==="hermit"&&window.VeilwardGreenwoodSanctuary?.stamp('));
  assert.ok(art.includes('kind==="lodge"||kind==="hermit"'),"original fallback retained");
  assert.ok(game.includes("await window.VeilwardGreenwoodSanctuary?.load?.();"));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1334-source-tree-depth-r33"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
  assert.ok(read("index.html").includes("world_greenwood_sanctuary.js?v=3"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  const model=JSON.parse(read("docs/overworld/world_blueprint.json"));

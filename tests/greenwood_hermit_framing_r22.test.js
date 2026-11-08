@@ -61,7 +61,7 @@ assert.ok(code.includes("s.framing?.(vw,vh,WORLD_ZOOM).zoom||WORLD_ZOOM"));
 assert.ok(code.includes("g.scale(adaptiveZoom,adaptiveZoom)"));
 assert.ok(code.includes("s.renderDebug(g,vw,vh,adaptiveZoom)"));
 assert.ok(html.includes("world_stream.js?v=32"));
-assert.ok(sw.includes("veilward-hollowreach-v1334-source-tree-depth-r33"));
+assert.ok(sw.includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
 assert.ok(code.includes('const SAVE="veilward-hollowreach-v01";'));
 assert.ok(read("world_greenwood_sanctuary.js").includes("greenwood_hermit_sanctuary_r21.webp"));
 console.log("R22 PASS: entire 512px hermit roof and Wanderer in mobile landscape, ordinary/portrait camera unchanged, save/physics protected; creator approval 0%");
