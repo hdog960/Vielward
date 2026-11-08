@@ -788,6 +788,106 @@ function create({footprint,geometry,model}={}){
   return shadows
  }
 
+
+ // R34: Greenwood Falls' banks are drawn from the authoritative
+ // FROSTBRIDGE RIVER centreline and dry, walkable shore, not guessed
+ // decorative stepping stones or an invented waterfall collision mesh.
+ // The original R18 mossy-rock painting provides every low rock shelf.
+ // Water, bridges, physical roads, and the existing lake remain untouched.
+ let fallsBanks=null;
+ function sourceFallsBanks(){
+  if(fallsBanks)return fallsBanks;
+  fallsBanks=[];
+  const river=(model?.waterways||[]).find(w=>
+   w.id==="frostbridge_river"&&Array.isArray(w.centerline));
+  const unit=model?.worldDesign?.worldUnitScale||60;
+  if(!river||river.centerline.length<8)return fallsBanks;
+  const line=river.centerline.map(p=>p.map(v=>v*unit));
+  // Lower two reaches frame Greenwood Falls. Earlier snow and Thawline
+  // river stretches retain their original art and different biomes.
+  for(let i=6;i<line.length;i++){
+   const a=line[i-1],b=line[i];
+   const dx=b[0]-a[0],dy=b[1]-a[1],length=Math.hypot(dx,dy);
+   if(length<1)continue;
+   const nx=-dy/length,ny=dx/length;
+   const steps=Math.ceil(length/110);
+   for(let k=0;k<=steps;k++){
+    const t=k/steps,cx=a[0]+dx*t,cy=a[1]+dy*t;
+    // Only the actual river centre and its physically registered
+    // water hazard can anchor a bank.
+    if(geometry.waterAt(cx,cy,0)?.id!=="frostbridge_river")continue;
+    for(const side of [-1,1]){
+     let source=null;
+     for(let offset=184;offset<=310;offset+=14){
+      const x=cx+nx*side*offset,y=cy+ny*side*offset;
+      const region=footprint.regionAt(x,y)?.id;
+      if(region!=="greenwood_falls"&&region!=="greenwood")continue;
+      if(!footprint.onLand(x,y)||
+       geometry.waterAt(x,y,0)||geometry.obstacle(x,y,18)||
+       footprint.blocked?.(x,y,18))continue;
+      if(geometry.nearRoad(x,y,()=>true,135))break;
+      source={x,y,wx:cx+nx*side*(offset-27),
+       wy:cy+ny*side*(offset-27),dir:Math.atan2(dy,dx),
+       segment:i,step:k,side,solidSource:true};
+      break
+     }
+     if(source)fallsBanks.push(source)
+    }
+   }
+  }
+  return fallsBanks
+ }
+ function paintFallsRiverBanks(ctx,bounds){
+  if(!painted||!ctx?.drawImage||!ctx?.beginPath)return 0;
+  const sources=sourceFallsBanks();
+  if(!sources.length)return 0;
+  const inFrame=p=>p.x>bounds[0]-300&&p.x<bounds[2]+300&&
+   p.y>bounds[1]-310&&p.y<bounds[3]+310;
+  let ledges=0;
+  // Each connected shoreline is tracked independently across the global
+  // world grid. Road or water gaps remain OPEN; don't bridge a path with
+  // a visual stone barrier or a rigid polygon strip.
+  for(const side of [-1,1]){
+   const strand=sources.filter(o=>o.side===side);
+   for(let i=1;i<strand.length;i++){
+    const a=strand[i-1],b=strand[i];
+    if(!inFrame(a)&&!inFrame(b)||
+     Math.hypot(b.x-a.x,b.y-a.y)>180||
+     geometry.nearRoad((a.x+b.x)*.5,(a.y+b.y)*.5,
+      ()=>true,110))continue;
+    ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    ctx.lineWidth=156;ctx.strokeStyle="rgba(23,53,43,.18)";ctx.stroke();
+    ctx.lineWidth=94;ctx.strokeStyle="rgba(65,92,69,.22)";ctx.stroke();
+    ctx.lineWidth=34;ctx.strokeStyle="rgba(131,151,107,.27)";ctx.stroke();
+    // Subtle cold water-foam light follows the ORIGINAL river edge,
+    // without modifying the channel or implying a new ford.
+    ctx.beginPath();ctx.moveTo(a.wx,a.wy);ctx.lineTo(b.wx,b.wy);
+    ctx.lineWidth=13;ctx.strokeStyle="rgba(192,213,196,.24)";
+    ctx.stroke();ctx.restore();ledges++
+   }
+  }
+  // The original transparent R18 rock art is a low relief shoreline
+  // wall, not a fake upright boulder or an extra collision object.
+  let rocks=0;
+  for(let i=0;i<sources.length;i++){
+   const o=sources[i];
+   if(o.step%5!==2||!inFrame(o))continue;
+   const scale=.92+hash(o.segment,o.step,o.side)*.20;
+   const w=220*scale,h=108*scale;
+   ctx.save();ctx.globalAlpha=.55;
+   ctx.translate(Math.round(o.x),Math.round(o.y));
+   ctx.rotate?.(o.dir*.14);
+   if(o.side<0)ctx.scale(-1,1);
+   ctx.imageSmoothingEnabled=true;
+   ctx.drawImage(painted,PAINTED_SIZE*3,0,
+    PAINTED_SIZE,PAINTED_SIZE,
+    Math.round(-w*.5),Math.round(-h*.75),
+    Math.round(w),Math.round(h));
+   ctx.restore();rocks++
+  }
+  return ledges+rocks
+ }
  function paintForestFloor(ctx,bounds){
   let count=0;
   // R17b: continuous forest-floor pools fill the entire SOURCE Greenwood
@@ -835,6 +935,8 @@ function create({footprint,geometry,model}={}){
   // on random new solid objects or painted pathways. Roads render afterward.
   const anchored=[...footprint.cells(bounds,420),...footprint.groves(bounds,420)];
   paintRootedUnderstory(ctx,bounds,anchored);
+  // R34: physically sourced moss/stone riverbanks beneath existing decks.
+  paintFallsRiverBanks(ctx,bounds);
   for(const o of anchored){
    if(!["oak","pine","scrub"].includes(o.kind)||!forest(o.x,o.y)||
        geometry.waterAt(o.x,o.y,2))continue;
@@ -879,11 +981,12 @@ function create({footprint,geometry,model}={}){
   retiredConfettiFloor:true,paintedGladeHabitat:true,rootLinkedCanopy:true,
   connectedSafeGladeBeds:true,rootFilteredCanopyLight:true,
   sourceRootedEavesR31c:true,upperForestGalleryR32:true,realActorCanopyDepthR33:true,
-  rootedOverstoryR30:true,nonBlockingCanopyProjection:true,
+  rootedOverstoryR30:true,fallsPhysicalRiverBanksR34:true,
+  nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,paintFallsRiverBanks,stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},
