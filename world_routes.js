@@ -1,4 +1,4 @@
-/* VEILWARD 1.3.2 — Phase 8 full-road and crossing production.
+/* VEILWARD Phase 9 R29 — illustrated Greenwood trails on the original full-road/crossing production.
  * Uses the authoritative world_geometry.js roads for drawing, rail collision,
  * landings and junctions. No duplicate guessed path points or scene teleports.
  */
@@ -76,8 +76,75 @@ function create(model,geometry,options={}){
   line(ctx,path);ctx.strokeStyle=color;ctx.lineWidth=width;
   ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke()
  }
+ // Phase 9 R29: painted woodland travel tread, following the REAL road
+ // centerlines with a few-unit natural wear (never a new shortcut).
+ // Earlier bright straight ribbons consumed the Hearth camera; this
+ // source-anchored, soft-edged trail keeps all physical geometry untouched.
+ function paintWoodlandTrail(ctx,e,bounds){
+  const center=[];
+  for(const [a,b,prior,len] of e.parts){
+   if(len<1)continue;
+   const dx=(b[0]-a[0])/len,dy=(b[1]-a[1])/len,
+    nx=-dy,ny=dx,n=Math.max(2,Math.ceil(len/56));
+   for(let i=0;i<=n;i++){
+    if(center.length&&i===0)continue;
+    const t=i/n,dist=prior+len*t;
+    // Endpoint and junction displacement = zero. The small organic
+    // waviness stays deep inside the original route's half-width.
+    const bend=Math.sin(Math.PI*t)*
+     (Math.sin(dist*.015+e.id.length*.59)*3.6+
+      Math.sin(dist*.041+e.id.length*.37)*1.5);
+    center.push([a[0]+dx*len*t+nx*bend,
+     a[1]+dy*len*t+ny*bend])
+   }
+  }
+  if(center.length<2)return;
+  const hw=e.halfWidth||76;
+  // Soft moss banks and lower-chroma soil preserve the original native
+  // woodland ground underneath; no pale gravel dashes or hard straight
+  // shoulders. Widths are visual, not collision alterations.
+  const strokes=[
+   ["rgba(27,58,40,.13)",hw*1.13,1],
+   ["rgba(65,91,60,.33)",hw*1.01,1],
+   ["#5d6a52",hw*.91,.69],
+   ["#73674f",hw*.72,.88],
+   ["#928165",hw*.39,.58]
+  ];
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  for(const [color,width,opacity] of strokes){
+   ctx.globalAlpha=opacity;
+   strokePath(ctx,center,color,width)
+  }
+  ctx.restore();
+  // Sparse, elongated soil/lichen glazes follow the actual road axis.
+  // No sharp 9-pixel stamps, repetitive white chips or floating flowers.
+  for(const [a,b,prior,len] of e.parts){
+   if(len<1||!closeTo(bounds,a,b,140))continue;
+   const dx=(b[0]-a[0])/len,dy=(b[1]-a[1])/len;
+   for(let k=78;k<len;k+=137){
+    const wx=a[0]+dx*k,wy=a[1]+dy*k;
+    if(wx<bounds[0]-120||wx>bounds[2]+120||
+       wy<bounds[1]-120||wy>bounds[3]+120)continue;
+    const seed=hash(Math.floor((prior+k)/27),e.id.length,71);
+    if(seed<.24)continue;
+    const shift=(seed-.5)*hw*.33,
+     x=wx-dy*shift,y=wy+dx*shift;
+    ctx.save();ctx.translate(x,y);
+    if(ctx.rotate)ctx.rotate(Math.atan2(dy,dx));
+    ctx.scale(19+seed*24,6+seed*5);
+    ctx.beginPath();ctx.arc(0,0,1,0,TAU);
+    ctx.fillStyle=seed>.68?"rgba(49,69,45,.19)":"rgba(46,52,39,.13)";
+    ctx.fill();ctx.restore()
+   }
+  }
+ }
+ function woodlandEdge(e){
+  return !e.crossing&&nodes[e.from]?.region==="greenwood"&&
+   nodes[e.to]?.region==="greenwood"
+ }
  function ribbon(ctx,e,bounds){
   if(raster?.paintedRoad(ctx,e,bounds))return;
+  if(woodlandEdge(e)){paintWoodlandTrail(ctx,e,bounds);return}
   const first=e.path[0],last=e.path[e.path.length-1];
   const colors=palette((first[0]+last[0])/2,(first[1]+last[1])/2);
   const wide=e.kind==="street"||e.kind==="road"||e.kind==="old-road",stair=e.kind==="stairs"||e.slope==="stairs",steep=e.kind==="switchback"||e.slope==="switchback";
@@ -283,7 +350,8 @@ function create(model,geometry,options={}){
   }
  }
  function stats(){return{version:VERSION,...categorized,railGuards:"source-coupled bridge rail clearance",
-  climatePaths:!!climate,authoredWinterRoads:!!raster,waterCrossingOnly:true}}
+  climatePaths:!!climate,authoredWinterRoads:!!raster,waterCrossingOnly:true,
+  sourceWoodlandTrails:roads.filter(woodlandEdge).length,greenwoodTrailR29:true}}
  return{version:VERSION,roads,crossings,stats,nearestRoad,edgeGuard,draw,drawDebug}
 }
 window.VeilwardRoutes={version:VERSION,create,deckTypes};

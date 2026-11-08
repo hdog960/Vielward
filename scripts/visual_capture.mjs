@@ -510,6 +510,22 @@ try{
   throw Error("R28d player appears on a foreground tree: "+JSON.stringify(r28d));
  console.log("R28D_ACTOR_CLEARWAY "+JSON.stringify(r28d));
  await sleep(850);await capture(page,"GREENWOOD_R28D_CLEAR_FOREST_BORDER");
+ const r29=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const stats=s.routeArt.stats();
+  const path=s.geometry.roads.filter(e=>e.from==="greenwood_hearth"||
+   e.to==="greenwood_hearth");
+  const node=s.model.nodes.find(n=>n.id==="greenwood_hearth");
+  return{sourceWoodlandTrails:stats.sourceWoodlandTrails,
+   produced:stats.greenwoodTrailR29,approachCount:path.length,
+   atHearth:!s.blocked(node.point[0]*60,node.point[1]*60),
+   crossings:stats.crossings}
+ });
+ if(!r29.produced||r29.sourceWoodlandTrails<4||
+   r29.approachCount!==4||!r29.atHearth||r29.crossings!==7)
+  throw Error("R29 source-geometry woodland trail mismatch "+JSON.stringify(r29));
+ console.log("R29_SOURCE_WOODLAND_TREAD "+JSON.stringify(r29));
+ await sleep(950);await capture(page,"GREENWOOD_R29_WOODLAND_PATHS");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
