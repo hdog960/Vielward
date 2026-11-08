@@ -785,6 +785,21 @@ try{
   throw Error("R35 linked geological shoreline missing "+JSON.stringify(r35));
  console.log("R35_ACTUAL_GEOLOGICAL_TERRACES "+JSON.stringify(r35));
  await sleep(950);await capture(page,"GREENWOOD_R35_SCULPTED_RIVERBANK");
+ const polish=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,
+  g=window.VeilwardGreenwoodArt.create({
+   model:s.model,geometry:s.geometry,footprint:s.footprint});
+  return {soft:g.stats().sculptedBankContrastR35b,
+   sourceAscents:s.routeArt.stats().fallsMossStoneAscentR35b,
+   crossings:s.routeArt.stats().crossings,roads:s.routeArt.stats().roads,
+   playerDry:!s.geometry.waterAt(s.player.x,s.player.y,0)}
+ });
+ if(!polish.soft||!polish.sourceAscents||!polish.playerDry||
+    polish.crossings!==7||polish.roads!==65)
+  throw Error("R35b actual soft bank/ascent regression "+JSON.stringify(polish));
+ console.log("R35B_SOFT_BANK_AND_AUTHORED_ASCENT "+JSON.stringify(polish));
+ await sleep(850);await capture(page,"GREENWOOD_R35B_SOFT_SCULPTED_SHORE");
+
  // An additional angle, from the authored overlook, checks whether the
  // *whole* landscape composes correctly rather than only the shore edge.
  const outlook=await page.evaluate(()=>{
@@ -797,6 +812,8 @@ try{
  });
  console.log("R35_GENUINE_FALLS_OVERLOOK "+JSON.stringify(outlook));
  await sleep(1700);await capture(page,"GREENWOOD_R35_FALLS_OVERLOOK");
+ await sleep(850);await capture(page,"GREENWOOD_R35B_MOSS_STONE_OVERLOOK");
+
 
 
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
