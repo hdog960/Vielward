@@ -63,8 +63,10 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{filename:"world_greenwood
  assert.ok(images.length>=4,"forest floor uses cohesive authored mat source");
  const illustration=read("world_illustration.js");
  const materials=read("terrain_art.js");
- assert.ok(illustration.includes('footprint.regionAt(x,y)?.id==="greenwood")continue'));
- assert.ok(materials.includes('?.id==="greenwood")return;'));
+ assert.ok(illustration.includes('"greenwood","greenwood_falls"].includes('),
+  "source-only woodland floor replaces repeated decoration in both forests");
+ assert.ok(materials.includes('["greenwood","greenwood_falls"].includes('),
+  "no legacy micrograss across Greenwood and Falls");
  assert.ok(read("sw.js").includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
  assert.ok(read("index.html").includes("world_greenwood_art.js?v=12"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
