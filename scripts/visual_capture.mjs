@@ -847,6 +847,31 @@ try{
  console.log("R35_GENUINE_FALLS_OVERLOOK "+JSON.stringify(outlook));
  await sleep(1700);await capture(page,"GREENWOOD_R35_FALLS_OVERLOOK");
  await sleep(850);await capture(page,"GREENWOOD_R35B_MOSS_STONE_OVERLOOK");
+ // R36: actual gameplay at the mapped Falls overlook, not concept art.
+ // Confirm the old repeated gray pylons are absent from BOTH old painters,
+ // and that original R18 rock+fern atlas is drawn at the true landmark.
+ const r36=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,
+   src=s.model.nodes.find(n=>n.id==="falls_overlook"),
+   painter=window.VeilwardGreenwoodArt.create({
+    model:s.model,geometry:s.geometry,footprint:s.footprint});
+  const c=document.createElement("canvas");c.width=8;c.height=8;
+  const drawn=painter.paintFallsOverlook(c.getContext("2d"),{
+   x:src.point[0]*60,y:src.point[1]*60,kind:"lookout"});
+  return{drawn,original:painter.stats().fallsOriginalLookoutR36,
+   illustration:s.illustration.stats().fallsOriginalLookoutR36,
+   oldBlocksGone:s.footprint.stats().fallsPlaceholderPylonsRemovedR36,
+   source:painter.stats().paintedAssetReady,
+   atRealView:s.footprint.regionAt(s.player.x,s.player.y)?.id==="greenwood_falls",
+   dry:!s.blocked(s.player.x,s.player.y),
+   roads:s.routeArt.stats().roads,crossings:s.routeArt.stats().crossings}
+ });
+ if(r36.drawn<2||!r36.original||!r36.illustration||!r36.oldBlocksGone||
+    !r36.source||!r36.atRealView||!r36.dry||
+    r36.roads!==65||r36.crossings!==7)
+  throw Error("R36 true native-pixel Falls overlook failed "+JSON.stringify(r36));
+ console.log("R36_ORIGINAL_ROCK_AND_FERN_OVERLOOK "+JSON.stringify(r36));
+ await sleep(850);await capture(page,"GREENWOOD_R36_PAINTED_FALLS_OVERLOOK");
 
 
 
