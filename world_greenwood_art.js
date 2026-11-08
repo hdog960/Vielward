@@ -844,41 +844,124 @@ function create({footprint,geometry,model}={}){
   if(!sources.length)return 0;
   const inFrame=p=>p.x>bounds[0]-300&&p.x<bounds[2]+300&&
    p.y>bounds[1]-310&&p.y<bounds[3]+310;
-  let ledges=0;
-  // Each connected shoreline is tracked independently across the global
-  // world grid. Road or water gaps remain OPEN; don't bridge a path with
-  // a visual stone barrier or a rigid polygon strip.
+  // R35: replace the rigid multi-stroke shoreline rails with continuous
+  // THREE-PLANE riverside escarpments. Every boundary below comes from
+  // a single true, dry bank anchor with a verified water-facing source.
+  // This is scenic low-relief rock, not a new cliff collider or walkable ford.
+  const normal=o=>{
+   const dx=o.x-o.wx,dy=o.y-o.wy,d=Math.hypot(dx,dy)||1;
+   return {x:dx/d,y:dy/d}
+  };
+  const inset=(o,depth)=>{
+   const n=normal(o),bend=Math.sin(o.x*.0041+o.y*.0032)*8;
+   return {x:o.x+n.x*(depth+bend),y:o.y+n.y*(depth+bend)}
+  };
+  const smooth=(points,move=true)=>{
+   if(!points.length)return;
+   if(move)ctx.moveTo(points[0].x,points[0].y);
+   else ctx.lineTo(points[0].x,points[0].y);
+   for(let i=1;i<points.length-1;i++){
+    const a=points[i],b=points[i+1];
+    if(ctx.quadraticCurveTo)
+     ctx.quadraticCurveTo(a.x,a.y,(a.x+b.x)*.5,(a.y+b.y)*.5);
+    else ctx.lineTo(a.x,a.y)
+   }
+   const end=points[points.length-1];
+   ctx.lineTo(end.x,end.y)
+  };
+  // Runs cannot connect across original roads/decks or a gap in physical
+  // bank sourcing. Full runs are deterministic WORLD geometry: each chunk
+  // clips them; they do not restart a brush pattern at chunk boundaries.
+  const runs=[];
   for(const side of [-1,1]){
-   const strand=sources.filter(o=>o.side===side);
-   for(let i=1;i<strand.length;i++){
-    const a=strand[i-1],b=strand[i];
-    if(!inFrame(a)&&!inFrame(b)||
-     Math.hypot(b.x-a.x,b.y-a.y)>180||
-     geometry.nearRoad((a.x+b.x)*.5,(a.y+b.y)*.5,
-      ()=>true,110))continue;
-    ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
-    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
-    ctx.lineWidth=156;ctx.strokeStyle="rgba(23,53,43,.18)";ctx.stroke();
-    ctx.lineWidth=94;ctx.strokeStyle="rgba(65,92,69,.22)";ctx.stroke();
-    ctx.lineWidth=34;ctx.strokeStyle="rgba(131,151,107,.27)";ctx.stroke();
-    // Subtle cold water-foam light follows the ORIGINAL river edge,
-    // without modifying the channel or implying a new ford.
-    ctx.beginPath();ctx.moveTo(a.wx,a.wy);ctx.lineTo(b.wx,b.wy);
-    ctx.lineWidth=13;ctx.strokeStyle="rgba(192,213,196,.24)";
-    ctx.stroke();ctx.restore();ledges++
+   let run=[];
+   const flush=()=>{if(run.length>2)runs.push(run);run=[]};
+   for(const o of sources.filter(x=>x.side===side)){
+    const prev=run[run.length-1];
+    const nearCrossing=geometry.nearRoad(o.x,o.y,
+     e=>!!e.crossing,152);
+    const discontinuity=prev&&(
+     Math.hypot(o.x-prev.x,o.y-prev.y)>168||
+     geometry.nearRoad((o.x+prev.x)*.5,(o.y+prev.y)*.5,
+      ()=>true,110));
+    if(nearCrossing||discontinuity)flush();
+    if(!nearCrossing)run.push(o)
+   }
+   flush()
+  }
+  let terraces=0,fernMasses=0;
+  for(const run of runs){
+   if(!run.some(inFrame))continue;
+   const water=run.map(o=>({x:o.wx,y:o.wy}));
+   const lower=run.map(o=>inset(o,10));
+   const mid=run.map(o=>inset(o,66));
+   const upper=run.map(o=>inset(o,137));
+   const center=a=>a.reduce((p,q)=>({x:p.x+q.x/a.length,
+    y:p.y+q.y/a.length}),{x:0,y:0});
+   const near=center(water),far=center(upper);
+   ctx.save();
+   ctx.lineJoin="round";ctx.lineCap="round";
+   // Underbank contact shadow: follows the exact physical water edge.
+   // A wide stone underpainting reads as one joined landform instead of
+   // parallel road-like lines.
+   ctx.beginPath();smooth(water);smooth(upper.slice().reverse(),false);
+   ctx.closePath();
+   if(ctx.createLinearGradient){
+    const face=ctx.createLinearGradient(near.x,near.y,far.x,far.y);
+    face.addColorStop(0,"rgba(21,44,45,.76)");
+    face.addColorStop(.20,"rgba(45,64,57,.80)");
+    face.addColorStop(.51,"rgba(88,102,84,.77)");
+    face.addColorStop(.82,"rgba(99,123,92,.56)");
+    face.addColorStop(1,"rgba(68,106,70,.03)");
+    ctx.fillStyle=face
+   }else ctx.fillStyle="rgba(58,79,68,.62)";
+   ctx.fill();
+   // The carved lower lip and grassy upper lip are two separate
+   // hand-shaped silhouettes, never bars of equal width.
+   ctx.beginPath();smooth(lower);smooth(mid.slice().reverse(),false);
+   ctx.closePath();ctx.fillStyle="rgba(47,63,57,.37)";ctx.fill();
+   ctx.beginPath();smooth(mid);smooth(upper.slice().reverse(),false);
+   ctx.closePath();ctx.fillStyle="rgba(77,112,77,.20)";ctx.fill();
+   // Fine longitudinal fracture follows an actual ledge midway up.
+   ctx.beginPath();smooth(run.map(o=>inset(o,45)));
+   ctx.strokeStyle="rgba(158,161,131,.24)";ctx.lineWidth=7;ctx.stroke();
+   // A broken cool rim belongs to the *water*, not the route.
+   ctx.beginPath();smooth(water);
+   ctx.strokeStyle="rgba(187,210,194,.20)";ctx.lineWidth=8;ctx.stroke();
+   ctx.restore();
+   terraces++;
+   // Substantial R18 painted moss/fern banks attach to dry, genuinely
+   // walkable upper terrace. Keep composition sparse and varied rather
+   // than cloning hundreds of little green stamps.
+   for(let i=3;i<run.length;i+=11){
+    const o=run[i],p=inset(o,104);
+    if(!inFrame(o)||geometry.waterAt(p.x,p.y,0)||
+       geometry.nearRoad(p.x,p.y,()=>true,130)||
+       footprint.blocked?.(p.x,p.y,18))continue;
+    const n=normal(o),scale=.90+hash(o.segment,i,o.side)*.21,
+     w=315*scale,h=147*scale;
+    ctx.save();ctx.globalAlpha=.57;
+    ctx.translate(Math.round(p.x),Math.round(p.y));
+    ctx.rotate?.(Math.atan2(n.y,n.x)*.11);
+    if(o.side<0)ctx.scale(-1,1);
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(-w*.5),Math.round(-h*.77),
+     Math.round(w),Math.round(h));
+    ctx.restore();fernMasses++
    }
   }
-  // The original transparent R18 rock art is a low relief shoreline
-  // wall, not a fake upright boulder or an extra collision object.
+  // Preserve the R34 original source-painted rock outcrops. Larger
+  // transparent R18 masses soften their silhouettes into the terraces.
   let rocks=0;
   for(let i=0;i<sources.length;i++){
    const o=sources[i];
-   if(o.step%5!==2||!inFrame(o))continue;
-   const scale=.92+hash(o.segment,o.step,o.side)*.20;
-   const w=220*scale,h=108*scale;
-   ctx.save();ctx.globalAlpha=.55;
+   if(o.step%7!==3||!inFrame(o))continue;
+   const scale=.88+hash(o.segment,o.step,o.side)*.33;
+   const w=260*scale,h=128*scale;
+   ctx.save();ctx.globalAlpha=.64;
    ctx.translate(Math.round(o.x),Math.round(o.y));
-   ctx.rotate?.(o.dir*.14);
+   ctx.rotate?.(o.dir*.10);
    if(o.side<0)ctx.scale(-1,1);
    ctx.imageSmoothingEnabled=true;
    ctx.drawImage(painted,PAINTED_SIZE*3,0,
@@ -887,7 +970,7 @@ function create({footprint,geometry,model}={}){
     Math.round(w),Math.round(h));
    ctx.restore();rocks++
   }
-  return ledges+rocks
+  return terraces+fernMasses+rocks
  }
  function paintForestFloor(ctx,bounds){
   let count=0;
@@ -984,6 +1067,7 @@ function create({footprint,geometry,model}={}){
   sourceRootedEavesR31c:true,upperForestGalleryR32:true,realActorCanopyDepthR33:true,
   rootedOverstoryR30:true,fallsPhysicalRiverBanksR34:true,
   fallsNativeWaterAndWoodlandR34b:true,
+  riverSourcedEscarpmentR35:true,
   nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
