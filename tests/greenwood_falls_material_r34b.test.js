@@ -9,7 +9,7 @@ const maker=t.window.VeilwardTerrainArt.makeGreenwoodFloorPlates;
 const plates=maker(()=>{const can={width:0,height:0,data:null,getContext(){
  return{createImageData(w,h){return{data:new Uint8ClampedArray(w*h*4)}},
  putImageData(img){can.data=img.data},fillRect(){}}}};return can});
-assert.deepEqual(Object.keys(plates).sort(),["forest","grass","moss","river"]);
+assert.deepEqual(Object.keys(plates).sort(),["dirt","forest","grass","moss","river","road","stone","thaw","wetland"]);
 const w=plates.river;assert.equal(w.width,256);assert.equal(w.height,256);
 let palette=new Set(),lo=255,hi=0;
 for(let p=0;p<w.data.length;p+=4){
@@ -34,7 +34,7 @@ assert.ok(read("world_greenwood_art.js").includes("paintFallsRiverBanks(ctx,boun
 for(const path of ["index.html","sw.js"]){
  const s=read(path);
  assert.ok(s.includes("world_greenwood_art.js?v=12&rev=34&falls=34b"));
- assert.ok(s.includes("terrain_art.js?v=32&rev=25&falls=34b"));
+ assert.ok(s.includes("terrain_art.js?v=32&rev=25&falls=34b&palette=34c"));
  assert.ok(s.includes("world_illustration.js?v=28&rev=33b&falls=34b"))
 }
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));

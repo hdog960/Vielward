@@ -95,7 +95,11 @@ function makeAtlas(factory){
  * Periodic multi-octave color ramps meet exactly across tile/chunk seams. */
 const GREENWOOD_BASE={
  forest:[81,119,96],moss:[112,139,111],grass:[131,157,116],
- river:[55,104,130]
+ river:[55,104,130],
+ // The nearby thaw/wetland/rock/soil materials must share the SAME native
+ // continuous palette. Otherwise bright legacy squares reappear on land.
+ thaw:[117,143,119],wetland:[91,122,108],stone:[99,111,104],
+ road:[132,117,99],dirt:[139,120,97]
 };
 function makeGreenwoodFloorPlates(factory){
  const SIZE=256,steps=16,plates={};
@@ -209,10 +213,15 @@ function create(model,geometry,options={}){
   // Keep all external climates and rivers untouched. Greenwood no longer
   // tiles the tiny bright leaf/flower glyphs visible in R24 screenshots.
   const sourceRegion=footprint?.regionAt(x+size*.5,y+size*.5)?.id;
-  if(GREENWOOD_BASE[material]&&
-     (sourceRegion==="greenwood"||
-      sourceRegion==="greenwood_falls"&&
-      ["forest","moss","grass","river"].includes(material))){
+  // Preserve the already accepted native Greenwood mix, while covering
+  // every common original Falls ground-material class with a matching
+  // low-noise plate. No weather/climate or road physics changes.
+  const originalWoods=sourceRegion==="greenwood"&&
+   ["forest","moss","grass"].includes(material);
+  const fallsNative=sourceRegion==="greenwood_falls"&&
+   ["forest","moss","grass","river","thaw","wetland",
+    "stone","road","dirt"].includes(material);
+  if(GREENWOOD_BASE[material]&&(originalWoods||fallsNative)){
    const plate=greenwoodFloor?.[material];
    if(plate){
     const sx=((gx%16+16)%16)*16,sy=((gy%16+16)%16)*16;

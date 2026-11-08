@@ -751,6 +751,21 @@ try{
   throw Error("R34b native Falls water and woodland not integrated "+JSON.stringify(r34b));
  console.log("R34B_SEAMLESS_FOREST_FALLS "+JSON.stringify(r34b));
  await sleep(1000);await capture(page,"GREENWOOD_R34B_SEAMLESS_FALLS");
+ // R34c uses the REAL same walkable riverbank and camera, now with all
+ // original Falls land material classes painted as seamless native plates.
+ const r34c=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player;
+  const z=s.art?.sameSourceCell?.(p.x+180,p.y+120);
+  const r=s.footprint.regionAt(p.x,p.y)?.id;
+  return{region:r,ground:z?.material||null,
+   walkable:!s.blocked(p.x,p.y),art:s.illustration.stats().fallsNativeForestR34b,
+   cacheTiles:s.stats().cachedTiles}
+ });
+ if(r34c.region!=="greenwood_falls"||!r34c.walkable||
+    !r34c.art||r34c.cacheTiles<1)
+  throw Error("R34c Falls land material recovery failed "+JSON.stringify(r34c));
+ console.log("R34C_WALKABLE_NATIVE_BANK "+JSON.stringify(r34c));
+ await sleep(850);await capture(page,"GREENWOOD_R34C_ALL_NATIVE_SURFACES");
 
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)

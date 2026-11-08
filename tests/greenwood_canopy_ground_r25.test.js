@@ -15,7 +15,7 @@ const t={window:{},Math,Uint8ClampedArray};
 vm.runInNewContext(read("terrain_art.js"),t,{filename:"terrain_art.js"});
 const painter=t.window.VeilwardTerrainArt;
 const plates=painter.makeGreenwoodFloorPlates(pixelFactory);
-assert.deepEqual(Object.keys(plates).sort(),["forest","grass","moss","river"]);
+assert.deepEqual(Object.keys(plates).sort(),["dirt","forest","grass","moss","river","road","stone","thaw","wetland"]);
 for(const [name,plate] of Object.entries(plates)){
  assert.equal(plate.width,256);assert.equal(plate.height,256);
  assert.equal(plate.buffer.length,256*256*4);
