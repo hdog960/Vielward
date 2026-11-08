@@ -53,7 +53,7 @@ assert.ok(samples>20);
 assert.equal(JSON.stringify(model.nodes),beforeNodes);
 assert.equal(JSON.stringify(model.edges),beforeRoads);
 assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=28"));
-assert.ok(read("sw.js").includes("world_footprint.js?v=5&rev=27"));
+assert.ok(read("sw.js").includes("world_footprint.js?v=5&rev=28"));
 assert.ok(read("sw.js").includes("source-glade-habitat-r25b-r26-r27-r28"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 console.log("R27 PASS: "+trees.length+" real Greenwood roots, "+
