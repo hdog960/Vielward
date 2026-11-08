@@ -1,0 +1,7 @@
+# Phase 9 R34b — seamless native Greenwood Falls water and forest-floor recovery
+
+The first actual R34 gameplay screenshot revealed an **unacceptable patchwork of repeating bright square water/ground motifs**, even though the real riverbank stones were correctly source-linked. R34b replaces those legacy materials throughout the original *Greenwood Falls biome* with the continuous, native R25 forest-plate technology. Its smooth 256×256 periodized blue-green river surface has natural directional currents, not blocky glyphs, while moss, soil and woodland grass use the same macro-scale native forest-floor palette. All components sample a stable global world grid, removing tile and streaming-seam repetition.
+
+The redundant water-square edge strokes and tiny faux grass rectangles are disabled **only** for Greenwood Falls, leaving winter and other biomes untouched. The original R18 painted oak/pine sprites and root-linked understory now extend across the Falls, with the correct live 2.5D front/back tree sorting inherited from R33b. R34 authentic mossy bank ledges and original crossings continue painting over their correct water hazard/land boundary. No fake river, new ford, missing collision, changes to 48 waypoints/65 roads/seven crossings, or save migration were introduced.
+
+The updated real-browser game screenshot is `GREENWOOD_R34B_SEAMLESS_FALLS`. It is not concept art. **Phase 9 remains active, visual approval 0%, Phase 10 locked, physical iPhone testing outstanding.**

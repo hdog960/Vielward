@@ -737,6 +737,21 @@ try{
   throw Error("R34 real riverbanks failed "+JSON.stringify(r34));
  console.log("R34_PHYSICALLY_SOURCED_FALLS_BANKS "+JSON.stringify(r34));
  await sleep(1500);await capture(page,"GREENWOOD_R34_FALLS_RIVERBANK");
+ const r34b=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,
+   artist=window.VeilwardGreenwoodArt.create({
+    model:s.model,geometry:s.geometry,footprint:s.footprint});
+  return{region:s.footprint.regionAt(s.player.x,s.player.y)?.id,
+   woodland:s.illustration.stats().fallsNativeForestR34b,
+   native:artist.stats().fallsNativeWaterAndWoodlandR34b,
+   cachedTiles:s.stats().cachedTiles,walkable:!s.blocked(s.player.x,s.player.y)}
+ });
+ if(r34b.region!=="greenwood_falls"||!r34b.woodland||!r34b.native||
+   !r34b.walkable||r34b.cachedTiles<1)
+  throw Error("R34b native Falls water and woodland not integrated "+JSON.stringify(r34b));
+ console.log("R34B_SEAMLESS_FOREST_FALLS "+JSON.stringify(r34b));
+ await sleep(1000);await capture(page,"GREENWOOD_R34B_SEAMLESS_FALLS");
+
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
