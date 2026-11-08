@@ -451,6 +451,22 @@ try{
   throw Error("R27 forest collision/cottage regression: "+JSON.stringify(r27));
  console.log("R27_PHYSICAL_WOODLAND "+JSON.stringify(r27));
  await sleep(950);await capture(page,"GREENWOOD_R27_WOODED_CROSSROADS");
+ const r28=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player;
+  const b=[p.x-1250,p.y-1050,p.x+1250,p.y+1050];
+  const authored=s.footprint.groves(b,520).filter(o=>o.authoredGrove);
+  const stats=s.footprint.stats();
+  if(stats.hearthRootedOldGrowth!==authored.length)
+   throw Error("R28 source old-growth roots were culled from gameplay");
+  return {oldGrowth:authored.length,allPhysical:authored.every(o=>
+    s.footprint.blocked(o.x,o.y,3)),currentAnchorWalkable:!s.blocked(p.x,p.y),
+    cottageCount:s.setpieces.objects.filter(o=>o.kind==="forest_cottage"&&
+     o.anchor==="greenwood_hearth").length}
+ });
+ if(r28.oldGrowth<2||!r28.allPhysical||!r28.currentAnchorWalkable||
+    r28.cottageCount!==1)throw Error("R28 rooted canopy safety mismatch "+JSON.stringify(r28));
+ console.log("R28_HEARTH_AUTHORED_ROOTS "+JSON.stringify(r28));
+ await sleep(1150);await capture(page,"GREENWOOD_R28_LIVING_CROSSROADS");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
@@ -489,6 +505,7 @@ try{
  await capture(page,"GREENWOOD_R25_CANOPY");
  await capture(page,"GREENWOOD_R26_HERMIT_CANOPY");
  await capture(page,"GREENWOOD_R27_HERMIT_EDGE");
+ await capture(page,"GREENWOOD_R28_HERMIT_PRESERVED");
  // R22: this same real player point must reveal the entire tall painted
  // roof in a phone-size 16:9 world preview without losing the hero.
  const composition=await page.evaluate(()=>{

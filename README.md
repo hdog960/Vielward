@@ -1,3 +1,7 @@
+## Phase 9 R28 — Rooted old-growth framing at Greenwood Hearth
+
+The previous real-browser R27 screenshot remained open because most new scenery roots sat beyond the phone landscape viewport. R28 adds a **small curated selection of original oak/pine roots** around the Hearth margins, admitting candidates only when confirmed safe from all physical road segments, water, obstacles, existing trees, the cottage and entrances. These roots appear in the same `footprint.groves()` source consumed by the art painter and `footprint.blocked()` collision—not a fake background layer. The new browser capture is `GREENWOOD_R28_LIVING_CROSSROADS`, with `GREENWOOD_R28_HERMIT_PRESERVED` as a no-regression scene. The 12-region road network, quests and save identifier remain unchanged. Creator visual acceptance remains 0% and Phase 10 locked.
+
 ## Phase 9 R27 — Greenwood physical forest at real road edges
 
 Greenwood's excessive *extra* road and hub-clearance buffers are reduced only for this biome, admitting more collision-backed oak/pine roots alongside existing roads. Explicit protected zones preserve the original Hearth cottage and four setpieces plus the Hermit entrance. Roads, water, source sprite art, scenes, quests and saved character state are unchanged. Actual browser screenshot keys: `GREENWOOD_R27_WOODED_CROSSROADS` and `GREENWOOD_R27_HERMIT_EDGE`; dedicated test checks source footpoints and routes. The appearance remains **not approved**; Phase 9 active, Phase 10 locked.

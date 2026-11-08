@@ -1,4 +1,4 @@
-/* VEILWARD Phase 9 R27 — source-rooted Greenwood road-edge forest, climate and grounded scenery.
+/* VEILWARD Phase 9 R28 — source-rooted Greenwood old-growth composition, physical forest and climate.
  * A physically traversable 12-region landmass and reproducible region scenery.
  * All natural blockers are rendered from the very same positions/footprint as
  * their boot-level collision. No NPC/player art is touched or copied.
@@ -163,6 +163,81 @@ function create(model,geo,source,options={}){
    biome:reg.id};
   return done(feature)
  }
+
+ // R28: original, visible old-growth crowns around the Hearth's actual
+ // physical crossroads. These are collision-backed real trees in the SAME
+ // Grove source as their sprites, not a billboard or canopy wallpaper.
+ // Each candidate is checked against all 65 authored road centerlines,
+ // nearby real field/grove roots, landscape solids, buildings and entrances.
+ function rootClearOfRoads(x,y,r){
+  for(const road of geo.roads){
+   const half=road.halfWidth||76;
+   for(const part of road.parts){
+    const a=part[0],b=part[1],dx=b[0]-a[0],dy=b[1]-a[1];
+    const len2=dx*dx+dy*dy;
+    const t=len2?clamp(((x-a[0])*dx+(y-a[1])*dy)/len2,0,1):0;
+    if(Math.hypot(x-a[0]-dx*t,y-a[1]-dy*t)<half+r+42)
+     return false
+   }
+  }
+  return true
+ }
+ function buildHearthGrove(){
+  const anchor=nodes.greenwood_hearth;
+  if(!anchor)return[];
+  const hx=anchor.point[0]*scale,hy=anchor.point[1]*scale;
+  // Intentional asymmetry: trees frame the cottage and road shoulders
+  // with rooted rear crowns and nearer leafy edges rather than a ring.
+  // Additional candidates let the real source roots/water win when nearby.
+  const positions=[
+   [100,390,"oak"],[555,505,"oak"],[-570,565,"pine"],
+   [-350,-350,"oak"],[-85,-405,"pine"],[545,-225,"oak"],
+   [70,525,"oak"],[250,575,"pine"],[-485,-395,"pine"],
+   [635,-325,"pine"],[-370,-540,"oak"],[610,500,"oak"],
+   [75,335,"oak"],[130,420,"pine"],[-510,540,"oak"],
+   [-250,-445,"oak"],[530,-310,"oak"],[145,570,"pine"],
+   [-625,555,"oak"],[625,620,"pine"],[325,-530,"oak"],
+   [-125,-530,"pine"],[35,615,"oak"],[420,610,"oak"],
+   [-500,-495,"oak"],[-340,-600,"pine"]
+  ];
+  const rooted=[];
+  for(let index=0;index<positions.length;index++){
+   if(rooted.length>=9)break;
+   const [dx,dy,kind]=positions[index],
+    x=hx+dx,y=hy+dy,r=52+Math.floor(hash(index,217,seed)*9);
+   if(!onLand(x,y)||regionAt(x,y)?.id!=="greenwood"||
+      geo.waterAt(x,y,r+26)||geo.obstacle(x,y,r+60)||
+      inProtectedSite(x,y,r)||!rootClearOfRoads(x,y,r))continue;
+   if(clearings.some(c=>Math.hypot(x-c.x,y-c.y)<
+       Math.min(c.r,145)+r+42))continue;
+   if(rooted.some(o=>Math.hypot(o.x-x,o.y-y)<o.radius+r+125))
+    continue;
+   let crowded=false;
+   const fx=Math.floor(x/span),fy=Math.floor(y/span),
+    gx=Math.floor(x/GROVE_SPAN),gy=Math.floor(y/GROVE_SPAN);
+   for(let by=-2;by<=2&&!crowded;by++)for(let bx=-2;bx<=2;bx++){
+    const old=fieldCell(fx+bx,fy+by);
+    if(old&&Math.hypot(old.x-x,old.y-y)<old.radius+r+55){
+     crowded=true;break
+    }
+   }
+   for(let by=-2;by<=2&&!crowded;by++)for(let bx=-2;bx<=2;bx++){
+    const old=groveCell(gx+bx,gy+by);
+    if(old&&Math.hypot(old.x-x,old.y-y)<old.radius+r+55){
+     crowded=true;break
+    }
+   }
+   if(crowded)continue;
+   const weather=climate?.sample(x,y);
+   rooted.push({id:"hearth_root_"+index,x,y,radius:r,kind,
+    solid:true,biome:"greenwood",variant:hash(index,973,seed),
+    snow:weather?.snow??.07,moisture:weather?.wet??.49,
+    authoredGrove:true})
+  }
+  return rooted
+ }
+ const hearthGroveRoots=buildHearthGrove();
+
  function groves(bounds,pad=220){
   const [x0,y0,x1,y1]=bounds,result=[];
   for(let iy=Math.floor((y0-pad)/GROVE_SPAN)-1;iy<=Math.floor((y1+pad)/GROVE_SPAN)+1;iy++)
@@ -171,6 +246,11 @@ function create(model,geo,source,options={}){
     if(o&&o.x+o.radius+190>=x0&&o.x-o.radius-190<=x1&&
        o.y+o.radius+240>=y0&&o.y-o.radius-240<=y1)result.push(o)
    }
+  for(const o of hearthGroveRoots){
+   if(o.x+o.radius+200>=x0-pad&&o.x-o.radius-200<=x1+pad&&
+      o.y+o.radius+320>=y0-pad&&o.y-o.radius-320<=y1+pad)
+    result.push(o)
+  }
   return result
  }
  function blocked(x,y,r=10){
@@ -185,6 +265,8 @@ function create(model,geo,source,options={}){
    const obj=groveCell(cx+dx,cy+dy);
    if(obj&&Math.hypot(x-obj.x,y-obj.y)<obj.radius+r)return true
   }
+  for(const o of hearthGroveRoots)
+   if(Math.hypot(x-o.x,y-o.y)<o.radius+r)return true;
   return false
  }
  function safePoint(x,y){
@@ -366,7 +448,8 @@ function create(model,geo,source,options={}){
  }
  function stats(){
   return{version:VERSION,regions:regions.size,majorHubs:hubs.length,routeClearings:clearings.length,
-   sourceFieldCell:span,outlinePoints:poly.length,cachedFields:cachedFields.size,maximumCachedFields:MAX_CACHE,groveCells:groveCache.size,maximumGroves:MAX_GROVE_CACHE,landmassCollision:true,climateEnabled:!!climate};
+   sourceFieldCell:span,outlinePoints:poly.length,cachedFields:cachedFields.size,maximumCachedFields:MAX_CACHE,groveCells:groveCache.size,maximumGroves:MAX_GROVE_CACHE,
+   hearthRootedOldGrowth:hearthGroveRoots.length,landmassCollision:true,climateEnabled:!!climate};
  }
  return{version:VERSION,source,climate,onLand,regionAt,fieldCell,cells,groves,blocked,safePoint,draws,drawScenery,drawForeground,debug,stats,
   featureAt:(x,y)=>fieldCell(Math.floor(x/span),Math.floor(y/span))}
