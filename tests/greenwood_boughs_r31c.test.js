@@ -39,8 +39,8 @@ vm.runInNewContext(read("world_greenwood_art.js"),host,{filename:"world_greenwoo
  assert.equal(JSON.stringify([oak1,oak2,impostor]),original);
  assert.equal(painting.paintHearthEdgeBoughs(ctx(),[0,0,100,100],[oak1,oak2]),0);
  assert.ok(read("world_illustration.js").includes("paintHearthEdgeBoughs(ctx,bounds,features)"));
- assert.ok(read("index.html").includes("world_greenwood_art.js?v=11&rev=33"));
- assert.ok(read("sw.js").includes("world_greenwood_art.js?v=11&rev=33"));
+ assert.ok(read("index.html").includes("world_greenwood_art.js?v=12&rev=34"));
+ assert.ok(read("sw.js").includes("world_greenwood_art.js?v=12&rev=34"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  assert.equal(painting.stats().physicsChanged,false);
  assert.equal(painting.stats().creatorApproved,false);

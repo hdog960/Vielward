@@ -67,8 +67,8 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{
   "all authored node positions unchanged");
  assert.equal(JSON.stringify(geometry.roads),"[]",
   "R26 does not invent any roads");
- assert.ok(read("sw.js").includes("source-tree-depth-r33"));
- assert.ok(read("index.html").includes("world_greenwood_art.js?v=11&rev=33"));
+ assert.ok(read("sw.js").includes("greenwood-falls-r34"));
+ assert.ok(read("index.html").includes("world_greenwood_art.js?v=12&rev=34"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R26 PASS: continuous source-linked glade underpainting; road/water/landmark protections; unchanged physics, saves, and Phase 9 acceptance gate");
 })().catch(err=>{console.error(err);process.exitCode=1});

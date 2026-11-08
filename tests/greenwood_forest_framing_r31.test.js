@@ -42,6 +42,6 @@ assert.equal(JSON.stringify(model.nodes),origNodes);
 assert.equal(JSON.stringify(model.edges),origEdges);
 assert.ok(read("index.html").includes("world_stream.js?v=32&rev=33b"));
 assert.ok(read("sw.js").includes("world_stream.js?v=32&rev=33b"));
-assert.ok(read("sw.js").includes("source-tree-depth-r33"));
+assert.ok(read("sw.js").includes("greenwood-falls-r34"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 console.log("R31 PASS: original Greenwood woodland framed in mobile landscape; Hermit and cottage preserved, world/save unaffected; creator art approval 0%");
