@@ -684,6 +684,26 @@ try{
   throw Error("R33 foreground canopy lacks real physical depth "+JSON.stringify(r33));
  console.log("R33_REAL_FOREST_ACTOR_OCCLUSION "+JSON.stringify(r33));
  await sleep(1300);await capture(page,"GREENWOOD_R33_REAL_CANOPY_DEPTH");
+ // R33b: the SAME WALKABLE tree approach must be composed from real live
+ // rear and front sprites, not an actor drawn over an opaque chunk.
+ const r33b=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player;
+  const frame=s.framing(720,405,.78);
+  const b=[p.x-820,p.y-670,p.x+820,p.y+800];
+  const c=document.createElement("canvas");c.width=8;c.height=8;
+  const painter=c.getContext("2d");
+  return{back:s.illustration.drawDynamicForest(painter,b,p,"back"),
+   front:s.illustration.drawDynamicForest(painter,b,p,"front"),
+   live:s.illustration.stats().greenwoodLiveSortedDepthR33b,
+   sourceTree:s.footprint.blocked(p.x+0,p.y+0,4)===false,
+   framed:frame.zoom>0,realWalkable:!s.blocked(p.x,p.y)}
+ });
+ if(!r33b.live||r33b.front<1||r33b.back<1||
+    !r33b.realWalkable||!r33b.framed)
+  throw Error("R33b live depth incorrectly composed "+JSON.stringify(r33b));
+ console.log("R33B_REAL_WALKABLE_FOREST_DEPTH "+JSON.stringify(r33b));
+ await sleep(750);await capture(page,"GREENWOOD_R33B_LIVE_DEPTH");
+
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
