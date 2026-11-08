@@ -88,7 +88,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.equal(world.raster.stats().creatorApproved,false);
  assert.equal(world.raster.stats().geometryChanged,false);
  const html=read("index.html"),worker=read("sw.js"),game=read("game.js");
- assert.ok(worker.includes("veilward-hollowreach-v1334-source-tree-depth-r33"));
+ assert.ok(worker.includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
  assert.ok(html.includes("world_raster_pilot.js?v=28"));
  assert.ok(game.includes('terrain_geometry.json?v=4'));
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'));
