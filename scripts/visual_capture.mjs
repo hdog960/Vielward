@@ -500,6 +500,24 @@ try{
  }
  // Second test-only A/B isolates the remaining white rectangles by painter
  // stage, rather than claiming any absent visual changes are successful.
+ // Base-only pixel source: test whether old-looking light squares
+ // appear in the actual material compositor before any props or overlays.
+ await page.evaluate(()=>{
+  const stream=window.__veilwardCaptureStream;
+  window.__r25PaintChunk=stream.art.paintChunk;
+  stream.art.paintChunk=stream.art.inspectGround;
+  stream.clearCache()
+ });
+ try{
+  await sleep(700);await capture(page,"GREENWOOD_R25_BASE_ONLY");
+ }finally{
+  await page.evaluate(()=>{
+   const stream=window.__veilwardCaptureStream;
+   stream.art.paintChunk=window.__r25PaintChunk;
+   stream.clearCache();delete window.__r25PaintChunk
+  });
+  await sleep(400)
+ }
  for(const [name,layer,key] of [
   ["GREENWOOD_R25_NO_GROUND_PASS","illustration","drawGround"],
   ["GREENWOOD_R25_NO_ROAD_PASS","routeArt","draw"],
