@@ -124,11 +124,11 @@ ok(visual.arc>0,"streaming engine debug draws foot anchor on actual view");
 for(let i=0;i<32;i++){s.player.x=(i+10.5)*1500;s.player.y=18000;s.render(ctx(),1536,708,.78,.05);
  ok(s.stats().cachedTiles<=18,"terrain cache bounded during authored rendering "+i)}
 ok(s.stats().estimatedCachedRGBABytes<=18*375*375*4,"geometry does not exceed previous canvas cache budget");
-for(const file of ["world_review.js?v=4","world_routes.js?v=27","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=32","world_stream.js?v=32","game.js?v=55","visual.css?v=15","manifest.webmanifest?v=1334"]){
+for(const file of ["world_review.js?v=4","world_routes.js?v=27","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=32","world_stream.js?v=32","game.js?v=56","visual.css?v=15","manifest.webmanifest?v=1335"]){
  ok(html.includes(file)&&sw.includes(file),"iPhone HTML / PWA cache agrees: "+file);
 }
 ok(game.includes('terrain_geometry.json?v=4')&&sw.includes('terrain_geometry.json?v=4'),"actual game fetch and offline cache agree on geometry document");
-ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_stream.js?v=32")&&html.indexOf("world_stream.js?v=32")<html.indexOf("game.js?v=55"),"module load order ensures terrain before streamed game");
+ok(html.indexOf("world_geometry.js?v=1")<html.indexOf("world_stream.js?v=32")&&html.indexOf("world_stream.js?v=32")<html.indexOf("game.js?v=56"),"module load order ensures terrain before streamed game");
 ok(html.includes('id="geometryDebugBtn"')&&html.includes("Terrain Geometry Overlay"),"iPhone menu debug overlay is connected");
 ok(game.includes("if(worldPreview.debug)s.renderDebug")&&game.includes("s.nearbyInteraction()"),"actual game draws debug/landmark inspection");
 ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original iPhone save key intact");
