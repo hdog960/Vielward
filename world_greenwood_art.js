@@ -1,4 +1,4 @@
-/* VEILWARD Phase 9 R17 — Greenwood native-scale sprite foliage.
+/* VEILWARD Phase 9 R25 — source-linked canopy and forest material. R17 roots remain.
  * This is NOT a pasted scenery screenshot and NOT creator-approved art.
  * Render one cached pixel atlas from source algorithms, then stamp only
  * on original footprint tree/undergrowth roots without any new collisions.
@@ -398,6 +398,53 @@ function create({footprint,geometry,model}={}){
   }
   return mats
  }
+
+ // R25: existing, mature physical tree crowns overlap across a woodland
+ // cluster. Only source-backed roots may supply the two ends: never create
+ // a fake trunk, invisible collider, new road or ambient wallpaper tree.
+ // Cropped painted upper foliage has no trunk and lies UNDER the whole
+ // rooted tree painter, keeping the real footpoint and crown silhouette.
+ function paintCanopyLinks(ctx,bounds,roots){
+  if(!painted||!ctx?.drawImage||!Array.isArray(roots))return 0;
+  const trees=roots.filter(o=>["oak","pine"].includes(o.kind)&&
+   forest(o.x,o.y)&&!geometry.waterAt(o.x,o.y,15))
+   .sort((a,b)=>a.y-b.y||a.x-b.x);
+  const linked=new Set();let count=0;
+  for(let i=0;i<trees.length&&count<20;i++){
+   const a=trees[i];if(linked.has(a.id))continue;
+   let partner=null,closest=Infinity;
+   for(let j=i+1;j<trees.length;j++){
+    const b=trees[j];if(linked.has(b.id))continue;
+    const distance=Math.hypot(a.x-b.x,a.y-b.y);
+    if(distance<175||distance>450||Math.abs(a.y-b.y)>185||
+       distance>=closest)continue;
+    // The real road and river must never be disguised by overhanging
+    // leaf bridges, even when their end roots are physically valid.
+    let clear=true;
+    for(const t of [.25,.5,.75]){
+     const x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;
+     if(!forest(x,y)||geometry.waterAt(x,y,25)||
+      geometry.nearRoad(x,y,()=>true,60)){clear=false;break}
+    }
+    if(!clear)continue;
+    partner=b;closest=distance
+   }
+   if(!partner)continue;
+   const b=partner,r=(a.radius+b.radius)*.5,
+    x=(a.x+b.x)*.5,y=(a.y+b.y)*.5-r*3.4,
+    w=Math.min(250,closest*.72),h=Math.min(155,r*2.35);
+   if(x+w*.5<bounds[0]||x-w*.5>bounds[2]||
+      y+h*.5<bounds[1]||y-h*.5>bounds[3])continue;
+   const kind=a.kind==="pine"&&b.kind==="pine"?1:0;
+   ctx.save();ctx.globalAlpha=.57;ctx.imageSmoothingEnabled=true;
+   ctx.drawImage(painted,kind*PAINTED_SIZE,0,PAINTED_SIZE,78,
+    Math.round(x-w*.5),Math.round(y-h*.5),Math.round(w),Math.round(h));
+   ctx.restore();
+   linked.add(a.id);linked.add(b.id);count++
+  }
+  return count
+ }
+
  function paintForestFloor(ctx,bounds){
   let count=0;
   // R17b: continuous forest-floor pools fill the entire SOURCE Greenwood
@@ -467,11 +514,11 @@ function create({footprint,geometry,model}={}){
   physicsChanged:false,originalRootAnchors:true,creatorApproved:false,
   roadVergesFromSource:true,matureTreeCanopyScale:1.65,
   featheredRoadEdges:true,rootedUnderstoryMats:true,
-  retiredConfettiFloor:true,paintedGladeHabitat:true,
+  retiredConfettiFloor:true,paintedGladeHabitat:true,rootLinkedCanopy:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},

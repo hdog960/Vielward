@@ -1,4 +1,4 @@
-/* VEILWARD v1.3.4 — Visual recovery R1: low-noise clustered ground and collision-anchored illustrated scene artwork.
+/* VEILWARD Phase 9 R25 — grounded woodland floor; originally visual recovery R1: low-noise clustered ground and collision-anchored illustrated scene artwork.
  * 16 source materials × 4 variants, 32×32 native source pixels per cell.
  * No network fetch, image generation at runtime or giant full-world bitmap.
  * Base, shore, road, stairs, props, contact shadow and foliage all use
@@ -87,10 +87,54 @@ function makeAtlas(factory){
  }
  ctx.restore();return atlas
 }
+
+/* R25: low-chroma, macro-scale Greenwood material, made ONCE per session.
+ * The former 32px "leaf" swatch repeated gold/white squares every 96 world
+ * units. This continuous 16-cell plate contains no glyphs, flecks, flowers,
+ * or clone-stamped props. Natural root/road painters supply those details.
+ * Periodic multi-octave color ramps meet exactly across tile/chunk seams. */
+const GREENWOOD_BASE={
+ forest:[81,119,96],moss:[112,139,111],grass:[131,157,116]
+};
+function makeGreenwoodFloorPlates(factory){
+ const SIZE=256,steps=16,plates={};
+ const wrap=(n,m)=>((n%m)+m)%m;
+ const interpolate=t=>t*t*(3-2*t);
+ function noise(x,y,span,salt){
+  const n=SIZE/span,gx=Math.floor(x/span),gy=Math.floor(y/span),
+   fx=interpolate(x/span-gx),fy=interpolate(y/span-gy);
+  const at=(dx,dy)=>hash(wrap(gx+dx,n),wrap(gy+dy,n),salt);
+  const top=at(0,0)*(1-fx)+at(1,0)*fx,
+   bottom=at(0,1)*(1-fx)+at(1,1)*fx;
+  return top*(1-fy)+bottom*fy
+ }
+ for(const [kind,base] of Object.entries(GREENWOOD_BASE)){
+  const canvas=factory();canvas.width=SIZE;canvas.height=SIZE;
+  const painter=canvas.getContext("2d",{willReadFrequently:true});
+  if(!painter?.createImageData||!painter?.putImageData)return null;
+  const buffer=painter.createImageData(SIZE,SIZE),d=buffer.data;
+  const salt=kind==="forest"?73:kind==="moss"?127:179;
+  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
+   const large=noise(x,y,64,salt),
+    middle=noise(x,y,16,salt+17),
+    grain=noise(x,y,4,salt+29),
+    variation=(large-.5)*22+(middle-.5)*11+(grain-.5)*3,
+    soil=Math.max(0,.48-large)*10,
+    i=(y*SIZE+x)*4;
+   d[i]=Math.round(base[0]+variation+soil*.56);
+   d[i+1]=Math.round(base[1]+variation*.9-soil*.42);
+   d[i+2]=Math.round(base[2]+variation*.72-soil*.55);
+   d[i+3]=255
+  }
+  painter.putImageData(buffer,0,0);plates[kind]=canvas
+ }
+ return plates
+}
+
 function create(model,geometry,options={}){
  if(!model||!geometry||!geometry.roads)throw Error("Terrain art requires the authoritative world geometry");
  const factory=options.canvasFactory||(()=>document.createElement("canvas"));
- const atlas=makeAtlas(factory),unit=model.worldDesign.worldUnitScale;
+ const atlas=makeAtlas(factory),greenwoodFloor=makeGreenwoodFloorPlates(factory),unit=model.worldDesign.worldUnitScale;
  const footprint=options.footprint||null;
   const climate=options.climate||null;
  const routeArt=options.routeArt||null;
@@ -156,6 +200,20 @@ function create(model,geometry,options={}){
   return [(i%COLUMNS)*TILE,Math.floor(i/COLUMNS)*TILE,TILE,TILE]
  }
  function stamp(ctx,material,gx,gy,x,y,size=WORLD_CELL){
+  // Keep all external climates and rivers untouched. Greenwood no longer
+  // tiles the tiny bright leaf/flower glyphs visible in R24 screenshots.
+  if(GREENWOOD_BASE[material]&&
+     footprint?.regionAt(x+size*.5,y+size*.5)?.id==="greenwood"){
+   const plate=greenwoodFloor?.[material];
+   if(plate){
+    const sx=((gx%16+16)%16)*16,sy=((gy%16+16)%16)*16;
+    ctx.drawImage(plate,sx,sy,16,16,x,y,size,size)
+   }else{
+    ctx.fillStyle="rgb("+GREENWOOD_BASE[material].join(",")+")";
+    ctx.fillRect(x,y,size,size)
+   }
+   return
+  }
   if(raster?.paintGroundCell(ctx,material,gx,gy,x,y,size))return;
   const src=atlasRect(material,tileVariant(gx,gy));
   ctx.drawImage(atlas,...src,x,y,size,size)
@@ -444,6 +502,6 @@ function create(model,geometry,options={}){
  return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,illustration,setpieces,raster,paintChunk,paintForeground,
   materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,diagnostics}
 }
-window.VeilwardTerrainArt={version:VERSION,create,palettes:PALETTES,materials:MATERIALS,
+window.VeilwardTerrainArt={version:VERSION,create,makeGreenwoodFloorPlates,palettes:PALETTES,materials:MATERIALS,
  sourceTileSize:TILE,variants:VARIANTS,worldTileSpan:WORLD_CELL};
 })();

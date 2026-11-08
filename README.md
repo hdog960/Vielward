@@ -1,3 +1,7 @@
+## Phase 9 R25 — Greenwood seamless ground and source-root canopy (visual approval pending)
+
+Removed Greenwood's small repeating pale leaf/flower motif from its base material and replaced it with three cached, low-chroma, world-aligned ground material plates; connected existing painted oak/pine upper crowns only when original physical roots, road margins and river boundaries allow. No new obstacles, roads, trees, quests, sprite swaps or save migration. R25 actual-play screenshots: `GREENWOOD_R25_GROUND` and `GREENWOOD_R25_CANOPY`. Technical tests are not creator approval; visual acceptance remains 0%, Phase 9 ACTIVE, Phase 10 LOCKED. See `docs/overworld/GREENWOOD_GROUND_CANOPY_R25.md`.
+
 ## Phase 9 R24 — Greenwood landmark forest-floor habitat, v1.3.32
 
 R23's real screenshots show sophisticated source-painted houses sitting against largely empty, uncomposed green ground. R24 adds walkable, independent R18 painted fern material around **the two original waypoints** `greenwood_hearth` and `hermit` in the actual streamed Greenwood painter. Non-grid golden-angle clusters vary scale, spacing and rotation, with low-opacity forest canopy light/contact shadow, and check the authoritative original physical water, road corridor, obstacle and tree-trunk occupancy before drawing. This is ground-only artwork beneath the real road and building passes; it creates **no roads, obstacles, building duplicates, or new tree colliders**.

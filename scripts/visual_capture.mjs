@@ -422,6 +422,8 @@ try{
  });
  console.log("R24_GREENWOOD_SOURCE_HABITAT "+JSON.stringify(habitat));
  await sleep(1250);await capture(page,"GREENWOOD_R24_HABITAT");
+ // R25 must be judged in the SAME playable Hearth camera, not a concept.
+ await capture(page,"GREENWOOD_R25_GROUND");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
@@ -457,6 +459,7 @@ try{
  });
  console.log("R21_PAINTED_HERMIT_LIVE "+JSON.stringify(refuge));
  await sleep(1550);await capture(page,"GREENWOOD_R21_HERMIT_COTTAGE");
+ await capture(page,"GREENWOOD_R25_CANOPY");
  // R22: this same real player point must reveal the entire tall painted
  // roof in a phone-size 16:9 world preview without losing the hero.
  const composition=await page.evaluate(()=>{

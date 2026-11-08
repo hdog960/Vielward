@@ -324,8 +324,11 @@ function create(model,geometry,options={}){
  function drawFeatures(ctx,bounds,skipWinter=false){
   // Both sparse mature props and the new collision-backed young woodland
   // share one painter's order and the same physical root coordinates.
-  const features=[...footprint.cells(bounds,330),...footprint.groves(bounds,320)]
+  const features=[...footprint.cells(bounds,440),...footprint.groves(bounds,440)]
    .sort((a,b)=>a.y-b.y);
+  // An existing pair of physical rooted crowns may visually interweave;
+  // never create a walkable-looking tree trunk without a collider.
+  greenwood?.paintCanopyLinks(ctx,bounds,features);
   for(const f of features){
    if(skipWinter&&raster?.covers(f.x,f.y))continue;
    drawFeature(ctx,f)
