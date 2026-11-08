@@ -105,6 +105,35 @@ console.log("R28_VIEW_DEBUG "+JSON.stringify({
  viewFree:viewFree.slice(0,110),viewFreeCount:viewFree.length,
  totalCandidateFree:free.length
 }));
+
+/* R29 source-only preview: find legal mature-root planting sites in the
+ * parts of the REAL Hearth viewport that are visually still empty.
+ * This instrumented QA outputs positions, but does not add a single object.
+ */
+const upperCandidates=[];
+const lowerCandidates=[];
+const reserved=[[-400,160,230],[350,300,158],[-260,280,150],[300,-430,135]];
+for(const dy of [-260,-220,-180,-140,-100,-60,80,160,260,360,460,560,650]){
+ for(let dx=-560;dx<=560;dx+=40){
+  const x=cx+dx,y=cy+dy,r=54;
+  if(!foot.onLand(x,y)||foot.regionAt(x,y)?.id!=="greenwood"||
+   foot.blocked(x,y,60)||geometry.waterAt(x,y,80)||
+   geometry.obstacle(x,y,95))continue;
+  const safeSite=reserved.every(([px,py,pr])=>Math.hypot(dx-px,dy-py)>pr+r+22);
+  if(!safeSite)continue;
+  if(roadGap(x,y)<r+45)continue;
+  // The exact original R28d projected-height rule:
+  const w=r*5.4*1.20,h=r*7*1.20;
+  if(dy>=-25&&Math.abs(dx)<w*.5+38&&dy-h<46)continue;
+  const item={dx,dy,gap:Math.round(roadGap(x,y))};
+  if(dy<0)upperCandidates.push(item);else lowerCandidates.push(item);
+ }
+}
+console.log("R29_VIEW_EDGE_SOURCE_SCAN "+JSON.stringify({
+ upper:upperCandidates.filter(p=>Math.abs(p.dx)<540).slice(0,120),
+ lower:lowerCandidates.filter(p=>Math.abs(p.dx)<540).slice(0,45),
+ upperCount:upperCandidates.length,lowerCount:lowerCandidates.length
+}));
 console.log("R28 PASS: "+trees.length+" real old-growth trees, "+
  aroundView+" in landscape frame; "+walkSamples+
  " source road points; original cottage, save and graph preserved; visual approval 0%");
