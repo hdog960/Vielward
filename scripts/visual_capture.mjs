@@ -426,6 +426,15 @@ try{
  await sleep(1250);await capture(page,"GREENWOOD_R24_HABITAT");
  await capture(page,"GREENWOOD_R25_GROUND");
  await capture(page,"GREENWOOD_R25B_CLEAN_CLEARING");
+ const r26Stats=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  return window.VeilwardGreenwoodArt.create({
+   footprint:s.footprint,geometry:s.geometry,model:s.model}).stats()
+ });
+ if(!r26Stats.connectedSafeGladeBeds||!r26Stats.rootFilteredCanopyLight)
+  throw Error("R26 connected source glade and rooted light painter missing");
+ console.log("R26_CONNECTED_GREENWOOD "+JSON.stringify(r26Stats));
+ await capture(page,"GREENWOOD_R26_CONNECTED_GLADE");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
@@ -462,6 +471,7 @@ try{
  console.log("R21_PAINTED_HERMIT_LIVE "+JSON.stringify(refuge));
  await sleep(1550);await capture(page,"GREENWOOD_R21_HERMIT_COTTAGE");
  await capture(page,"GREENWOOD_R25_CANOPY");
+ await capture(page,"GREENWOOD_R26_HERMIT_CANOPY");
  // R22: this same real player point must reveal the entire tall painted
  // roof in a phone-size 16:9 world preview without losing the hero.
  const composition=await page.evaluate(()=>{

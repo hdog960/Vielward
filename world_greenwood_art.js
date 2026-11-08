@@ -1,4 +1,4 @@
-/* VEILWARD Phase 9 R25 — source-linked canopy and forest material. R17 roots remain.
+/* VEILWARD Phase 9 R26 — connected habitat ground, existing tree-root filtered canopy. R17 roots remain.
  * This is NOT a pasted scenery screenshot and NOT creator-approved art.
  * Render one cached pixel atlas from source algorithms, then stamp only
  * on original footprint tree/undergrowth roots without any new collisions.
@@ -353,6 +353,11 @@ function create({footprint,geometry,model}={}){
    id:n.id,x:n.point[0]*model.worldDesign.worldUnitScale,
    y:n.point[1]*model.worldDesign.worldUnitScale
   }));
+
+ // R26: connect source-placed fern material into continuous forest glades.
+ // The links are translucent GROUND ONLY, with no new trunks, colliders,
+ // paths, foliage over a roadway, or fake waypoint objects. Every brush
+ // endpoint comes from the SAME accepted Hearth/Hermit footprint mat.
  function paintLandmarkHabitat(ctx,bounds){
   if(!painted||!habitatAnchors.length)return 0;
   let mats=0;
@@ -361,8 +366,9 @@ function create({footprint,geometry,model}={}){
    if(hub.x+reach<bounds[0]||hub.x-reach>bounds[2]||
       hub.y+reach<bounds[1]||hub.y-reach>bounds[3])continue;
    const salt=hub.id==="hermit"?337:419;
-   // Two natural clearing skirts. Golden-angle spacing prevents a
-   // repeated tile grid. The ORIGINAL physical roadway remains clear.
+   const patches=[];
+   // Search the entire deterministic source clearing, not just this
+   // streamed tile, or seam-edge mats would change when chunks rebuild.
    for(let j=0;j<54;j++){
     const angle=j*2.399963229728653+hash(j,salt,301)*.23;
     const ring=j%3===0?205:j%3===1?410:610;
@@ -371,22 +377,64 @@ function create({footprint,geometry,model}={}){
      y=hub.y+Math.sin(angle)*radius*.82;
     const w=148+hash(salt,j,305)*114,
      h=w*(.46+hash(j,salt,307)*.14);
-    if(x+w*.7<bounds[0]||x-w*.7>bounds[2]||
-       y+h<bounds[1]||y-h>bounds[3])continue;
     if(!forest(x,y)||geometry.waterAt(x,y,35)||
        geometry.nearRoad(x,y,()=>true,55)||
        geometry.obstacle(x,y,50)||footprint.blocked?.(x,y,33))continue;
+    patches.push({x,y,w,h,j});
+   }
+   // Restrained, low-chroma soil/lichen masses join the independent mats
+   // along safe ground. Never draw over any authored route, water or house.
+   const linked=new Set();
+   for(let i=0;i<patches.length;i++){
+    const a=patches[i];let nearest=null,dist=Infinity;
+    for(let j=i+1;j<patches.length;j++){
+     const b=patches[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+     if(d>465||d<75||d>=dist)continue;
+     let safe=true;
+     for(const t of [.20,.40,.60,.80]){
+      const x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;
+      if(!forest(x,y)||geometry.waterAt(x,y,100)||
+       geometry.nearRoad(x,y,()=>true,113)||
+       geometry.obstacle(x,y,104)||footprint.blocked?.(x,y,90)){
+       safe=false;break
+      }
+     }
+     if(safe){nearest=b;dist=d}
+    }
+    if(!nearest||linked.has(a.j+":"+nearest.j))continue;
+    linked.add(a.j+":"+nearest.j);
+    if(Math.max(a.x,nearest.x)+120<bounds[0]||
+       Math.min(a.x,nearest.x)-120>bounds[2]||
+       Math.max(a.y,nearest.y)+120<bounds[1]||
+       Math.min(a.y,nearest.y)-120>bounds[3])continue;
+    // Rounded and subtly bent brushwork, not straight footpaths. Lower
+    // alpha keeps the separate source-painted fern fronds legible above it.
+    const dx=nearest.x-a.x,dy=nearest.y-a.y,d=Math.hypot(dx,dy)||1;
+    const midX=(a.x+nearest.x)*.5-dy/d*22,
+     midY=(a.y+nearest.y)*.5+dx/d*22;
+    ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+    ctx.beginPath();ctx.moveTo(a.x,a.y);
+    if(ctx.quadraticCurveTo)ctx.quadraticCurveTo(midX,midY,nearest.x,nearest.y);
+    else ctx.lineTo(nearest.x,nearest.y);
+    ctx.strokeStyle="rgba(27,61,42,.13)";
+    ctx.lineWidth=Math.min(125,Math.max(66,(a.h+nearest.h)*.60));
+    ctx.stroke();
+    ctx.restore()
+   }
+   for(const p of patches){
+    const {x,y,w,h,j}=p;
+    if(x+w*.7<bounds[0]||x-w*.7>bounds[2]||
+       y+h<bounds[1]||y-h>bounds[3])continue;
     ctx.save();
     const shade=ctx.createRadialGradient?.(x,y-h*.17,8,x,y-h*.17,w*.78);
     if(shade){
-     shade.addColorStop(0,"rgba(20,48,33,.19)");
-     shade.addColorStop(.49,"rgba(34,74,43,.11)");
+     shade.addColorStop(0,"rgba(20,48,33,.23)");
+     shade.addColorStop(.49,"rgba(34,74,43,.13)");
      shade.addColorStop(1,"rgba(54,89,53,0)");
      ctx.fillStyle=shade;
      ctx.fillRect(x-w*.83,y-w*.83,w*1.66,w*1.66)
     }
     ctx.translate(x,y);
-    // Some headless canvas test contexts omit rotate; browsers support it.
     ctx.rotate?.((hash(salt,j,309)-.5)*.28);
     ctx.scale(hash(j,salt,311)>.51?-1:1,1);
     ctx.globalAlpha=.38+hash(salt,j,313)*.21;
@@ -494,14 +542,30 @@ function create({footprint,geometry,model}={}){
        geometry.waterAt(o.x,o.y,2))continue;
    if(o.x<bounds[0]-310||o.x>bounds[2]+310||
      o.y<bounds[1]-310||o.y>bounds[3]+310)continue;
-   const r=o.radius,shade=ctx.createRadialGradient?.(
-    o.x,o.y,r*.08,o.x,o.y,r*2.6);
+   const r=o.radius,reach=r*(o.kind==="oak"?3.6:3.0);
+   // R26 canopy-filtered woodland floor: two intersecting light/shadow
+   // volumes belong to THIS ORIGINAL physical root. Nothing is tiled,
+   // stamped onto a road, or made collidable by this underpainting.
+   const shade=ctx.createRadialGradient?.(
+    o.x-r*.28,o.y-r*.56,r*.12,o.x,o.y,reach);
    if(shade){
-    shade.addColorStop(0,"rgba(23,49,37,.31)");
-    shade.addColorStop(.42,"rgba(56,94,52,.15)");
+    shade.addColorStop(0,"rgba(18,46,33,.29)");
+    shade.addColorStop(.42,"rgba(33,69,44,.19)");
+    shade.addColorStop(.80,"rgba(67,104,65,.065)");
     shade.addColorStop(1,"rgba(72,107,67,0)");
     ctx.save();ctx.fillStyle=shade;
-    ctx.fillRect(o.x-r*2.6,o.y-r*2.6,r*5.2,r*5.2);ctx.restore()
+    ctx.fillRect(o.x-reach,o.y-reach,reach*2,reach*2);
+    ctx.restore()
+   }
+   const sun=ctx.createRadialGradient?.(
+    o.x-r*1.15,o.y-r*1.38,5,o.x-r*.35,o.y-r*.55,reach*.83);
+   if(sun){
+    sun.addColorStop(0,"rgba(201,193,123,.105)");
+    sun.addColorStop(.60,"rgba(159,176,106,.04)");
+    sun.addColorStop(1,"rgba(160,179,111,0)");
+    ctx.save();ctx.fillStyle=sun;
+    ctx.fillRect(o.x-reach,o.y-reach,reach*2,reach*2);
+    ctx.restore()
    }
    // Real painted fern mats replace tiny detached pixel flecks.
    count++
@@ -515,6 +579,7 @@ function create({footprint,geometry,model}={}){
   roadVergesFromSource:true,matureTreeCanopyScale:1.65,
   featheredRoadEdges:true,rootedUnderstoryMats:true,
   retiredConfettiFloor:true,paintedGladeHabitat:true,rootLinkedCanopy:true,
+  connectedSafeGladeBeds:true,rootFilteredCanopyLight:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}

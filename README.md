@@ -1,3 +1,8 @@
+## Phase 9 R26 — continuous Greenwood undergrowth and rooted forest light
+
+R26 joins *existing* source-landmark fern mats into continuous safe forest-floor beds only when all interior samples lie off the physical roads, water and buildings. Wider, subdued canopy-filtered shadow and sun patches remain attached to original collision-backed oak/pine roots. There are **no new tree trunks, obstacles, paths, waypoints or gameplay changes**, and the existing save key is untouched. Final real-Chromium images: \`GREENWOOD_R26_CONNECTED_GLADE\` and \`GREENWOOD_R26_HERMIT_CANOPY\`. This is an improvement-in-progress, not art approval. Phase 9 remains ACTIVE; Phase 10 locked.
+
+
 ## Phase 9 R25b — remove synthetic clearing chip ring and bright road dashes (visual QA pending)
 
 Actual browser A/B captures isolated two independent sources of distracting pale rectangles: `world_illustration.marker(kind="clearing")` stamped 32 pastel rectangles around the original landmark, and `world_routes.ribbon` stamped small high-contrast gravel dashes along woodland roads. R25b deletes the false circular waypoint markers and skips woodland-only synthetic path flecks; the original route corridors, source roads, canopy, illustrated cottages and all physics/saves are preserved. The R25 base plates remain unchanged. Actual Chromium `GREENWOOD_R25B_CLEAN_CLEARING` screenshot and regression must be checked; this is *not* creator signoff. Phase 9 remains ACTIVE and Phase 10 locked.
