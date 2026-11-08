@@ -704,6 +704,39 @@ try{
  console.log("R33B_REAL_WALKABLE_FOREST_DEPTH "+JSON.stringify(r33b));
  await sleep(750);await capture(page,"GREENWOOD_R33B_LIVE_DEPTH");
 
+ // R34: render a genuine playable, walkable Greenwood Falls shoreline.
+ // The viewpoint is selected from the actual river hazard and source
+ // shoreline, not a precomposed background or concept-art screenshot.
+ const r34=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const artist=window.VeilwardGreenwoodArt.create({
+   model:s.model,geometry:s.geometry,footprint:s.footprint});
+  const samples=artist.fallsBankSources();
+  const site=s.model.nodes.find(n=>n.id==="falls_e");
+  const [sx,sy]=site.point.map(q=>q*60);
+  const safe=samples.filter(o=>!s.blocked(o.x,o.y)&&
+    s.footprint.regionAt(o.x,o.y)?.id==="greenwood_falls")
+   .sort((a,b)=>Math.hypot(a.x-sx,a.y-sy)-Math.hypot(b.x-sx,b.y-sy));
+  if(!safe.length)throw Error("R34 no real walkable Greenwood Falls bank");
+  const p=safe[0];
+  s.jumpToNode("falls_e");s.player.x=p.x;s.player.y=p.y;
+  s.player.moving=false;s.warm(p.x,p.y,2200,1500);
+  const b=[p.x-1200,p.y-950,p.x+1200,p.y+950];
+  const can=document.createElement("canvas");can.width=8;can.height=8;
+  const painted=artist.paintFallsRiverBanks(can.getContext("2d"),b);
+  return{site:{x:p.x,y:p.y},samples:samples.length,
+   drawn:painted,waterSource:s.geometry.waterAt(p.wx,p.wy,0)?.id,
+   dry:!s.geometry.waterAt(p.x,p.y,0),walkable:!s.blocked(p.x,p.y),
+   annotated:artist.stats().fallsPhysicalRiverBanksR34,
+   crossing:s.routeArt.stats().crossings,
+   sourceRoads:s.routeArt.stats().roads}
+ });
+ if(r34.samples<6||r34.drawn<3||r34.waterSource!=="frostbridge_river"||
+   !r34.dry||!r34.walkable||!r34.annotated||
+   r34.crossing!==7||r34.sourceRoads!==65)
+  throw Error("R34 real riverbanks failed "+JSON.stringify(r34));
+ console.log("R34_PHYSICALLY_SOURCED_FALLS_BANKS "+JSON.stringify(r34));
+ await sleep(1500);await capture(page,"GREENWOOD_R34_FALLS_RIVERBANK");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
@@ -809,10 +842,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.34"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+ if(state.build!=="v1.3.35"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
   !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||!state.greenwoodR21||!state.greenwoodR23||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.34 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.35 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
