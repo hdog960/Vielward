@@ -78,8 +78,8 @@ for(const name of ["world_geometry.js","world_climate.js","world_footprint.js",
  for(const anchor of model.nodes)
   assert.equal(world.blocked(anchor.point[0]*60,anchor.point[1]*60),false,
    "original waypoint remains reachable");
- assert.ok(read("index.html").includes("world_greenwood_art.js?v=9"));
- assert.ok(read("sw.js").includes("world_greenwood_art.js?v=9"));
+ assert.ok(read("index.html").includes("world_greenwood_art.js?v=10"));
+ assert.ok(read("sw.js").includes("world_greenwood_art.js?v=10"));
  assert.ok(read("sw.js").includes("veilward-hollowreach-v1332-source-glade-habitat"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  assert.equal(world.raster.stats().creatorApproved,false);
