@@ -8,7 +8,7 @@ const data=JSON.parse(read("docs/overworld/terrain_geometry.json"));
 const footprintData=JSON.parse(read("docs/overworld/outdoor_footprint.json"));
 let images=[];
 const ctx=()=>({globalAlpha:1,save(){},restore(){},translate(){},scale(){},
- drawImage(...p){images.push(p)},beginPath(){},arc(){},moveTo(){},lineTo(){},
+ drawImage(...p){images.push(p)},beginPath(){},closePath(){},arc(){},moveTo(){},lineTo(){},
  quadraticCurveTo(){},stroke(){},fill(){},fillRect(){},clearRect(){},
  createRadialGradient(){return{addColorStop(){}}}});
 class SourceImage{constructor(){this.onload=null;this.naturalWidth=128;this.naturalHeight=128}
