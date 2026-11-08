@@ -557,6 +557,71 @@ function create({footprint,geometry,model}={}){
   return drawn
  }
 
+
+ // R33: perspective-correct foreground occlusion from the SAME original
+ // painted tree sprites and the SAME collision-backed source roots. Trees
+ // are still rendered in world-space chunks; only their upper foliage is
+ // restored over the Wanderer when the player walks BEHIND a real crown.
+ // This replaces the old free-floating oval placeholder in Greenwood.
+ let actorCanopyCache={x:Infinity,y:Infinity,trees:[]};
+ function paintForegroundCanopy(ctx,player){
+  if(!painted||!ctx?.drawImage||!player||
+     !Number.isFinite(player.x)||!Number.isFinite(player.y)||
+     !forest(player.x,player.y))return 0;
+  // Cache the REAL tree-root query across mobile animation frames. It is
+  // refreshed at 90 world units, well inside the oversized cached bounds.
+  if(Math.hypot(player.x-actorCanopyCache.x,
+     player.y-actorCanopyCache.y)>90){
+   const b=[player.x-670,player.y-490,player.x+670,player.y+930];
+   const seen=new Set();
+   const trees=[...(footprint.cells?.(b,440)||[]),
+     ...(footprint.groves?.(b,440)||[])].filter(o=>{
+      if(!o||!o.solid||!o.id||seen.has(o.id)||
+         !["oak","pine"].includes(o.kind)||!forest(o.x,o.y)||
+         geometry.waterAt(o.x,o.y,6))return false;
+      seen.add(o.id);return true
+     }).sort((a,b)=>a.y-b.y);
+   actorCanopyCache={x:player.x,y:player.y,trees}
+  }
+  let visible=0;
+  for(const root of actorCanopyCache.trees){
+   const r=root.radius,elder=root.authoredGrove?
+    (root.kind==="oak"?1.20:1.08):1;
+   const w=r*(root.kind==="oak"?5.4:4.6)*elder,
+     h=r*(root.kind==="oak"?7.0:7.6)*elder;
+   // Real root is on the near (foreground) side of the player.
+   if(root.y<=player.y+15||Math.abs(root.x-player.x)>w*.49+23)
+    continue;
+   const top=root.y-h,bottom=top+h*90/PAINTED_SIZE;
+   if(player.y-93>bottom||player.y-8<top)continue;
+   let variant=Math.floor((root.variant||0)*849);
+   if(root.authoredGrove&&variant%VARIANTS===1)variant++;
+   // A procedural fallback tree must not acquire an incompatible
+   // R18-painted overlay simply because its collider is nearby.
+   if(variant%VARIANTS===1)continue;
+   if(footprint.blocked&&!footprint.blocked(root.x,root.y,4))
+    continue;
+   const index=root.kind==="oak"?0:1;
+   const flip=variant%VARIANTS%2===0;
+   ctx.save();
+   ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?
+     ctx.globalAlpha:1)*.79;
+   ctx.imageSmoothingEnabled=true;
+   if(flip){
+    ctx.translate(Math.round(root.x),0);
+    ctx.scale(-1,1);
+    ctx.drawImage(painted,index*PAINTED_SIZE,0,
+     PAINTED_SIZE,90,Math.round(-w*.5),
+     Math.round(top),Math.round(w),Math.round(h*90/PAINTED_SIZE))
+   }else ctx.drawImage(painted,index*PAINTED_SIZE,0,
+     PAINTED_SIZE,90,Math.round(root.x-w*.5),
+     Math.round(top),Math.round(w),Math.round(h*90/PAINTED_SIZE));
+   ctx.restore();visible++;
+   if(visible>=3)break
+  }
+  return visible
+ }
+
  function paintCanopyLinks(ctx,bounds,roots){
   if(!painted||!ctx?.drawImage||!Array.isArray(roots))return 0;
   const trees=roots.filter(o=>["oak","pine"].includes(o.kind)&&
@@ -805,12 +870,12 @@ function create({footprint,geometry,model}={}){
   featheredRoadEdges:true,rootedUnderstoryMats:true,
   retiredConfettiFloor:true,paintedGladeHabitat:true,rootLinkedCanopy:true,
   connectedSafeGladeBeds:true,rootFilteredCanopyLight:true,
-  sourceRootedEavesR31c:true,upperForestGalleryR32:true,
+  sourceRootedEavesR31c:true,upperForestGalleryR32:true,realActorCanopyDepthR33:true,
   rootedOverstoryR30:true,nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},

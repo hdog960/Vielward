@@ -359,6 +359,12 @@ function create(model,geometry,options={}){
  }
  function foreground(ctx,player){
   if(raster?.drawForeground(ctx,player))return;
+  // R33: authentic original painted foliage, reprojected only when a
+  // real foreground tree partially hides the actor in three-quarter view.
+  // Greenwood no longer uses disconnected teal oval "occlusion" props.
+  if(greenwood&&footprint.regionAt(player.x,player.y)?.id==="greenwood"){
+   greenwood.paintForegroundCanopy(ctx,player);return
+  }
   for(const o of [...footprint.cells([player.x-320,player.y-320,player.x+320,player.y+240],175),
   ...footprint.groves([player.x-320,player.y-320,player.x+320,player.y+240],175)]){
    if(!["pine","oak"].includes(o.kind)||o.y<=player.y||Math.abs(o.x-player.x)>o.radius*1.4||o.y-player.y>o.radius*2)continue;
@@ -367,7 +373,7 @@ function create(model,geometry,options={}){
    ctx.restore()
   }
  }
- function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster,greenwoodAtlasSprites:greenwood?.stats().totalSprites||0,greenwoodOriginalAnchors:!!greenwood,greenwoodSanctuaryIllustration:!!window.VeilwardGreenwoodSanctuary?.ready}}
+ function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster,greenwoodAtlasSprites:greenwood?.stats().totalSprites||0,greenwoodOriginalAnchors:!!greenwood,greenwoodSanctuaryIllustration:!!window.VeilwardGreenwoodSanctuary?.ready,greenwoodActorCanopyDepthR33:true}}
  return{version:V,drawGround,drawFeatures,drawStatic,drawForeground:foreground,stats}
 }
 window.VeilwardIllustration={version:V,create};
