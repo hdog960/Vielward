@@ -1,4 +1,4 @@
-/* VEILWARD 1.3.1 — climate-driven regional forest, snowline and grounded scenery.
+/* VEILWARD Phase 9 R27 — source-rooted Greenwood road-edge forest, climate and grounded scenery.
  * A physically traversable 12-region landmass and reproducible region scenery.
  * All natural blockers are rendered from the very same positions/footprint as
  * their boot-level collision. No NPC/player art is touched or copied.
@@ -42,6 +42,21 @@ function create(model,geo,source,options={}){
  const clearings=[...source.clearings.map(c=>({x:nodes[c.anchor].point[0]*scale,y:nodes[c.anchor].point[1]*scale,r:Math.min(c.r*scale,315)})),
    ...hubs.map(h=>({x:h.x,y:h.y,r:Math.min(h.r*.34,355)}))];
  const staticSolids=geo.solids;
+
+ // R27: original source-located buildings and entrances remain clear
+ // while nearby forest roots can advance toward the original roads.
+ const protectedSites=[];
+ for(const [anchor,offsets] of [
+  ["greenwood_hearth",[[-400,160,230],[350,300,158],[-260,280,150],[300,-430,135]]],
+  ["hermit",[[0,0,240]]]
+ ]){
+  const n=nodes[anchor];if(!n)continue;
+  for(const [dx,dy,r] of offsets)
+   protectedSites.push({x:n.point[0]*scale+dx,y:n.point[1]*scale+dy,r})
+ }
+ function inProtectedSite(x,y,r){
+  return protectedSites.some(a=>Math.hypot(x-a.x,y-a.y)<a.r+r+20)
+ }
  const cachedFields=new Map(),MAX_CACHE=6000;
  const groveCache=new Map(),GROVE_SPAN=220,MAX_GROVE_CACHE=8500;
  let evaluations=0;
@@ -87,9 +102,16 @@ function create(model,geo,source,options={}){
   }
   const solid=source.fieldSampling.solidKinds.includes(kind);
   const radius=solid?(45+hash(gx,gy,seed+29)*51):35+hash(gx,gy,seed+29)*35;
-  // Real route corridors and named clearings always win over scenery.
-  for(const c of clearings)if(Math.hypot(x-c.x,y-c.y)<c.r+radius+90)return remember(key,null);
-  if(geo.nearRoad(x,y,()=>true,radius+source.fieldSampling.avoidRouteBufferWorld))return remember(key,null);
+  // R27: Greenwood uses the original physical road edge plus a safe
+  // shoulder. Other biomes retain the old buffer and density unchanged.
+  const woodland=reg.id==="greenwood";
+  for(const c of clearings){
+   const safe=woodland?Math.min(c.r,190)+radius+55:c.r+radius+90;
+   if(Math.hypot(x-c.x,y-c.y)<safe)return remember(key,null)
+  }
+  if(woodland&&inProtectedSite(x,y,radius))return remember(key,null);
+  const shoulder=woodland?90:source.fieldSampling.avoidRouteBufferWorld;
+  if(geo.nearRoad(x,y,()=>true,radius+shoulder))return remember(key,null);
   if(geo.waterAt(x,y,radius+25)||geo.obstacle(x,y,radius+source.fieldSampling.avoidExistingPropsWorld))return remember(key,null);
   const obj={id:"field_"+gx+"_"+gy,x,y,kind,radius,solid,biome:reg.id,variant:hash(gx,gy,seed+40),...(weather?{snow:weather.snow,moisture:weather.wet}:{})};
   return remember(key,obj)
@@ -112,12 +134,16 @@ function create(model,geo,source,options={}){
   const y=(gy+.5)*GROVE_SPAN+(hash(gy,gx,seed+149)-.5)*GROVE_SPAN*.60;
   if(!onLand(x,y))return done(null);
   const reg=regionAt(x,y),opts=reg.opts,c=climate?.sample(x,y);
-  if(!opts||hash(gx,gy,seed+155)>Math.min(.76,opts.density*.85))return done(null);
+  const woodland=reg.id==="greenwood";
+  const density=woodland?Math.min(.83,opts?.density*1.12):
+   Math.min(.76,opts?.density*.85);
+  if(!opts||hash(gx,gy,seed+155)>density)return done(null);
   const r=36+hash(gx,gy,seed+157)*20;
   // Match the actual boot-level physical source; never fill any authored
   // road, footbridge, ford, landmark threshold or water shoreline.
-  if(geo.nearRoad(x,y,()=>true,r+100))return done(null);
+  if(geo.nearRoad(x,y,()=>true,r+(woodland?55:100)))return done(null);
   if(geo.waterAt(x,y,r+30)||geo.obstacle(x,y,r+45))return done(null);
+  if(woodland&&inProtectedSite(x,y,r))return done(null);
   // Preserve the former decorative groundcover contract: a collidable young
   // tree may never spawn on a visible non-solid flowerbed or reed tuft.
   // Use deterministic real mature-feature coordinates, not visual guesses.
@@ -127,7 +153,7 @@ function create(model,geo,source,options={}){
    if(old&&Math.hypot(x-old.x,y-old.y)<r+old.radius+45)return done(null)
   }
   for(const cl of clearings)
-   if(Math.hypot(x-cl.x,y-cl.y)<Math.min(cl.r,130)+r+35)return done(null);
+   if(Math.hypot(x-cl.x,y-cl.y)<Math.min(cl.r,woodland?145:130)+r+35)return done(null);
   const choice=hash(gx,gy,seed+161);
   let kind="oak";
   if(choice<.14&&c?.rock>.44)kind="boulder";

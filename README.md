@@ -1,3 +1,7 @@
+## Phase 9 R27 — Greenwood physical forest at real road edges
+
+Greenwood's excessive *extra* road and hub-clearance buffers are reduced only for this biome, admitting more collision-backed oak/pine roots alongside existing roads. Explicit protected zones preserve the original Hearth cottage and four setpieces plus the Hermit entrance. Roads, water, source sprite art, scenes, quests and saved character state are unchanged. Actual browser screenshot keys: `GREENWOOD_R27_WOODED_CROSSROADS` and `GREENWOOD_R27_HERMIT_EDGE`; dedicated test checks source footpoints and routes. The appearance remains **not approved**; Phase 9 active, Phase 10 locked.
+
 ## Phase 9 R26 — continuous Greenwood undergrowth and rooted forest light
 
 R26 joins *existing* source-landmark fern mats into continuous safe forest-floor beds only when all interior samples lie off the physical roads, water and buildings. Wider, subdued canopy-filtered shadow and sun patches remain attached to original collision-backed oak/pine roots. There are **no new tree trunks, obstacles, paths, waypoints or gameplay changes**, and the existing save key is untouched. Final real-Chromium images: \`GREENWOOD_R26_CONNECTED_GLADE\` and \`GREENWOOD_R26_HERMIT_CANOPY\`. This is an improvement-in-progress, not art approval. Phase 9 remains ACTIVE; Phase 10 locked.
