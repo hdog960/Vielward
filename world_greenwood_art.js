@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.33",SIZE=192,HEIGHT=240,VARIANTS=5;
+const V="1.3.32",SIZE=192,HEIGHT=240,VARIANTS=5;
 const A={
  oak:["#192b27","#264337","#355745","#4b7551","#64875a","#83a06b","#b2b57a"],
  pine:["#172e2b","#26443d","#2b5447","#46705a","#5c8165","#80a17b","#bbc296"]
