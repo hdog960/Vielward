@@ -78,7 +78,7 @@ for(const file of ["world_geometry.js","world_climate.js","world_footprint.js",
  }
  const b=read("sw.js"),html=read("index.html");
  for(const [kind] of assets)assert.ok(b.includes("greenwood_"+kind+"_r18.avif?v=1"));
- assert.ok(html.includes("world_greenwood_art.js?v=9"));
+ assert.ok(html.includes("world_greenwood_art.js?v=10"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  assert.ok(b.includes("veilward-hollowreach-v1332-source-glade-habitat"));
  assert.equal(world.raster.stats().creatorApproved,false);
