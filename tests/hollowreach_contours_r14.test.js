@@ -77,7 +77,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.ok(read("world_raster_pilot.js").includes("drawVillageLandContours(ctx,bounds);"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'),
   "player's original local adventure save remains unchanged");
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1332-source-glade-habitat"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1334-source-tree-depth-r33"));
  assert.ok(read("index.html").includes("world_raster_pilot.js?v=28"));
  console.log("R14 PASS: 3 source cliffs + 4 connected real roads, authored snow/rock textures, 12 regions, 39 real solids, 48 safe anchors, 65 roads, 7 crossings, save intact; artwork NOT approved");
 })().catch(e=>{console.error(e);process.exitCode=1});

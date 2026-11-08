@@ -56,7 +56,7 @@ for(const f of files)vm.runInNewContext(fs.readFileSync(f,"utf8"),host,{filename
  const all=model.nodes.map(n=>world.blocked(n.point[0]*60,n.point[1]*60));
  assert.ok(all.every(v=>v===false),"All 48 outdoor anchors remain walkable");
  const sw=fs.readFileSync("sw.js","utf8"),html=fs.readFileSync("index.html","utf8");
- assert.ok(sw.includes("veilward-hollowreach-v1332-source-glade-habitat"));
+ assert.ok(sw.includes("veilward-hollowreach-v1334-source-tree-depth-r33"));
  assert.ok(html.includes("world_raster_pilot.js?v=28"));
  assert.ok(html.includes("terrain_art.js?v=32"));
  console.log("R4 PASS: painted cliff composition, source lighting, true tree depth, roads and caches");
