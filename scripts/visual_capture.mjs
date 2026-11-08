@@ -467,6 +467,18 @@ try{
     r28.cottageCount!==1)throw Error("R28 rooted canopy safety mismatch "+JSON.stringify(r28));
  console.log("R28_HEARTH_AUTHORED_ROOTS "+JSON.stringify(r28));
  await sleep(1150);await capture(page,"GREENWOOD_R28_LIVING_CROSSROADS");
+ const r28b=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player;
+  const roots=s.footprint.groves([p.x-800,p.y-550,p.x+800,p.y+750],600)
+   .filter(o=>o.authoredGrove);
+  const visible=roots.filter(o=>Math.abs(o.x-p.x)<470&&
+   o.y-p.y>155&&o.y-p.y<630);
+  return{rootList:roots.map(o=>({id:o.id,dx:Math.round(o.x-p.x),
+   dy:Math.round(o.y-p.y)})),visibleCount:visible.length}
+ });
+ if(r28b.visibleCount<2)throw Error("R28b old growth still outside camera: "+JSON.stringify(r28b));
+ console.log("R28B_VISIBLE_ROOTS "+JSON.stringify(r28b));
+ await sleep(850);await capture(page,"GREENWOOD_R28B_VISIBLE_CROWNS");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");

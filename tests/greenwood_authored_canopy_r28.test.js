@@ -39,7 +39,9 @@ for(const o of trees){
  }
  if(Math.abs(o.x-cx)<640&&o.y>cy-430&&o.y<cy+650)aroundView++;
 }
-assert.ok(aroundView>=1,"new trees must materially frame the real landscape camera");
+assert.ok(aroundView>=2,"new trees must materially frame the real landscape camera");
+ const visible=trees.filter(o=>Math.abs(o.x-cx)<470&&o.y-cy>155&&o.y-cy<630);
+ assert.ok(visible.length>=2,"two source-painted physical canopies must intersect the phone view");
 const house=setpieces.objects.filter(o=>o.anchor==="greenwood_hearth"&&o.kind==="forest_cottage");
 assert.equal(house.length,1,"original illustrated Hearth cottage remains present");
 for(const id of ["greenwood_hearth","hermit"]){
@@ -59,8 +61,8 @@ for(const road of geometry.roads){
 assert.ok(walkSamples>4000);
 assert.equal(JSON.stringify(model.nodes),originalNodes);
 assert.equal(JSON.stringify(model.edges),originalEdges);
-assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=28"));
-assert.ok(read("sw.js").includes("source-glade-habitat-r25b-r26-r27-r28"));
+assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=28b"));
+assert.ok(read("sw.js").includes("source-glade-habitat-r25b-r26-r27-r28b"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 
 // R28b diagnostic only: world-space root/visible-camera placement audit.

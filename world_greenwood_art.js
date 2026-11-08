@@ -218,10 +218,12 @@ function create({footprint,geometry,model}={}){
  function paintFeature(ctx,o){
   if(!o||!forest(o.x,o.y))return false;
   if(!["oak","pine","flowerbed","scrub","boulder"].includes(o.kind))return false;
-  const n=Math.floor(o.variant*849),r=o.radius;
+  let n=Math.floor(o.variant*849);
+  const r=o.radius;
   if(o.kind==="oak"||o.kind==="pine"){
-   // Mature canopies tower over the Wanderer, while retaining the exact
-   // original physical trunk root and collision anchor.
+   // Only the original painted R18 source for newly curated old-growth
+   // roots: no mismatched generated fallback in this focal forest scene.
+   if(o.authoredGrove&&n%VARIANTS===1)n++;
    const w=r*(o.kind==="oak"?5.4:4.6),h=r*(o.kind==="oak"?7.0:7.6);
    return stamp(ctx,o.kind,o.x,o.y,w,h,n)
   }

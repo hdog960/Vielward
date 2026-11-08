@@ -1,4 +1,4 @@
-/* VEILWARD Phase 9 R28 — source-rooted Greenwood old-growth composition, physical forest and climate.
+/* VEILWARD Phase 9 R28b — physically sourced, camera-visible Greenwood old-growth.
  * A physically traversable 12-region landmass and reproducible region scenery.
  * All natural blockers are rendered from the very same positions/footprint as
  * their boot-level collision. No NPC/player art is touched or copied.
@@ -189,16 +189,17 @@ function create(model,geo,source,options={}){
   // Intentional asymmetry: trees frame the cottage and road shoulders
   // with rooted rear crowns and nearer leafy edges rather than a ring.
   // Additional candidates let the real source roots/water win when nearby.
+  // R28b puts physical source roots along the VIEWABLE woodland edge,
+  // not above the small landscape camera as the first R28 set did.
+  // All suggestions must pass the original physical collision audit.
   const positions=[
-   [100,390,"oak"],[555,505,"oak"],[-570,565,"pine"],
-   [-350,-350,"oak"],[-85,-405,"pine"],[545,-225,"oak"],
-   [70,525,"oak"],[250,575,"pine"],[-485,-395,"pine"],
-   [635,-325,"pine"],[-370,-540,"oak"],[610,500,"oak"],
-   [75,335,"oak"],[130,420,"pine"],[-510,540,"oak"],
-   [-250,-445,"oak"],[530,-310,"oak"],[145,570,"pine"],
-   [-625,555,"oak"],[625,620,"pine"],[325,-530,"oak"],
-   [-125,-530,"pine"],[35,615,"oak"],[420,610,"oak"],
-   [-500,-495,"oak"],[-340,-600,"pine"]
+   [65,360,"oak"],[195,490,"pine"],[-65,490,"oak"],
+   [130,555,"oak"],[-130,555,"pine"],[260,555,"oak"],
+   [65,295,"pine"],[110,610,"pine"],[-65,555,"oak"],
+   [-350,-350,"oak"],[-85,-405,"pine"],[530,-310,"oak"],
+   [420,610,"oak"],[-485,-395,"pine"],[635,-325,"pine"],
+   [545,-225,"oak"],[-370,-540,"oak"],[-510,540,"oak"],
+   [625,620,"pine"],[-125,-530,"pine"],[325,-530,"oak"]
   ];
   const rooted=[];
   for(let index=0;index<positions.length;index++){
@@ -210,20 +211,20 @@ function create(model,geo,source,options={}){
       inProtectedSite(x,y,r)||!rootClearOfRoads(x,y,r))continue;
    if(clearings.some(c=>Math.hypot(x-c.x,y-c.y)<
        Math.min(c.r,145)+r+42))continue;
-   if(rooted.some(o=>Math.hypot(o.x-x,o.y-y)<o.radius+r+125))
+   if(rooted.some(o=>Math.hypot(o.x-x,o.y-y)<o.radius+r+76))
     continue;
    let crowded=false;
    const fx=Math.floor(x/span),fy=Math.floor(y/span),
     gx=Math.floor(x/GROVE_SPAN),gy=Math.floor(y/GROVE_SPAN);
    for(let by=-2;by<=2&&!crowded;by++)for(let bx=-2;bx<=2;bx++){
     const old=fieldCell(fx+bx,fy+by);
-    if(old&&Math.hypot(old.x-x,old.y-y)<old.radius+r+55){
+    if(old&&Math.hypot(old.x-x,old.y-y)<old.radius+r+20){
      crowded=true;break
     }
    }
    for(let by=-2;by<=2&&!crowded;by++)for(let bx=-2;bx<=2;bx++){
     const old=groveCell(gx+bx,gy+by);
-    if(old&&Math.hypot(old.x-x,old.y-y)<old.radius+r+55){
+    if(old&&Math.hypot(old.x-x,old.y-y)<old.radius+r+20){
      crowded=true;break
     }
    }
