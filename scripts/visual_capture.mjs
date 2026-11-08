@@ -540,6 +540,39 @@ try{
    await sleep(500)
   }
  }
+ // Isolate the still-visible pale ground squares in the remaining
+ // source passes. Each mask lives ONLY inside the Playwright browser and
+ // is restored before the next capture and before the browser test exits.
+ for(const item of [
+  {name:"GREENWOOD_R25_NO_FOOTPRINT_PASS",layer:"footprint",methods:["draws"]},
+  {name:"GREENWOOD_R25_NO_SETPIECES_PASS",layer:"setpieces",methods:["draw"]},
+  {name:"GREENWOOD_R25_NO_RASTER_PASS",layer:"raster",
+   methods:["drawVillageGround","drawWinterFootpaths","drawWinterScene",
+    "drawSetpieces","drawVillageAtmosphere"]},
+  {name:"GREENWOOD_R25_NO_SOLIDS_PASS",layer:"geometry",solids:true}
+ ]){
+  await page.evaluate(item=>{
+   const s=window.__veilwardCaptureStream,obj=s[item.layer];
+   window.__r25TempStage={obj,
+    originals:Object.fromEntries((item.methods||[]).map(k=>[k,obj?.[k]])),
+    originalSolids:item.solids?obj.solids.slice():null};
+   if(item.solids)obj.solids.length=0;
+   else for(const k of item.methods||[])if(obj&&typeof obj[k]==="function")obj[k]=()=>{};
+   s.clearCache()
+  },item);
+  try{
+   await sleep(650);await capture(page,item.name)
+  }finally{
+   await page.evaluate(()=>{
+    const s=window.__veilwardCaptureStream,p=window.__r25TempStage;
+    for(const [key,value] of Object.entries(p.originals||{}))
+     if(typeof value==="function")p.obj[key]=value;
+    if(p.originalSolids)p.obj.solids.splice(0,p.obj.solids.length,...p.originalSolids);
+    s.clearCache();delete window.__r25TempStage
+   });
+   await sleep(300)
+  }
+ }
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
