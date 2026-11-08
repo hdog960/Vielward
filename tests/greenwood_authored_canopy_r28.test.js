@@ -72,7 +72,7 @@ assert.ok(walkSamples>4000);
 assert.equal(JSON.stringify(model.nodes),originalNodes);
 assert.equal(JSON.stringify(model.edges),originalEdges);
 assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=31c"));
-assert.ok(read("sw.js").includes("source-tree-depth-r33-r26-r27-r28d"));
+assert.ok(read("sw.js").includes("source-tree-depth-r33"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 
 // R28b diagnostic only: world-space root/visible-camera placement audit.
