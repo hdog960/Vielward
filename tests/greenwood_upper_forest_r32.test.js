@@ -59,7 +59,7 @@ vm.runInNewContext(read("world_greenwood_art.js"),host);
  assert.ok(read("world_illustration.js").includes(
   "paintHearthUpperForest(ctx,bounds,features)"));
  for(const p of ["index.html","sw.js"]){
-  assert.ok(read(p).includes("world_greenwood_art.js?v=11&rev=33"));
+  assert.ok(read(p).includes("world_greenwood_art.js?v=12&rev=34"));
   assert.ok(read(p).includes("world_illustration.js?v=28&rev=33"));
  }
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));

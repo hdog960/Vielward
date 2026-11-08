@@ -50,8 +50,8 @@ assert.ok(src.indexOf("paintRootedForestEdge(ctx,bounds);")<
 assert.equal(JSON.stringify(model.nodes),nodesBefore);
 assert.equal(JSON.stringify(model.edges),edgesBefore);
 assert.equal(geo.roads.length,65);
-assert.ok(read("index.html").includes("world_greenwood_art.js?v=11&rev=33"));
-assert.ok(read("sw.js").includes("world_greenwood_art.js?v=11&rev=33"));
-assert.ok(read("sw.js").includes("source-tree-depth-r33"));
+assert.ok(read("index.html").includes("world_greenwood_art.js?v=12&rev=34"));
+assert.ok(read("sw.js").includes("world_greenwood_art.js?v=12&rev=34"));
+assert.ok(read("sw.js").includes("greenwood-falls-r34"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 console.log("R30 PASS: "+first+" original rooted forest crowns project natural overstory shade, "+strokes+" inter-root shading links, road and original save safe; art not yet approved");
