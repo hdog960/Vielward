@@ -268,7 +268,24 @@ function create(model,geo,source,options={}){
   // before the actual 720x405 overlook view gets a forest on both sides.
   // These are deliberate SITE-RELATIVE candidates only: each candidate
   // must still pass the exact unchanged physical road/water/root tests.
-  const composed=[
+  // R38d screen-edge sources: near the actual landscape camera, not
+  // distant trees counted as aesthetic progress offscreen. Multiple
+  // proposals are deliberately redundant; physical safety owns acceptance.
+  const cameraCandidates=[
+   [-465,30,"oak"],[-480,80,"pine"],[-510,125,"oak"],
+   [-550,165,"pine"],[-590,205,"oak"],[-620,250,"oak"],
+   [-660,305,"pine"],[-700,380,"oak"],[-570,590,"oak"],
+   [-540,650,"pine"],[-460,700,"oak"],[-750,490,"oak"],
+   [-680,575,"pine"],[-520,-80,"oak"],[-550,-150,"pine"],
+   [-610,-80,"oak"],[-640,0,"oak"],[-700,50,"pine"],
+   [450,20,"oak"],[470,70,"pine"],[500,115,"oak"],
+   [535,165,"pine"],[560,215,"oak"],[585,260,"oak"],
+   [615,310,"pine"],[640,370,"oak"],[490,500,"oak"],
+   [520,570,"pine"],[450,620,"oak"],[680,160,"pine"],
+   [710,80,"oak"],[520,-80,"pine"],[580,-140,"oak"],
+   [630,-180,"pine"],[705,-240,"oak"]
+  ];
+  const composed=[...cameraCandidates,
    [-625,300,"oak"],[-525,105,"pine"],[-745,350,"oak"],
    [-535,-115,"oak"],[-825,-260,"pine"],[-470,575,"oak"],
    [-665,535,"pine"],[-990,85,"oak"],[-880,-545,"pine"],
