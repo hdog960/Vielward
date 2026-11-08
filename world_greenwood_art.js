@@ -5,7 +5,7 @@
  */
 (function(){
 "use strict";
-const V="1.3.32",SIZE=192,HEIGHT=240,VARIANTS=5;
+const V="1.3.33",SIZE=192,HEIGHT=240,VARIANTS=5;
 const A={
  oak:["#192b27","#264337","#355745","#4b7551","#64875a","#83a06b","#b2b57a"],
  pine:["#172e2b","#26443d","#2b5447","#46705a","#5c8165","#80a17b","#bbc296"]
@@ -501,6 +501,62 @@ function create({footprint,geometry,model}={}){
   return applied
  }
 
+
+ // R32: the northern Greenwood forest is a real, three-quarter-view
+ // woodland, not a wallpaper or a collection of green ground speckles.
+ // Original R18 foliage is extended toward the camera ONLY from six
+ // individually identifiable collision-backed trees around the Hearth.
+ // The distant northern canopy forms a continuous rear wall, while two
+ // roadside oaks frame the forward left and right edges. The central
+ // Wanderer corridor remains open and every actual trunk remains rooted.
+ function paintHearthUpperForest(ctx,bounds,roots){
+  if(!painted||!ctx?.drawImage||!Array.isArray(roots))return 0;
+  const hearth=habitatAnchors.find(h=>h.id==="greenwood_hearth");
+  if(!hearth)return 0;
+  const north=new Set(["hearth_root_8","hearth_root_9",
+   "hearth_root_10","hearth_root_15"]);
+  const sides=new Set(["hearth_root_20","hearth_root_23"]);
+  let drawn=0;
+  for(const root of roots){
+   if(!root?.authoredGrove||(!north.has(root.id)&&!sides.has(root.id))||
+      !["oak","pine"].includes(root.kind)||!forest(root.x,root.y)||
+      geometry.waterAt(root.x,root.y,15)||
+      (footprint.blocked&&!footprint.blocked(root.x,root.y,4)))continue;
+   const dx=root.x-hearth.x,dy=root.y-hearth.y,r=root.radius;
+   const isNorth=north.has(root.id);
+   if(isNorth&&(Math.abs(dx)>760||dy> -220||dy< -690))continue;
+   if(!isNorth&&(Math.abs(dx)<500||dy<260||dy>690))continue;
+   const count=isNorth?2:1;
+   for(let i=0;i<count;i++){
+    // A crown stretches southward from the off-camera northern trunks.
+    // The side-oak branches reach inward, with their original intact
+    // crown still drawn in the normal physical-tree pass afterward.
+    const side=Math.sign(dx)||1;
+    const x=isNorth?
+      root.x+r*(i===0?-1.35:1.10):
+      root.x-side*r*4.85;
+    const y=isNorth?
+      root.y+r*(i===0?3.05:4.25):
+      root.y-r*6.9;
+    const w=r*(isNorth?(i===0?5.5:6.45):5.4);
+    const h=w*78/128;
+    // Never place an overhead crown over the original hero's feet or
+    // imply a new blocked corridor through the heart of the crossroads.
+    if(y>hearth.y-104&&Math.abs(x-hearth.x)<w*.5+95)continue;
+    if(x+w*.5<bounds[0]||x-w*.5>bounds[2]||
+       y<bounds[1]-15||y-h>bounds[3]+15)continue;
+    const index=root.kind==="pine"?1:0;
+    ctx.save();
+    ctx.globalAlpha=isNorth?(i===0?.94:.89):.94;
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,index*PAINTED_SIZE,0,PAINTED_SIZE,78,
+     Math.round(x-w*.5),Math.round(y-h),Math.round(w),Math.round(h));
+    ctx.restore();drawn++
+   }
+  }
+  return drawn
+ }
+
  function paintCanopyLinks(ctx,bounds,roots){
   if(!painted||!ctx?.drawImage||!Array.isArray(roots))return 0;
   const trees=roots.filter(o=>["oak","pine"].includes(o.kind)&&
@@ -749,12 +805,12 @@ function create({footprint,geometry,model}={}){
   featheredRoadEdges:true,rootedUnderstoryMats:true,
   retiredConfettiFloor:true,paintedGladeHabitat:true,rootLinkedCanopy:true,
   connectedSafeGladeBeds:true,rootFilteredCanopyLight:true,
-  sourceRootedEavesR31c:true,
+  sourceRootedEavesR31c:true,upperForestGalleryR32:true,
   rootedOverstoryR30:true,nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},
