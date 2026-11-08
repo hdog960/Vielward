@@ -27,7 +27,7 @@ const stream=host.VeilwardWorldStream.create(model,{geometry:gd,footprint:fd,can
 eq(host.VeilwardSetpieces.version,"1.3.32","versioned authored region setpiece module loads");
 eq(stream.version,"1.3.32","actual streaming world loads new composition");
 eq(stream.art.version,"1.3.32","real terrain compositor paints R2");
-eq(stream.illustration.version,"1.3.32","three-quarter foreground artist integrates region setpieces");
+eq(stream.illustration.version,"1.3.33","three-quarter foreground artist integrates region setpieces");
 eq(stream.routeArt.version,"1.3.32","physical seven-crossing art uses richer deck texture");
 eq(scene?.version,"1.3.32","R2 piece renderer is not optional in the live runtime");
 eq(stream.stats().setpieces.placed,scene.objects.length,"runtime composition diagnostic is genuine");
@@ -110,14 +110,14 @@ ok(source["world_stream.js"].includes("setpieces?.blocked(x,y,10,o=>"),
  "new physical fixture collision is checked by the actual player movement engine");
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
 for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_setpieces.js?v=3",
- "world_illustration.js?v=26","terrain_art.js?v=32","world_routes.js?v=27",
- "world_stream.js?v=32","world_review.js?v=4","game.js?v=53",
+ "world_illustration.js?v=27","terrain_art.js?v=32","world_routes.js?v=27",
+ "world_stream.js?v=32","world_review.js?v=4","game.js?v=54",
  "manifest.webmanifest?v=1332"])
  ok(html.includes(asset)&&sw.includes(asset),"Safari and iPhone PWA cache exactly same R2 source "+asset);
-ok(html.indexOf("world_setpieces.js?v=3")<html.indexOf("world_illustration.js?v=26")&&
- html.indexOf("world_illustration.js?v=26")<html.indexOf("world_stream.js?v=32"),
+ok(html.indexOf("world_setpieces.js?v=3")<html.indexOf("world_illustration.js?v=27")&&
+ html.indexOf("world_illustration.js?v=27")<html.indexOf("world_stream.js?v=32"),
  "order builds solid fixtures and artist before stream boot");
-ok(game.includes('const APP_VERSION="1.3.32";')&&
+ok(game.includes('const APP_VERSION="1.3.33";')&&
  game.includes('const SAVE="veilward-hollowreach-v01";'),"preserved legacy save and correct R2 build");
 ok(game.includes('!stream.setpieces')&&game.includes("show&&worldPreview.debug"),
  "real preview requires full R2 art and keeps debug diagnostics off gameplay screen");
