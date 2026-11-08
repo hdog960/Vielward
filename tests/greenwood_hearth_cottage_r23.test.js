@@ -44,7 +44,7 @@ vm.runInNewContext(source,window,{filename:"world_greenwood_hearth.js"});
   "real fallback must remain");
  assert.ok(read("game.js").includes("await window.VeilwardGreenwoodHearth?.load?.();"));
  assert.ok(read("index.html").includes("world_greenwood_hearth.js?v=1"));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1332-source-glade-habitat"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1334-source-tree-depth-r33"));
  assert.ok(read("sw.js").includes("assets/greenwood_hearth_cottage_r23.webp?v=1"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  const model=JSON.parse(read("docs/overworld/world_blueprint.json"));

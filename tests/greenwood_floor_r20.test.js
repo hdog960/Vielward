@@ -65,8 +65,8 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{filename:"world_greenwood
  const materials=read("terrain_art.js");
  assert.ok(illustration.includes('footprint.regionAt(x,y)?.id==="greenwood")continue'));
  assert.ok(materials.includes('?.id==="greenwood")return;'));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1332-source-glade-habitat"));
- assert.ok(read("index.html").includes("world_greenwood_art.js?v=10"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1334-source-tree-depth-r33"));
+ assert.ok(read("index.html").includes("world_greenwood_art.js?v=11"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R20 PASS: illustrated root-grown fern mats and retired Greenwood confetti, no source geometry mutation, saved progress retained; visual approval remains 0%");
 })().catch(err=>{console.error(err);process.exitCode=1});

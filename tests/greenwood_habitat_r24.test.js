@@ -73,8 +73,8 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,
   "no world waypoint or physical anchor changed");
  assert.ok(read("world_illustration.js").includes(
   "VeilwardGreenwoodArt?.create({footprint,geometry,climate,model})"));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1332-source-glade-habitat"));
- assert.ok(read("index.html").includes("world_greenwood_art.js?v=10"));
+ assert.ok(read("sw.js").includes("veilward-hollowreach-v1334-source-tree-depth-r33"));
+ assert.ok(read("index.html").includes("world_greenwood_art.js?v=11"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R24 PASS: source-linked illustrated Greenwood habitat, original physical roads clear, no changes to anchors or saves, Phase 9 unapproved");
 })().catch(err=>{console.error(err);process.exitCode=1});
