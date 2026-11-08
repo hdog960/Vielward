@@ -94,7 +94,8 @@ function makeAtlas(factory){
  * or clone-stamped props. Natural root/road painters supply those details.
  * Periodic multi-octave color ramps meet exactly across tile/chunk seams. */
 const GREENWOOD_BASE={
- forest:[81,119,96],moss:[112,139,111],grass:[131,157,116]
+ forest:[81,119,96],moss:[112,139,111],grass:[131,157,116],
+ river:[55,104,130]
 };
 function makeGreenwoodFloorPlates(factory){
  const SIZE=256,steps=16,plates={};
@@ -118,8 +119,13 @@ function makeGreenwoodFloorPlates(factory){
    const large=noise(x,y,64,salt),
     middle=noise(x,y,16,salt+17),
     grain=noise(x,y,4,salt+29),
-    variation=(large-.5)*22+(middle-.5)*11+(grain-.5)*3,
-    soil=Math.max(0,.48-large)*10,
+    // Periodic natural flow instead of rows of square water glyphs.
+    current=kind==="river"?
+     (Math.sin((x*6+y*2)*Math.PI*2/SIZE)*1.9+
+      Math.cos((x*2-y*5)*Math.PI*2/SIZE)*1.2):0,
+    variation=(large-.5)*(kind==="river"?16:22)+
+     (middle-.5)*(kind==="river"?7:11)+(grain-.5)*3+current,
+    soil=kind==="river"?0:Math.max(0,.48-large)*10,
     i=(y*SIZE+x)*4;
    d[i]=Math.round(base[0]+variation+soil*.56);
    d[i+1]=Math.round(base[1]+variation*.9-soil*.42);
@@ -202,8 +208,11 @@ function create(model,geometry,options={}){
  function stamp(ctx,material,gx,gy,x,y,size=WORLD_CELL){
   // Keep all external climates and rivers untouched. Greenwood no longer
   // tiles the tiny bright leaf/flower glyphs visible in R24 screenshots.
+  const sourceRegion=footprint?.regionAt(x+size*.5,y+size*.5)?.id;
   if(GREENWOOD_BASE[material]&&
-     footprint?.regionAt(x+size*.5,y+size*.5)?.id==="greenwood"){
+     (sourceRegion==="greenwood"||
+      sourceRegion==="greenwood_falls"&&
+      ["forest","moss","grass","river"].includes(material))){
    const plate=greenwoodFloor?.[material];
    if(plate){
     const sx=((gx%16+16)%16)*16,sy=((gy%16+16)%16)*16;
@@ -233,7 +242,8 @@ function create(model,geometry,options={}){
   if(!climate||raster?.covers(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5)||["river","lake","cliff","arcane","stone","road","timber"].includes(material))return;
   // The R20 Greenwood forest-floor source replaces the old 96px checker
   // speckles; keep weather details in every OTHER region as before.
-  if(footprint?.regionAt(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5)?.id==="greenwood")return;
+  if(["greenwood","greenwood_falls"].includes(
+   footprint?.regionAt(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5)?.id))return;
   const sample=climate.sample(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5);
   // Snowflecks, wet moss and plants repeat consistently across chunk edges.
   // Small pixel clusters break the large 96-unit material checkerboard.
@@ -269,6 +279,9 @@ function create(model,geometry,options={}){
   for(const c of cells){
    const m=materialAt(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5);
    if(m!=="river"&&m!=="lake")continue;
+   // R34b: real physically sampled bankwork replaces square shore rims.
+   if(footprint?.regionAt(c.x+WORLD_CELL*.5,c.y+WORLD_CELL*.5)?.id===
+      "greenwood_falls")continue;
    ctx.fillStyle=m==="river"?"rgba(205,224,216,.65)":"rgba(160,201,206,.55)";
    const t=7;
    if(!["river","lake"].includes(materialAt(c.x-WORLD_CELL*.45,c.y+WORLD_CELL*.5)))

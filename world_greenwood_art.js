@@ -189,7 +189,8 @@ function load(){
 function create({footprint,geometry,model}={}){
  if(!footprint||!geometry)throw Error("Greenwood art requires physical source geometry");
  loadPainted();
- const forest=(x,y)=>footprint.regionAt(x,y)?.id==="greenwood";
+ const forest=(x,y)=>["greenwood","greenwood_falls"].includes(
+   footprint.regionAt(x,y)?.id);
  function stamp(ctx,type,x,y,w,h,seed=0){
   if(!load())return false;
   const v=((seed|0)%VARIANTS+VARIANTS)%VARIANTS;
@@ -982,6 +983,7 @@ function create({footprint,geometry,model}={}){
   connectedSafeGladeBeds:true,rootFilteredCanopyLight:true,
   sourceRootedEavesR31c:true,upperForestGalleryR32:true,realActorCanopyDepthR33:true,
   rootedOverstoryR30:true,fallsPhysicalRiverBanksR34:true,
+  fallsNativeWaterAndWoodlandR34b:true,
   nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,

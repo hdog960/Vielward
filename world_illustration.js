@@ -159,7 +159,8 @@ function create(model,geometry,options={}){
     if(!footprint.onLand(x,y)||geometry.waterAt(x,y,0)||raster?.covers(x,y))continue;
     // Greenwood's R20 source-linked artist replaces disconnected micrograss
     // and flowers. Preserve the original treatment in other biomes.
-    if(greenwood&&footprint.regionAt(x,y)?.id==="greenwood")continue;
+    if(greenwood&&["greenwood","greenwood_falls"].includes(
+      footprint.regionAt(x,y)?.id))continue;
     const c=climate.sample(x,y),n=hash(ix,iy,52);
     const size=24+hash(ix,iy,26)*25;
     if(c.snow>.52){
@@ -335,7 +336,8 @@ function create(model,geometry,options={}){
   for(const f of features){
    if(skipWinter&&raster?.covers(f.x,f.y))continue;
    if(ctx.dynamicGreenwoodTrees&&["oak","pine"].includes(f.kind)&&
-      footprint.regionAt(f.x,f.y)?.id==="greenwood")continue;
+      ["greenwood","greenwood_falls"].includes(
+       footprint.regionAt(f.x,f.y)?.id))continue;
    drawFeature(ctx,f)
   }
   for(const h of hubs)if(inView(h.x,h.y,bounds,h.r+460)){
@@ -351,7 +353,8 @@ function create(model,geometry,options={}){
  function drawStatic(ctx,s){
   if(s.material!=="pine-trunk"&&s.material!=="tree-trunk")return false;
   if(ctx.dynamicGreenwoodTrees&&
-     footprint.regionAt(s.cx,s.cy)?.id==="greenwood")return true;
+     ["greenwood","greenwood_falls"].includes(
+      footprint.regionAt(s.cx,s.cy)?.id))return true;
   if(raster?.drawStatic(ctx,s))return true;
   const pineType=s.material==="pine-trunk",x=s.cx,y=s.cy;
   if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(s.radius))return false;
@@ -381,7 +384,8 @@ function create(model,geometry,options={}){
   const seen=new Set(),trees=features.filter(o=>{
    if(!o?.solid||!o.id||seen.has(o.id)||
      !["oak","pine"].includes(o.kind)||
-     footprint.regionAt(o.x,o.y)?.id!=="greenwood")return false;
+     !["greenwood","greenwood_falls"].includes(
+       footprint.regionAt(o.x,o.y)?.id))return false;
    seen.add(o.id);return true
   }).sort((a,b)=>a.y-b.y);
   liveForestCache={x,y,w,h,trees};return trees
@@ -424,8 +428,10 @@ function create(model,geometry,options={}){
   // R33b foreground trees have already been drawn, with authentic
   // per-tree fade. Never add a second leaf layer over the hero.
   if(ctx.dynamicGreenwoodLive&&
-    footprint.regionAt(player.x,player.y)?.id==="greenwood")return;
-  if(greenwood&&footprint.regionAt(player.x,player.y)?.id==="greenwood"){
+    ["greenwood","greenwood_falls"].includes(
+      footprint.regionAt(player.x,player.y)?.id))return;
+  if(greenwood&&["greenwood","greenwood_falls"].includes(
+   footprint.regionAt(player.x,player.y)?.id)){
    greenwood.paintForegroundCanopy(ctx,player);return
   }
   for(const o of [...footprint.cells([player.x-320,player.y-320,player.x+320,player.y+240],175),
@@ -436,7 +442,7 @@ function create(model,geometry,options={}){
    ctx.restore()
   }
  }
- function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster,greenwoodAtlasSprites:greenwood?.stats().totalSprites||0,greenwoodOriginalAnchors:!!greenwood,greenwoodSanctuaryIllustration:!!window.VeilwardGreenwoodSanctuary?.ready,greenwoodActorCanopyDepthR33:true,greenwoodLiveSortedDepthR33b:true}}
+ function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster,greenwoodAtlasSprites:greenwood?.stats().totalSprites||0,greenwoodOriginalAnchors:!!greenwood,greenwoodSanctuaryIllustration:!!window.VeilwardGreenwoodSanctuary?.ready,greenwoodActorCanopyDepthR33:true,greenwoodLiveSortedDepthR33b:true,fallsNativeForestR34b:true}}
  return{version:V,drawGround,drawFeatures,drawStatic,drawForeground:foreground,drawDynamicForest,stats}
 }
 window.VeilwardIllustration={version:V,create};
