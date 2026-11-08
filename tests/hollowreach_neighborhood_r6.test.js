@@ -98,7 +98,7 @@ for(const file of files)vm.runInNewContext(fs.readFileSync(file,"utf8"),host,{fi
  assert.ok(h.includes("world_raster_pilot.js?v=28"));
  assert.ok(sw.includes("assets/hollowreach_neighborhood_r6.png?v=1"));
  assert.ok(sw.includes("veilward-hollowreach-v1332-source-glade-habitat"));
- assert.ok(src.includes('const APP_VERSION="1.3.32";'));
+ assert.ok(src.includes('const APP_VERSION="1.3.33";'));
  assert.ok(src.includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R6 PASS: real authored sprite asset, in-game draw source, world topology and save key");
 })().catch(e=>{console.error(e);process.exitCode=1});
