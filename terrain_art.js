@@ -467,6 +467,9 @@ function create(model,geometry,options={}){
   ctx.scale(resolution/worldSize,resolution/worldSize);
   ctx.translate(-bounds[0],-bounds[1]);
   drawBase(ctx,bounds);
+  if(layer==="ground")illustration?.drawGround(ctx,bounds);
+  if(layer==="features")illustration?.drawFeatures(ctx,bounds,!!raster?.drawWinterScene);
+  if(layer==="routes")routeArt?.draw(ctx,bounds);
   if(layer==="footprint")footprint?.draws(ctx,bounds);
   if(layer==="surfaces")drawSurfaces(ctx,bounds);
   if(layer==="props")drawProps(ctx,bounds);
