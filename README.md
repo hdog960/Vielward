@@ -1,3 +1,7 @@
+## Phase 9 R25b — remove synthetic clearing chip ring and bright road dashes (visual QA pending)
+
+Actual browser A/B captures isolated two independent sources of distracting pale rectangles: `world_illustration.marker(kind="clearing")` stamped 32 pastel rectangles around the original landmark, and `world_routes.ribbon` stamped small high-contrast gravel dashes along woodland roads. R25b deletes the false circular waypoint markers and skips woodland-only synthetic path flecks; the original route corridors, source roads, canopy, illustrated cottages and all physics/saves are preserved. The R25 base plates remain unchanged. Actual Chromium `GREENWOOD_R25B_CLEAN_CLEARING` screenshot and regression must be checked; this is *not* creator signoff. Phase 9 remains ACTIVE and Phase 10 locked.
+
 ## Phase 9 R25 — Greenwood seamless ground and source-root canopy (visual approval pending)
 
 Removed Greenwood's small repeating pale leaf/flower motif from its base material and replaced it with three cached, low-chroma, world-aligned ground material plates; connected existing painted oak/pine upper crowns only when original physical roots, road margins and river boundaries allow. No new obstacles, roads, trees, quests, sprite swaps or save migration. R25 actual-play screenshots: `GREENWOOD_R25_GROUND` and `GREENWOOD_R25_CANOPY`. Technical tests are not creator approval; visual acceptance remains 0%, Phase 9 ACTIVE, Phase 10 LOCKED. See `docs/overworld/GREENWOOD_GROUND_CANOPY_R25.md`.

@@ -83,7 +83,13 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{filename:"world_greenwood
  assert.ok(read("world_illustration.js").includes("paintCanopyLinks(ctx,bounds,features)"));
  assert.ok(read("index.html").includes("world_greenwood_art.js?v=9&rev=25"));
  assert.ok(read("index.html").includes("terrain_art.js?v=32&rev=25"));
- assert.ok(read("sw.js").includes("source-glade-habitat-r25"));
+ assert.ok(read("sw.js").includes("source-glade-habitat-r25b"));
+ const illustrationSource=read("world_illustration.js");
+ const roadSource=read("world_routes.js");
+ assert.ok(!illustrationSource.includes('rect(ctx,xx,yy,10,7,'),
+  "clearing waypoint cannot be a ring of 32 fluorescent rectangles");
+ assert.ok(roadSource.includes("if(sample?.forest>.72&&sample?.snow<.13)continue"),
+  "grounded Greenwood roads cannot stamp disconnected bright gravel squares");
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
- console.log("R25 PASS: nonrepetitive muted Greenwood material; painted canopy tied to actual roots; road/physics/saves protected; art approval still 0%");
+ console.log("R25b PASS: muted Greenwood material; fake 32-chip clearing ring and gravel flecks retired; rooted canopy and physics/saves protected; art approval still 0%");
 })().catch(e=>{console.error(e);process.exitCode=1});

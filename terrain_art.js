@@ -449,38 +449,6 @@ function create(model,geometry,options={}){
    }
   }
  }
- // Real renderer base-only inspection. Reuses precisely the production
- // drawBase coordinate transform, without faking or replacing any artwork.
- function inspectGround(ctx,bounds,resolution){
-  const worldSize=bounds[2]-bounds[0];
-  ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.scale(resolution/worldSize,resolution/worldSize);
-  ctx.translate(-bounds[0],-bounds[1]);
-  drawBase(ctx,bounds);
-  ctx.restore()
- }
- // Additive source isolation uses the exact native paint functions and
- // transform; it only runs under explicit browser QA, never for gameplay.
- function inspectGroundPlus(ctx,bounds,resolution,layer){
-  const worldSize=bounds[2]-bounds[0];
-  ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.scale(resolution/worldSize,resolution/worldSize);
-  ctx.translate(-bounds[0],-bounds[1]);
-  drawBase(ctx,bounds);
-  if(layer==="ground")illustration?.drawGround(ctx,bounds);
-  if(layer==="features")illustration?.drawFeatures(ctx,bounds,!!raster?.drawWinterScene);
-  if(layer==="routes")routeArt?.draw(ctx,bounds);
-  if(layer==="footprint")footprint?.draws(ctx,bounds);
-  if(layer==="surfaces")drawSurfaces(ctx,bounds);
-  if(layer==="props")drawProps(ctx,bounds);
-  if(layer==="setpieces")setpieces?.draw(ctx,bounds,o=>!!raster?.handlesSetpiece(o));
-  if(layer==="raster"){
-   raster?.drawVillageGround(ctx,bounds,setpieces?.objects||[]);
-   raster?.drawSetpieces(ctx,bounds,setpieces?.objects||[]);
-   raster?.drawVillageAtmosphere(ctx,bounds,setpieces?.objects||[])
-  }
-  ctx.restore()
- }
  function paintChunk(ctx,bounds,resolution){
   const worldSize=bounds[2]-bounds[0];
   ctx.save();
@@ -532,7 +500,7 @@ function create(model,geometry,options={}){
   materials:MATERIALS.length,variants:VARIANTS,sourceTilePixels:TILE,worldCellSize:WORLD_CELL,
   biomeCount:Object.keys(biomeMaterial).length,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,illustrationEnabled:!!illustration,setpiecesEnabled:!!setpieces,rasterPilot:!!raster,usesAuthoritativeSolids:true}}
  return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,illustration,setpieces,raster,paintChunk,paintForeground,
-  materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,diagnostics,inspectGround,inspectGroundPlus}
+  materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,diagnostics}
 }
 window.VeilwardTerrainArt={version:VERSION,create,makeGreenwoodFloorPlates,palettes:PALETTES,materials:MATERIALS,
  sourceTileSize:TILE,variants:VARIANTS,worldTileSpan:WORLD_CELL};

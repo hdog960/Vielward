@@ -105,6 +105,12 @@ function create(model,geometry,options={}){
      segment(ctx,[x-nx*width*.88-dx*4,y-ny*width*.88-dy*4],
       [x+nx*width*.88-dx*4,y+ny*width*.88-dy*4],colors.detail,stair?4:3)
     }else{
+     // Phase 9 R25b: original Greenwood habitat now carries its own
+     // physically rooted verges. The old pale 9px gravel rectangles
+     // and duplicate mini-strokes read as litter, not environmental art.
+     // This only skips decorative pixels, never any road/collider geometry.
+     const sample=climate?.sample(x,y);
+     if(sample?.forest>.72&&sample?.snow<.13)continue;
      const side=h>.5?1:-1,offset=e.halfWidth*(.25+h*.45),px=x+nx*offset*side,py=y+ny*offset*side;
      // Short irregular gravel pockets, tufts and rain-worn ruts, not
      // uniform dashed vector strokes.

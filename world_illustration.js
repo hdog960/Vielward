@@ -278,11 +278,10 @@ function create(model,geometry,options={}){
     rect(ctx,px-6,py-base-23,11,7,tones[2])
    }
   }else if(kind==="clearing"){
-   for(let i=0;i<32;i++){
-    const angle=i*PI*2/32,r=h.r*.46*(.8+hash(i,3,4)*.23);
-    const xx=x+Math.cos(angle)*r,yy=y+Math.sin(angle)*r*.62;
-    rect(ctx,xx,yy,10,7,i%3===0?"#dcc2d3":i%3===1?"#e1dda8":"#9aad83")
-   }
+   // Phase 9 R25b: a natural waypoint is NOT a circular row of 32
+   // light-colored rectangular marker chips. The original painterly
+   // forest floor and source-rooted canopy already ground this location.
+   // No fake objects or new physical obstacles are added.
   }else if(kind==="camp"||kind==="market"){
    // Intentionally placed shallow ground prop, warm centre.
    const yy=y+h.r*.18;
