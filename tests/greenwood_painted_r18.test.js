@@ -80,7 +80,7 @@ for(const file of ["world_geometry.js","world_climate.js","world_footprint.js",
  for(const [kind] of assets)assert.ok(b.includes("greenwood_"+kind+"_r18.avif?v=1"));
  assert.ok(html.includes("world_greenwood_art.js?v=12"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
- assert.ok(b.includes("veilward-hollowreach-v1335-greenwood-falls-r34"));
+ assert.ok(b.includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
  assert.equal(world.raster.stats().creatorApproved,false);
  console.log("R18 PASS: 4 bit-for-bit certified original painted Greenwood AVIF sources, 12 regions, 39 solids, 48 anchors, 65 routes, 7 crossings, save preserved; art NOT approved");
 })().catch(e=>{console.error(e);process.exitCode=1});
