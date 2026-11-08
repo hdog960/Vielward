@@ -441,9 +441,13 @@ function create(model,geo,source,options={}){
     ctx.fillStyle=h.kind==="lodge"?"#7b8891":"#60725b";ctx.fill();
     fill(ctx,h.x-35,h.y-110,70,70,"#c3a875")
    }
-   if(h.kind==="watchtower"||h.kind==="lookout"){
+   if(h.kind==="watchtower"){
+    // Keep the original high-altitude watchtower as a separate art task.
     for(let i=0;i<5;i++)fill(ctx,h.x-170+i*64,h.y-140+(i%2)*9,42,65,"#8f8a92")
    }
+   // R36: the Falls lookout is an open, authored landscape, not five
+   // freestanding fake monoliths. The full illustration draws in the
+   // world landmark pass using the original R18 painted asset.
   }
  }
  function drawScenery(ctx,bounds){
@@ -470,7 +474,7 @@ function create(model,geo,source,options={}){
  function stats(){
   return{version:VERSION,regions:regions.size,majorHubs:hubs.length,routeClearings:clearings.length,
    sourceFieldCell:span,outlinePoints:poly.length,cachedFields:cachedFields.size,maximumCachedFields:MAX_CACHE,groveCells:groveCache.size,maximumGroves:MAX_GROVE_CACHE,
-   hearthRootedOldGrowth:hearthGroveRoots.length,landmassCollision:true,climateEnabled:!!climate};
+   hearthRootedOldGrowth:hearthGroveRoots.length,fallsPlaceholderPylonsRemovedR36:true,landmassCollision:true,climateEnabled:!!climate};
  }
  return{version:VERSION,source,climate,onLand,regionAt,fieldCell,cells,groves,blocked,safePoint,draws,drawScenery,drawForeground,debug,stats,
   featureAt:(x,y)=>fieldCell(Math.floor(x/span),Math.floor(y/span))}

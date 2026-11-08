@@ -999,6 +999,88 @@ function create({footprint,geometry,model}={}){
   }
   return terraces+fernMasses+rocks
  }
+ 
+ // R36: the Falls overlook is NOT five grey rectangular pylons. It is
+ // a quiet, original-art, low-profile moss/rock terrace with an open
+ // central stair approach. All illustrations use the original R18
+ // transparent native paintings; the actual landmark and physics stay put.
+ // Painting terrain here is nonblocking: no fake standing cliffs, no
+ // unsupported path and no changed collision or game save.
+ function paintFallsOverlook(ctx,hub){
+  if(!ctx||hub?.kind!=="lookout"||
+     footprint.regionAt(hub.x,hub.y)?.id!=="greenwood_falls")return 0;
+  const cx=hub.x,cy=hub.y;
+  const shelves=[
+   // Two opposed, asymmetric stone-and-fern landscape wings leave the
+   // center (|dx|<100) free for the true stairs and the Wanderer.
+   {dx:-273,dy:-163,rx:252,ry:93,rock:-265,fern:-236,scale:1.10,flip:false},
+   {dx:258,dy:-195,rx:233,ry:86,rock:244,fern:268,scale:.97,flip:true},
+   {dx:-400,dy:-65,rx:162,ry:64,rock:-410,fern:-370,scale:.68,flip:true},
+   {dx:382,dy:-60,rx:170,ry:68,rock:402,fern:359,scale:.75,flip:false}
+  ];
+  let paintedRock=0;
+  for(const [i,s] of shelves.entries()){
+   const x=cx+s.dx,y=cy+s.dy;
+   // No painted ledge can pretend to block the existing corridor or
+   // bridge approaches. The outline sits OUTSIDE the center tread.
+   if(Math.abs(s.dx)<130||geometry.waterAt(x,y,0))continue;
+   ctx.save();
+   // Smooth underside and three-quarter moss shelf: gradients become
+   // transparent at the edges, not large flat polygons or tile squares.
+   ctx.translate(x,y);
+   ctx.scale(s.rx,s.ry);
+   if(ctx.createRadialGradient){
+    const contact=ctx.createRadialGradient(0,.18,.06,0,0,1.02);
+    contact.addColorStop(0,"rgba(27,52,47,.31)");
+    contact.addColorStop(.42,"rgba(63,91,68,.17)");
+    contact.addColorStop(.83,"rgba(107,138,88,.065)");
+    contact.addColorStop(1,"rgba(93,123,81,0)");
+    ctx.fillStyle=contact;ctx.beginPath();
+    ctx.arc(0,0,1,0,Math.PI*2);ctx.fill()
+   }
+   ctx.restore();
+   // The independent native-pixel moss and rock images contain alpha
+   // cutouts, avoiding cloned cuboids. Oversized stones remain visually
+   // LOW, walkable-looking relief with no new stone-wall collider.
+   if(painted&&ctx.drawImage){
+    const size=PAINTED_SIZE,
+     stoneW=205*s.scale,stoneH=96*s.scale,
+     mossW=290*s.scale,mossH=107*s.scale;
+    ctx.save();ctx.globalAlpha=.72;
+    ctx.imageSmoothingEnabled=true;
+    if(s.flip){
+     ctx.translate(cx+s.rock,0);ctx.scale(-1,1);
+     ctx.drawImage(painted,size*3,0,size,size,
+      -Math.round(stoneW*.5),Math.round(y-stoneH*.83),
+      Math.round(stoneW),Math.round(stoneH))
+    }else ctx.drawImage(painted,size*3,0,size,size,
+     Math.round(cx+s.rock-stoneW*.5),Math.round(y-stoneH*.83),
+     Math.round(stoneW),Math.round(stoneH));
+    ctx.restore();
+    ctx.save();ctx.globalAlpha=.81;ctx.imageSmoothingEnabled=true;
+    if(!s.flip){
+     ctx.translate(cx+s.fern,0);ctx.scale(-1,1);
+     ctx.drawImage(painted,size*2,0,size,size,
+      -Math.round(mossW*.5),Math.round(y-mossH*.33),
+      Math.round(mossW),Math.round(mossH))
+    }else ctx.drawImage(painted,size*2,0,size,size,
+     Math.round(cx+s.fern-mossW*.5),Math.round(y-mossH*.33),
+     Math.round(mossW),Math.round(mossH));
+    ctx.restore();paintedRock++
+   }
+  }
+  // One shallow, visibly open curved stone apron recognizes the source
+  // landmark, rather than surrounding the Wanderer with fake obelisks.
+  ctx.save();ctx.beginPath();
+  ctx.moveTo(cx-114,cy-120);
+  if(ctx.quadraticCurveTo){
+   ctx.quadraticCurveTo(cx,cy-204,cx+114,cy-120);
+  }else ctx.lineTo(cx+114,cy-120);
+  ctx.strokeStyle="rgba(169,173,139,.17)";ctx.lineWidth=7;
+  ctx.stroke();ctx.restore();
+  return paintedRock||1
+ }
+
  function paintForestFloor(ctx,bounds){
   let count=0;
   // R17b: continuous forest-floor pools fill the entire SOURCE Greenwood
@@ -1094,12 +1176,13 @@ function create({footprint,geometry,model}={}){
   sourceRootedEavesR31c:true,upperForestGalleryR32:true,realActorCanopyDepthR33:true,
   rootedOverstoryR30:true,fallsPhysicalRiverBanksR34:true,
   fallsNativeWaterAndWoodlandR34b:true,
+  fallsOriginalLookoutR36:true,
   riverSourcedEscarpmentR35:true,sculptedBankContrastR35b:true,nonGeometricBankBlendR35c:true,
   nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,paintFallsRiverBanks,fallsBankSources:()=>sourceFallsBanks().map(o=>({...o})),stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,paintFallsRiverBanks,paintFallsOverlook,fallsBankSources:()=>sourceFallsBanks().map(o=>({...o})),stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},

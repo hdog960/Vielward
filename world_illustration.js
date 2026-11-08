@@ -294,7 +294,11 @@ function create(model,geometry,options={}){
    poly(ctx,[[x-22,yy],[x-7,yy-49],[x+8,yy-20],[x+24,yy-40],[x+30,yy]],
     "#d68a4d");
    poly(ctx,[[x-9,yy],[x+1,yy-30],[x+9,yy-7],[x+18,yy]],"#f6d998");
-  }else if(kind==="watchtower"||kind==="lookout"){
+  }else if(kind==="lookout"){
+   // R36: original transparent R18 rock and fern terraces, with the
+   // central physically climbable Falls stair left fully open.
+   greenwood?.paintFallsOverlook(ctx,h);
+  }else if(kind==="watchtower"){
    for(let i=0;i<5;i++){
     const xx=x-160+i*80,yy=y-160+(i%2)*15;
     poly(ctx,[[xx-28,yy],[xx-25,yy-74],[xx+22,yy-86],[xx+37,yy-11],[xx+21,yy]],"#4a5061");
@@ -442,7 +446,7 @@ function create(model,geometry,options={}){
    ctx.restore()
   }
  }
- function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster,greenwoodAtlasSprites:greenwood?.stats().totalSprites||0,greenwoodOriginalAnchors:!!greenwood,greenwoodSanctuaryIllustration:!!window.VeilwardGreenwoodSanctuary?.ready,greenwoodActorCanopyDepthR33:true,greenwoodLiveSortedDepthR33b:true,fallsNativeForestR34b:true}}
+ function stats(){return{version:V,sourceAnchors:hubs.length,collisionSource:"existing footprint & geometry",visualTrees:"tiered pixel boughs",reference:"approved in-repository snowy-village/woodland artwork",changesPhysics:false,worldCompositions:!!setpieces,authoredRasterPilot:!!raster,greenwoodAtlasSprites:greenwood?.stats().totalSprites||0,greenwoodOriginalAnchors:!!greenwood,greenwoodSanctuaryIllustration:!!window.VeilwardGreenwoodSanctuary?.ready,greenwoodActorCanopyDepthR33:true,greenwoodLiveSortedDepthR33b:true,fallsNativeForestR34b:true,fallsOriginalLookoutR36:true}}
  return{version:V,drawGround,drawFeatures,drawStatic,drawForeground:foreground,drawDynamicForest,stats}
 }
 window.VeilwardIllustration={version:V,create};
