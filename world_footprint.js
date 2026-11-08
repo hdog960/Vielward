@@ -305,7 +305,7 @@ function create(model,geo,source,options={}){
     gx=Math.floor(x/GROVE_SPAN),gy=Math.floor(y/GROVE_SPAN);
    for(let oy=-2;oy<=2&&!crowded;oy++)for(let ox=-2;ox<=2;ox++){
     const old=fieldCell(fx+ox,fy+oy);
-    if(old?.solid&&Math.hypot(old.x-x,old.y-y)<old.radius+r+35)
+    if(old&&Math.hypot(old.x-x,old.y-y)<old.radius+r+35)
      crowded=true
    }
    for(let oy=-2;oy<=2&&!crowded;oy++)for(let ox=-2;ox<=2;ox++){
