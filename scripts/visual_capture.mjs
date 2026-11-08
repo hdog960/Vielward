@@ -619,6 +619,27 @@ try{
   throw Error("R31c physical side-oak illustrated boughs missing "+JSON.stringify(r31c));
  console.log("R31C_SOURCE_PAINTED_CANOPY "+JSON.stringify(r31c));
  await sleep(1050);await capture(page,"GREENWOOD_R31C_ILLUSTRATED_CANOPY");
+ // R32: visually inspect real rooted upper-forest branches in the SAME
+ // playing scene, not a detached mockup or screenshot background.
+ const r32=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player,
+    b=[p.x-1150,p.y-950,p.x+1150,p.y+1050];
+  const roots=s.footprint.groves(b,560).filter(o=>o.authoredGrove);
+  const painter=window.VeilwardGreenwoodArt.create({
+   model:s.model,geometry:s.geometry,footprint:s.footprint});
+  const c=document.createElement("canvas");c.width=8;c.height=8;
+  const count=painter.paintHearthUpperForest(c.getContext("2d"),b,roots);
+  const sourceNames=["hearth_root_8","hearth_root_9","hearth_root_10",
+    "hearth_root_15","hearth_root_20","hearth_root_23"];
+  return{drawn:count,sourceNames:roots.filter(o=>sourceNames.includes(o.id))
+   .map(o=>({id:o.id,physical:s.footprint.blocked(o.x,o.y,4)})),
+   readable:!s.blocked(p.x,p.y),source:painter.stats().upperForestGalleryR32}
+ });
+ if(r32.drawn<6||r32.sourceNames.length<4||
+    r32.sourceNames.some(o=>!o.physical)||!r32.readable||!r32.source)
+  throw Error("R32 genuine northern woodland canopy failed "+JSON.stringify(r32));
+ console.log("R32_PHYSICALLY_ROOTED_UPPER_FOREST "+JSON.stringify(r32));
+ await sleep(1100);await capture(page,"GREENWOOD_R32_UPPER_FOREST");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
@@ -724,10 +745,10 @@ try{
    o.material==="retaining-wall").every(o=>Math.abs(o.a[1]-o.b[1])<2),
   title:document.title}));
  console.log("VISUAL_QA_RUNTIME "+JSON.stringify(state));
- if(state.build!=="v1.3.32"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
+ if(state.build!=="v1.3.33"||state.regions!==12||!state.illustration||!state.setpieces||!state.raster||state.plateMode!=="seam-composed"||!state.neighborhoodAtlas||!state.foregroundRoofDepth||!state.stonewalls||state.villageHouses!==2||!state.wallHorizontal||!state.winterBootTrails||!state.rootedLandscape||!state.paintedFlagstones||
   !state.architectureAtlas||!state.architectureRejected||!state.sourceContours||!state.sourceAtlasR15||!state.sourceFansR16||!state.greenwoodR17||!state.greenwoodR18||!state.greenwoodR19||!state.greenwoodR20||!state.greenwoodR21||!state.greenwoodR23||
   state.cottageVariants!==4||state.cottagePixelSource!==256)
-  throw Error("Incomplete v1.3.32 visual preview "+JSON.stringify(state));
+  throw Error("Incomplete v1.3.33 visual preview "+JSON.stringify(state));
  if(errs.length)console.warn("BROWSER_PAGE_ERRORS "+JSON.stringify(errs.slice(0,8)));
  console.log("BROWSER_VISUAL_QA_PASS actual world, 12-card atlas, Greenwood, Coldpine and Frostbridge captures");
 }finally{
