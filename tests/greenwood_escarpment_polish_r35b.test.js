@@ -16,7 +16,7 @@ assert.ok(route.includes('dist+=112'),
  "natural source stair spacing must not revert to 45-unit rails");
 assert.ok(art.includes("sculptedBankContrastR35b:true"));
 assert.ok(art.includes("PAINTED_SIZE*2,0,"));
-assert.ok(art.includes('face.addColorStop(0,"rgba(33,63,60,.18)")'));
+assert.ok(art.includes('ctx.strokeStyle="rgba(43,77,58,.085)"'));
 assert.ok(!art.includes('face.addColorStop(0,"rgba(21,44,45,.76)")'));
 assert.ok(art.includes("sourceFallsBanks()"));
 const footprint=JSON.parse(read("docs/overworld/outdoor_footprint.json"));

@@ -799,6 +799,20 @@ try{
   throw Error("R35b actual soft bank/ascent regression "+JSON.stringify(polish));
  console.log("R35B_SOFT_BANK_AND_AUTHORED_ASCENT "+JSON.stringify(polish));
  await sleep(850);await capture(page,"GREENWOOD_R35B_SOFT_SCULPTED_SHORE");
+ const r35c=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,
+   g=window.VeilwardGreenwoodArt.create({
+    model:s.model,geometry:s.geometry,footprint:s.footprint});
+  return{transparentBanks:g.stats().nonGeometricBankBlendR35c,
+   sourceRivers:g.fallsBankSources().length,
+   walkable:!s.blocked(s.player.x,s.player.y),roads:s.routeArt.stats().roads}
+ });
+ if(!r35c.transparentBanks||r35c.sourceRivers<20||
+    !r35c.walkable||r35c.roads!==65)
+  throw Error("R35c natural-source seam-free bank painter missing "+JSON.stringify(r35c));
+ console.log("R35C_NON_GEOMETRIC_BANK_BLEND "+JSON.stringify(r35c));
+ await sleep(900);await capture(page,"GREENWOOD_R35C_NATIVE_SOURCE_SHORE");
+
 
  // An additional angle, from the authored overlook, checks whether the
  // *whole* landscape composes correctly rather than only the shore edge.

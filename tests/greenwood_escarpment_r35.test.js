@@ -13,7 +13,7 @@ function ctx(){return{globalAlpha:1,save(){},restore(){},translate(){},rotate(){
  drawImage(...v){if(v.length===9)counts.images++},
  fillRect(){},clearRect(){},
  createLinearGradient(){counts.shades++;return{addColorStop(){}}},
- createRadialGradient(){return{addColorStop(){}}}
+ createRadialGradient(){counts.shades++;return{addColorStop(){}}}
 }}
 class ImageStub{
  constructor(){this.onload=null;this.naturalWidth=128;this.naturalHeight=128}
