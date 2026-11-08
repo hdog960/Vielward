@@ -16,6 +16,7 @@ vm.runInNewContext(read("world_greenwood_art.js"),host,{filename:"world_greenwoo
 (async()=>{
  const source=host.VeilwardGreenwoodArt;
  assert.equal(await source.loadPainted(),true);
+ paints.length=0; // atlas assembly isn't a physical scene bough draw
  const foot={regionAt(){return{id:"greenwood"}}},geo={waterAt(){return null},
  nearRoad(){return null}};
  const painting=source.create({model,footprint:foot,geometry:geo});
