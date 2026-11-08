@@ -224,7 +224,11 @@ function create({footprint,geometry,model}={}){
    // Only the original painted R18 source for newly curated old-growth
    // roots: no mismatched generated fallback in this focal forest scene.
    if(o.authoredGrove&&n%VARIANTS===1)n++;
-   const w=r*(o.kind==="oak"?5.4:4.6),h=r*(o.kind==="oak"?7.0:7.6);
+   // Source-original R18 artwork keeps its native proportions. Only
+   // selected, real old-growth roots get a slightly taller/wider crown.
+   const elder=o.authoredGrove?(o.kind==="oak"?1.26:1.15):1;
+   const w=r*(o.kind==="oak"?5.4:4.6)*elder,
+    h=r*(o.kind==="oak"?7.0:7.6)*elder;
    return stamp(ctx,o.kind,o.x,o.y,w,h,n)
   }
   if(o.kind==="boulder")return stamp(ctx,"rock",o.x,o.y,r*2.6,r*1.9,n);
@@ -466,7 +470,7 @@ function create({footprint,geometry,model}={}){
    for(let j=i+1;j<trees.length;j++){
     const b=trees[j];if(linked.has(b.id))continue;
     const distance=Math.hypot(a.x-b.x,a.y-b.y);
-    if(distance<175||distance>450||Math.abs(a.y-b.y)>185||
+    if(distance<175||distance>520||Math.abs(a.y-b.y)>225||
        distance>=closest)continue;
     // The real road and river must never be disguised by overhanging
     // leaf bridges, even when their end roots are physically valid.

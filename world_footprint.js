@@ -1,4 +1,4 @@
-/* VEILWARD Phase 9 R28b — physically sourced, camera-visible Greenwood old-growth.
+/* VEILWARD Phase 9 R28c — rooted painted oak-canopy composition at Greenwood Hearth.
  * A physically traversable 12-region landmass and reproducible region scenery.
  * All natural blockers are rendered from the very same positions/footprint as
  * their boot-level collision. No NPC/player art is touched or copied.
@@ -195,7 +195,7 @@ function create(model,geo,source,options={}){
   const positions=[
    [65,360,"oak"],[195,490,"pine"],[-65,490,"oak"],
    [130,555,"oak"],[-130,555,"pine"],[260,555,"oak"],
-   [65,295,"pine"],[110,610,"pine"],[-65,555,"oak"],
+   [65,295,"oak"],[110,610,"pine"],[-65,555,"oak"],
    [-350,-350,"oak"],[-85,-405,"pine"],[530,-310,"oak"],
    [420,610,"oak"],[-485,-395,"pine"],[635,-325,"pine"],
    [545,-225,"oak"],[-370,-540,"oak"],[-510,540,"oak"],

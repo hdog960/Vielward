@@ -479,6 +479,19 @@ try{
  if(r28b.visibleCount<2)throw Error("R28b old growth still outside camera: "+JSON.stringify(r28b));
  console.log("R28B_VISIBLE_ROOTS "+JSON.stringify(r28b));
  await sleep(850);await capture(page,"GREENWOOD_R28B_VISIBLE_CROWNS");
+ const r28c=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player,
+   b=[p.x-700,p.y-500,p.x+700,p.y+750],
+   canopy=s.footprint.groves(b,500).filter(o=>o.authoredGrove&&o.kind==="oak"&&
+    Math.abs(o.x-p.x)<470&&o.y-p.y>155&&o.y-p.y<630);
+  return{paintedOldGrowthOak:canopy.map(o=>({id:o.id,
+   dx:Math.round(o.x-p.x),dy:Math.round(o.y-p.y)})),
+   safeCottage:!s.blocked(p.x,p.y)}
+ });
+ if(!r28c.paintedOldGrowthOak.length||!r28c.safeCottage)
+  throw Error("R28c source-painted oak crown not actually rooted in Hearth frame "+JSON.stringify(r28c));
+ console.log("R28C_OAK_FRAME "+JSON.stringify(r28c));
+ await sleep(850);await capture(page,"GREENWOOD_R28C_LAYERED_OAK");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");

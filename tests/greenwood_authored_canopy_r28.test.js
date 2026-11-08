@@ -42,6 +42,8 @@ for(const o of trees){
 assert.ok(aroundView>=2,"new trees must materially frame the real landscape camera");
  const visible=trees.filter(o=>Math.abs(o.x-cx)<470&&o.y-cy>155&&o.y-cy<630);
  assert.ok(visible.length>=2,"two source-painted physical canopies must intersect the phone view");
+ assert.ok(visible.some(o=>o.kind==="oak"),
+  "a broad painted old-growth oak must actually frame the phone view");
 const house=setpieces.objects.filter(o=>o.anchor==="greenwood_hearth"&&o.kind==="forest_cottage");
 assert.equal(house.length,1,"original illustrated Hearth cottage remains present");
 for(const id of ["greenwood_hearth","hermit"]){
@@ -61,8 +63,8 @@ for(const road of geometry.roads){
 assert.ok(walkSamples>4000);
 assert.equal(JSON.stringify(model.nodes),originalNodes);
 assert.equal(JSON.stringify(model.edges),originalEdges);
-assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=28b"));
-assert.ok(read("sw.js").includes("source-glade-habitat-r25b-r26-r27-r28b"));
+assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=28c"));
+assert.ok(read("sw.js").includes("source-glade-habitat-r25b-r26-r27-r28c"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 
 // R28b diagnostic only: world-space root/visible-camera placement audit.
@@ -89,10 +91,10 @@ for(let dy=-160;dy<=640;dy+=65)for(let dx=-585;dx<=585;dx+=65){
     geometry.waterAt(x,y,64)||geometry.obstacle(x,y,64))continue;
  free.push({dx,dy,road:Math.round(roadGap(x,y)),pro:Math.round(pro)});
 }
-const visible=free.filter(o=>o.dx>-470&&o.dx<470&&o.dy>-80&&o.dy<565);
+const viewFree=free.filter(o=>o.dx>-470&&o.dx<470&&o.dy>-80&&o.dy<565);
 console.log("R28_VIEW_DEBUG "+JSON.stringify({
  sourceRoots,
- viewFree:visible.slice(0,110),viewFreeCount:visible.length,
+ viewFree:viewFree.slice(0,110),viewFreeCount:viewFree.length,
  totalCandidateFree:free.length
 }));
 console.log("R28 PASS: "+trees.length+" real old-growth trees, "+
