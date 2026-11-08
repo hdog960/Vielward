@@ -120,14 +120,14 @@ for(const stop of ["village","bridge_w","ford_w","falls_w","mossmere_w","island"
 stream.renderDebug(context(),1024,600,.78);
 yes(paint.paths>20&&paint.images>0&&paint.stroke>20,"new road renderer and overlay execute in simulated Canvas");
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
-for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_routes.js?v=27","terrain_art.js?v=32","world_stream.js?v=32","game.js?v=54","manifest.webmanifest?v=1332"])
+for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_routes.js?v=27","terrain_art.js?v=32","world_stream.js?v=32","game.js?v=55","manifest.webmanifest?v=1334"])
  yes(html.includes(asset)&&sw.includes(asset),"Safari and PWA both pin new file "+asset);
 yes(html.indexOf("world_routes.js?v=27")<html.indexOf("world_stream.js?v=32"),"browser constructs route engine before real streamer");
-yes(game.includes('const APP_VERSION="1.3.33";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"new build and original user saves intact");
+yes(game.includes('const APP_VERSION="1.3.34";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),"new build and original user saves intact");
 yes(game.includes('if(!stream.geometry||!stream.art||!stream.footprint||!stream.climate||!stream.routeArt||!stream.illustration||!stream.setpieces||!stream.raster||!window.VeilwardReview)'),"game rejects incomplete physical road runtime");
 yes(game.includes('id,name')&&game.includes('crossingStops')&&game.includes('cycleCrossingShowcase')&&game.includes('crossingShowcaseBtn'),"real seven-stop iPhone crossing menu wired");
 yes(html.includes('id="crossingShowcaseBtn"')&&html.includes("Visit Next Crossing"),"crossing tour actually offered inside iPhone Journey Menu");
-yes(sw.includes('veilward-hollowreach-v1332-source-glade-habitat'),"installed Home Screen service worker version rotated");
+yes(sw.includes('veilward-hollowreach-v1334-source-tree-depth-r33'),"installed Home Screen service worker version rotated");
 yes(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"'),"approved eight-direction Wanderer kept");
 yes(source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"independent Warden art kept");
 console.log("Veilward Phase 8 PASS:",checks,"full connected roads, seven different decks, island roundtrip, grounded rails, rich render, PWA; route steps:",steps);

@@ -91,15 +91,15 @@ eq(i.regions,12,"12 original region map remains intact");
 eq(i.roadCount,65,"atlas overview unchanged source network");
 const pack=S["index.html"],sw=S["sw.js"],game=S["game.js"];
 for(const name of ["world_climate.js?v=4","world_footprint.js?v=5",
- "world_illustration.js?v=27","terrain_art.js?v=32","world_routes.js?v=27",
- "world_stream.js?v=32","world_review.js?v=4","game.js?v=54",
- "manifest.webmanifest?v=1332"]){
+ "world_illustration.js?v=28","terrain_art.js?v=32","world_routes.js?v=27",
+ "world_stream.js?v=32","world_review.js?v=4","game.js?v=55",
+ "manifest.webmanifest?v=1334"]){
  ok(pack.includes(name)&&sw.includes(name),"iPhone and HTML pin identical rebuilt art asset "+name)
 }
-ok(pack.indexOf("world_illustration.js?v=27")<pack.indexOf("terrain_art.js?v=32")&&
+ok(pack.indexOf("world_illustration.js?v=28")<pack.indexOf("terrain_art.js?v=32")&&
  pack.indexOf("terrain_art.js?v=32")<pack.indexOf("world_stream.js?v=32"),"browser builds illustrator before runtime stream");
-ok(sw.includes("veilward-hollowreach-v1332-source-glade-habitat"),"old iPhone Home Screen visual tiles invalidated");
-ok(game.includes('const APP_VERSION="1.3.33";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),
+ok(sw.includes("veilward-hollowreach-v1334-source-tree-depth-r33"),"old iPhone Home Screen visual tiles invalidated");
+ok(game.includes('const APP_VERSION="1.3.34";')&&game.includes('const SAVE="veilward-hollowreach-v01";'),
  "old quest/local save key unchanged");
 ok(game.includes("HOLLOWREACH ART RECOVERY")&&game.includes("span:1250"),"gallery labels truthful status and zooms to the art");
 ok(S["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&

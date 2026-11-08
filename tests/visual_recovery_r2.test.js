@@ -110,18 +110,18 @@ ok(source["world_stream.js"].includes("setpieces?.blocked(x,y,10,o=>"),
  "new physical fixture collision is checked by the actual player movement engine");
 const html=source["index.html"],sw=source["sw.js"],game=source["game.js"];
 for(const asset of ["world_climate.js?v=4","world_footprint.js?v=5","world_setpieces.js?v=3",
- "world_illustration.js?v=27","terrain_art.js?v=32","world_routes.js?v=27",
- "world_stream.js?v=32","world_review.js?v=4","game.js?v=54",
- "manifest.webmanifest?v=1332"])
+ "world_illustration.js?v=28","terrain_art.js?v=32","world_routes.js?v=27",
+ "world_stream.js?v=32","world_review.js?v=4","game.js?v=55",
+ "manifest.webmanifest?v=1334"])
  ok(html.includes(asset)&&sw.includes(asset),"Safari and iPhone PWA cache exactly same R2 source "+asset);
-ok(html.indexOf("world_setpieces.js?v=3")<html.indexOf("world_illustration.js?v=27")&&
- html.indexOf("world_illustration.js?v=27")<html.indexOf("world_stream.js?v=32"),
+ok(html.indexOf("world_setpieces.js?v=3")<html.indexOf("world_illustration.js?v=28")&&
+ html.indexOf("world_illustration.js?v=28")<html.indexOf("world_stream.js?v=32"),
  "order builds solid fixtures and artist before stream boot");
-ok(game.includes('const APP_VERSION="1.3.33";')&&
+ok(game.includes('const APP_VERSION="1.3.34";')&&
  game.includes('const SAVE="veilward-hollowreach-v01";'),"preserved legacy save and correct R2 build");
 ok(game.includes('!stream.setpieces')&&game.includes("show&&worldPreview.debug"),
  "real preview requires full R2 art and keeps debug diagnostics off gameplay screen");
-ok(sw.includes("veilward-hollowreach-v1332-source-glade-habitat"),"iPhone offline cache invalidates R1 scene art");
+ok(sw.includes("veilward-hollowreach-v1334-source-tree-depth-r33"),"iPhone offline cache invalidates R1 scene art");
 ok(source["visual.js"].includes('load("hero","hero_approved_8way_v12.webp"')&&
  source["visual.js"].includes('load("warden","warden_hal_v13.png"'),"approved hero and Warden sprite assets unchanged");
 console.log("Veilward R2 SOURCE PASS",assertions,"assertions,",scene.objects.length,"physical compositions,",
