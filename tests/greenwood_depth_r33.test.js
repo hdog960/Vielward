@@ -5,7 +5,7 @@ const read=p=>fs.readFileSync(p,"utf8");
 const model=JSON.parse(read("docs/overworld/world_blueprint.json"));
 const draws=[];
 const ctx=()=>({globalAlpha:1,save(){},restore(){},translate(){},scale(){},
- drawImage(...v){draws.push(v)},beginPath(){},arc(){},fill(){},clearRect(){},
+ drawImage(...v){draws.push(v)},beginPath(){},rect(){},clip(){},arc(){},fill(){},clearRect(){},
  fillRect(){}});
 class Img{constructor(){this.onload=null;this.naturalWidth=128;this.naturalHeight=128}
  set src(v){assert.ok(v.includes("greenwood_")&&v.includes(".avif"));this.onload?.()}}

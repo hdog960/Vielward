@@ -604,8 +604,16 @@ function create({footprint,geometry,model}={}){
    const index=root.kind==="oak"?0:1;
    const flip=variant%VARIANTS%2===0;
    ctx.save();
+   // Preserve the Wanderer's face, silhouette and feet. Only the upper
+   // half of the actor receives gentle leaf-depth; never cover the whole
+   // screen or create an opaque green foreground sprite.
+   if(typeof ctx.rect==="function"&&typeof ctx.clip==="function"){
+    ctx.beginPath();
+    ctx.rect(player.x-44,player.y-93,88,83);
+    ctx.clip()
+   }
    ctx.globalAlpha=(typeof ctx.globalAlpha==="number"?
-     ctx.globalAlpha:1)*.79;
+     ctx.globalAlpha:1)*.36;
    ctx.imageSmoothingEnabled=true;
    if(flip){
     ctx.translate(Math.round(root.x),0);
@@ -617,7 +625,7 @@ function create({footprint,geometry,model}={}){
      PAINTED_SIZE,90,Math.round(root.x-w*.5),
      Math.round(top),Math.round(w),Math.round(h*90/PAINTED_SIZE));
    ctx.restore();visible++;
-   if(visible>=3)break
+   if(visible>=2)break
   }
   return visible
  }

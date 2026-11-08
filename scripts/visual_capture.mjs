@@ -649,6 +649,12 @@ try{
   const cx=home.point[0]*60,cy=home.point[1]*60;
   const trees=s.footprint.groves([cx-1300,cy-1200,cx+1300,cy+1300],560)
    .filter(o=>o.authoredGrove&&["oak","pine"].includes(o.kind));
+  // Inspect a broad source oak first for actual leaf depth and keep the
+  // existing pine sources as a valid backup only if no safe oak exists.
+  const priority=["hearth_root_20","hearth_root_23","hearth_root_11",
+    "hearth_root_8","hearth_root_1"];
+  trees.sort((a,b)=>(priority.indexOf(a.id)<0?99:priority.indexOf(a.id))-
+    (priority.indexOf(b.id)<0?99:priority.indexOf(b.id)));
   const painter=window.VeilwardGreenwoodArt.create({
    footprint:s.footprint,geometry:s.geometry,model:s.model});
   const c=document.createElement("canvas");c.width=8;c.height=8;
