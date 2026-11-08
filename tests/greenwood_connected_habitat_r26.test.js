@@ -31,7 +31,7 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{
  const core=env.VeilwardGreenwoodArt;
  assert.equal(await core.loadPainted(),true);
  let roadsClosed=false,riverClosed=false;
- const footprint={regionAt(x,y){return{id:x>2000?"hollowreach":"greenwood"}},
+ const footprint={regionAt(x,y){return{id:x>46000?"hollowreach":"greenwood"}},
   blocked(){return false},cells(){return []},groves(){return []}};
  const geometry={roads:[],waterAt(){return riverClosed?{kind:"river"}:null},
   obstacle(){return null},
