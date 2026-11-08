@@ -40,8 +40,10 @@ assert.equal(widescreen.zoom,.78,"desktop landscape retains sharp source pixel s
 assert.equal(widescreen.anchorY,.77,"desktop camera also displays the complete roof");
 stream.jumpToNode("greenwood_hearth");
 const hearth=stream.framing(720,405,.78);
-assert.equal(hearth.zoom,.78,
- "ordinary Greenwood crossroads stays at original camera scale");
+assert.equal(hearth.landmark,"greenwood_forest_edge");
+assert.ok(hearth.forestFraming&&hearth.zoom>=.69&&hearth.zoom<=.71);
+assert.ok(Math.abs(hearth.anchorY-.42)<.001,
+ "Hearth view should include the existing southern wooded margin");
 const forestHouse=stream.setpieces?.objects.find(o=>
  o.anchor==="greenwood_hearth"&&o.kind==="forest_cottage");
 if(forestHouse){

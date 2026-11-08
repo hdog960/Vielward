@@ -111,6 +111,21 @@ function create(model,options={}){
       anchorY:.52+.27*focus,focus,landmark:"greenwood_hearth"}
    }
   }
+  // R31: the compact Hearth landscape was cropping the REAL southern
+  // source-rooted forest, making the junction look like an empty field.
+  // Reframe, not repaint or create imaginary trunks. Preserve the R23
+  // cottage close-up above, and the Hermit framing below.
+  const glade=points.greenwood_hearth;
+  if(glade&&screenW<=960&&screenH<=560){
+   const cx=glade.point[0]*unit,cy=glade.point[1]*unit;
+   const dist=Math.hypot(player.x-cx,player.y-cy);
+   const t=clamp((840-dist)/620,0,1),focus=t*t*(3-2*t);
+   if(focus>.001){
+    return {zoom:Math.max(.68,baseZoom-.08*focus),
+     anchorY:.52-.10*focus,focus,forestFraming:true,
+     landmark:"greenwood_forest_edge"}
+   }
+  }
   const hx=hub.point[0]*unit,hy=hub.point[1]*unit;
   const distance=Math.hypot(player.x-hx,player.y-hy);
   const t=clamp((850-distance)/650,0,1);

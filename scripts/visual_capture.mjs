@@ -549,6 +549,30 @@ try{
   throw Error("R30 physically sourced overstory missing or blocking: "+JSON.stringify(r30));
  console.log("R30_ROOTED_OVERSTORY "+JSON.stringify(r30));
  await sleep(1000);await capture(page,"GREENWOOD_R30_OVERSTORY_LIGHT");
+ const r31=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,p=s.player;
+  const f=s.framing(720,405,.78),n=s.model.nodes.find(n=>n.id==="greenwood_hearth");
+  const [cx,cy]=n.point.map(v=>v*60),w=720/f.zoom,h=405/f.zoom;
+  const view=[p.x-w/2,p.y-h*f.anchorY,p.x+w/2,p.y+h*(1-f.anchorY)];
+  const roots=[...s.footprint.cells(view,480),...s.footprint.groves(view,480)]
+   .filter(o=>["oak","pine"].includes(o.kind)&&s.footprint.regionAt(o.x,o.y)?.id==="greenwood");
+  const visible=roots.filter(o=>{
+   const elder=o.authoredGrove?(o.kind==="oak"?1.20:1.08):1,
+    sw=o.radius*(o.kind==="oak"?5.4:4.6)*elder,
+    sh=o.radius*(o.kind==="oak"?7:7.6)*elder;
+   return o.x+sw/2>=view[0]&&o.x-sw/2<=view[2]&&
+     o.y>=view[1]&&o.y-sh<=view[3]
+  });
+  return{f,visibleCrowns:visible.length,heroScreenY:Math.round(405*f.anchorY),
+   southwardWorldView:Math.round(view[3]-cy),
+   roots:visible.slice(0,12).map(o=>o.id),walkable:!s.blocked(p.x,p.y)}
+ });
+ if(!r31.f.forestFraming||r31.f.zoom<.69||r31.f.zoom>.71||
+    r31.heroScreenY<155||r31.heroScreenY>180||
+    r31.southwardWorldView<330||r31.visibleCrowns<3||!r31.walkable)
+  throw Error("R31 original painted forest camera composition failed "+JSON.stringify(r31));
+ console.log("R31_REAL_WOODLAND_FRAME "+JSON.stringify(r31));
+ await sleep(950);await capture(page,"GREENWOOD_R31_REAL_FOREST_FRAME");
  const hearthStats=await page.evaluate(()=>window.VeilwardGreenwoodHearth.stats());
  if(hearthStats.stamps<1||!hearthStats.ready)
   throw Error("R23 house source decoded but was not rendered into game");
