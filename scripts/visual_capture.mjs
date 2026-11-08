@@ -421,6 +421,45 @@ try{
   return {x:s.player.x,y:s.player.y,anchors:stats.namedHabitatAnchors}
  });
  console.log("R24_GREENWOOD_SOURCE_HABITAT "+JSON.stringify(habitat));
+ // Diagnose the genuinely rendered canvas strokes without changing
+ // or rewriting the player's map. Instrument only this Playwright instance.
+ const r25DrawCalls=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  const source=s.art.paintChunk,metrics={chunks:0,groundPlate:0,old32atlas:0,
+    otherAtlas:0,brightRects:0,brightStyles:{},materialSamples:[]};
+  s.art.paintChunk=function(ctx,bounds,pixels){
+   metrics.chunks++;
+   const originalImage=ctx.drawImage,originalRect=ctx.fillRect;
+   ctx.drawImage=function(img,...args){
+    const w=img?.width||img?.naturalWidth||0;
+    const h=img?.height||img?.naturalHeight||0;
+    if(w===256&&h===256&&args.length===8)metrics.groundPlate++;
+    else if(w===256&&h===256)metrics.otherAtlas++;
+    if(w===256&&h===256&&args.length===8&&args[2]===16&&args[3]===16)
+     metrics.groundPlate++;
+    if(w===256&&h===256&&args.length===8&&args[2]===32&&args[3]===32)
+     metrics.old32atlas++;
+    return originalImage.call(this,img,...args)
+   };
+   ctx.fillRect=function(x,y,w,h){
+    const style=String(this.fillStyle);
+    if((style.startsWith("#")||style.startsWith("rgba")||style.startsWith("rgb"))&&
+       (style.includes("235")||style.includes("240")||style.includes("231")||
+        style.includes("f0e")||style.includes("e9d")||style.includes("ecd")||
+        style.includes("d8b"))){
+     metrics.brightRects++;
+     metrics.brightStyles[style]=(metrics.brightStyles[style]||0)+1
+    }
+    return originalRect.call(this,x,y,w,h)
+   };
+   try{return source(ctx,bounds,pixels)}
+   finally{ctx.drawImage=originalImage;ctx.fillRect=originalRect}
+  };
+  s.clearCache();s.warm(s.player.x,s.player.y,1600,1000);
+  s.art.paintChunk=source;
+  return metrics
+ });
+ console.log("R25_CANVAS_SOURCE_DRAWS "+JSON.stringify(r25DrawCalls));
  await sleep(1250);await capture(page,"GREENWOOD_R24_HABITAT");
  // R25 must be judged in the SAME playable Hearth camera, not a concept.
  await capture(page,"GREENWOOD_R25_GROUND");
