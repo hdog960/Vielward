@@ -62,6 +62,37 @@ assert.equal(JSON.stringify(model.edges),originalEdges);
 assert.ok(read("index.html").includes("world_footprint.js?v=5&rev=28"));
 assert.ok(read("sw.js").includes("source-glade-habitat-r25b-r26-r27-r28"));
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
+
+// R28b diagnostic only: world-space root/visible-camera placement audit.
+// Not a gameplay change and not evidence of an art acceptance milestone.
+const sourceRoots=trees.map(o=>({id:o.id,dx:Math.round(o.x-cx),
+ dy:Math.round(o.y-cy),kind:o.kind,r:o.radius}));
+const free=[];
+function roadGap(x,y){
+ let best=Infinity;
+ for(const e of geometry.roads)for(const [a,b] of e.parts){
+  const dx=b[0]-a[0],dy=b[1]-a[1],d2=dx*dx+dy*dy,
+   t=d2?Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/d2)):0;
+  best=Math.min(best,Math.hypot(x-a[0]-dx*t,y-a[1]-dy*t)-e.halfWidth)
+ }
+ return best
+}
+const protectedSites=[[-400,160,230],[350,300,158],[-260,280,150],[300,-430,135]];
+for(let dy=-160;dy<=640;dy+=65)for(let dx=-585;dx<=585;dx+=65){
+ const x=cx+dx,y=cy+dy;
+ const pro=Math.min(...protectedSites.map(([px,py,pr])=>Math.hypot(dx-px,dy-py)-pr));
+ const center=Math.hypot(dx,dy);
+ if(foot.regionAt(x,y)?.id!=="greenwood"||pro<82||center<270||
+    roadGap(x,y)<137||foot.blocked(x,y,64)||
+    geometry.waterAt(x,y,64)||geometry.obstacle(x,y,64))continue;
+ free.push({dx,dy,road:Math.round(roadGap(x,y)),pro:Math.round(pro)});
+}
+const visible=free.filter(o=>o.dx>-470&&o.dx<470&&o.dy>-80&&o.dy<565);
+console.log("R28_VIEW_DEBUG "+JSON.stringify({
+ sourceRoots,
+ viewFree:visible.slice(0,110),viewFreeCount:visible.length,
+ totalCandidateFree:free.length
+}));
 console.log("R28 PASS: "+trees.length+" real old-growth trees, "+
  aroundView+" in landscape frame; "+walkSamples+
  " source road points; original cottage, save and graph preserved; visual approval 0%");
