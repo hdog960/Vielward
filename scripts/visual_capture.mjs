@@ -918,6 +918,36 @@ try{
  console.log("R37_ACTUAL_ROOTED_FALLS_GORGE "+JSON.stringify(r37));
  await sleep(1200);await capture(page,"GREENWOOD_R37_ROOTED_FOREST_CLIFF");
 
+ // R38: inspect the exact physical overlook (not a concept still).
+ // Measure left/right camera-facing real roots and native painted floor.
+ const r38=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream;
+  s.jumpToNode("falls_overlook");
+  const n=s.model.nodes.find(n=>n.id==="falls_overlook"),
+   x=n.point[0]*60,y=n.point[1]*60,
+   bounds=[x-1500,y-1300,x+1500,y+1600],
+   roots=s.footprint.groves(bounds,350).filter(o=>o.authoredFallsFrameR38),
+   art=window.VeilwardGreenwoodArt.create({
+    model:s.model,geometry:s.geometry,footprint:s.footprint});
+  const c=document.createElement("canvas");c.width=8;c.height=8;
+  return{roots:roots.length,nearLeft:roots.filter(o=>
+    o.x<x-280&&Math.abs(o.y-y)<800).length,
+   nearRight:roots.filter(o=>o.x>x+280&&Math.abs(o.y-y)<800).length,
+   planted:art.paintFallsComposedGround(c.getContext("2d"),bounds),
+   source:art.stats().fallsLandscapeCompositionR38,
+   climb:art.stats().fallsStairShoulderNativeR38,
+   wandererDry:!s.blocked(s.player.x,s.player.y),
+   roads:s.routeArt.stats().roads,crossings:s.routeArt.stats().crossings}
+ });
+ if(r38.roots<3||r38.nearLeft<1||r38.nearRight<1||
+    r38.planted<4||!r38.source||!r38.climb||
+    !r38.wandererDry||r38.roads!==65||r38.crossings!==7)
+  throw Error("R38 source-authored real camera woodland failed "+
+   JSON.stringify(r38));
+ console.log("R38_COMPOSED_PHYSICAL_OVERLOOK "+JSON.stringify(r38));
+ await sleep(1500);await capture(page,"GREENWOOD_R38_COMPOSED_FALLS_FOREST");
+
+
 
 
 

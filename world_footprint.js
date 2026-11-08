@@ -264,15 +264,30 @@ function create(model,geo,source,options={}){
  function buildFallsGrove(){
   const n=nodes.falls_overlook;if(!n)return[];
   const hx=n.point[0]*scale,hy=n.point[1]*scale,rooted=[];
-  for(let i=0;i<168&&rooted.length<14;i++){
-   const angle=(i+.73)*2.399963229728653,
-    distance=485+(i%9)*131+hash(i,seed,431)*77;
-   const x=hx+Math.cos(angle)*distance*1.12,
-    y=hy+Math.sin(angle)*distance*.90-55,
+  // R38: do NOT let distant random grove candidates exhaust the slots
+  // before the actual 720x405 overlook view gets a forest on both sides.
+  // These are deliberate SITE-RELATIVE candidates only: each candidate
+  // must still pass the exact unchanged physical road/water/root tests.
+  const composed=[
+   [-445,310,"oak"],[-605,130,"pine"],[-745,350,"oak"],
+   [-535,-115,"oak"],[-825,-260,"pine"],[-350,515,"oak"],
+   [-665,535,"pine"],[-990,85,"oak"],[-880,-545,"pine"],
+   [405,355,"oak"],[590,205,"pine"],[665,-115,"oak"],
+   [800,400,"pine"],[395,-480,"oak"],[945,-255,"pine"],
+   [1020,110,"oak"],[920,630,"pine"],[-285,-685,"oak"],
+   [270,-655,"pine"],[-1180,510,"oak"]
+  ];
+  for(let i=0;i<composed.length+168&&rooted.length<18;i++){
+   const nearby=i<composed.length,slot=composed[i],
+    k=i-composed.length;
+   const angle=(k+.73)*2.399963229728653,
+    distance=485+(k%9)*131+hash(k,seed,431)*77;
+   const x=hx+(nearby?slot[0]:Math.cos(angle)*distance*1.12),
+    y=hy+(nearby?slot[1]:Math.sin(angle)*distance*.90-55),
     r=53+hash(i,seed,433)*14,dx=x-hx,dy=y-hy;
    if(Math.hypot(dx,dy)<430||
      (dy>0&&dy<520&&Math.abs(dx)<245))continue;
-   const kind=(i%5===0||i%7===0)?"pine":"oak";
+   const kind=nearby?slot[2]:(k%5===0||k%7===0)?"pine":"oak";
    if(!onLand(x,y)||regionAt(x,y)?.id!=="greenwood_falls"||
      geo.waterAt(x,y,r+40)||geo.obstacle(x,y,r+70)||
      inProtectedSite(x,y,r)||!rootClearOfRoads(x,y,r)||
@@ -303,7 +318,7 @@ function create(model,geo,source,options={}){
    rooted.push({id:"falls_root_"+i,x,y,radius:r,kind,solid:true,
     biome:"greenwood_falls",variant:hash(i,seed,439),
     snow:weather?.snow??.04,moisture:weather?.wet??.65,
-    authoredGrove:true,authoredFallsGrove:true})
+    authoredGrove:true,authoredFallsGrove:true,authoredFallsFrameR38:nearby})
   }
   return rooted
  }
@@ -525,7 +540,9 @@ function create(model,geo,source,options={}){
  function stats(){
   return{version:VERSION,regions:regions.size,majorHubs:hubs.length,routeClearings:clearings.length,
    sourceFieldCell:span,outlinePoints:poly.length,cachedFields:cachedFields.size,maximumCachedFields:MAX_CACHE,groveCells:groveCache.size,maximumGroves:MAX_GROVE_CACHE,
-   hearthRootedOldGrowth:hearthGroveRoots.length,fallsRootedGroveR37:fallsGroveRoots.length,fallsPlaceholderPylonsRemovedR36:true,landmassCollision:true,climateEnabled:!!climate};
+   hearthRootedOldGrowth:hearthGroveRoots.length,fallsRootedGroveR37:fallsGroveRoots.length,
+   fallsCompositionTreesR38:fallsGroveRoots.filter(o=>o.authoredFallsFrameR38).length,
+   fallsPlaceholderPylonsRemovedR36:true,landmassCollision:true,climateEnabled:!!climate};
  }
  return{version:VERSION,source,climate,onLand,regionAt,fieldCell,cells,groves,blocked,safePoint,draws,drawScenery,drawForeground,debug,stats,
   featureAt:(x,y)=>fieldCell(Math.floor(x/span),Math.floor(y/span))}

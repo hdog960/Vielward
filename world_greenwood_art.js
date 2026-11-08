@@ -885,6 +885,83 @@ function create({footprint,geometry,model}={}){
   return count
  }
 
+
+ // R38: the full foreground view uses larger connected undergrowth,
+ // founded on the REAL R38 tree trunks and the existing stair centerline.
+ // The ground painter is below roads and never changes collision.
+ const fallsStair=model?.edges?.find(e=>e.id==="falls_e--falls_overlook");
+ const fallsNodes=Object.fromEntries((model?.nodes||[]).map(n=>
+  [n.id,n.point.map(v=>v*(model.worldDesign.worldUnitScale||60))]));
+ function paintFallsComposedGround(ctx,bounds){
+  if(!painted||!ctx?.drawImage||!fallsAnchor||
+     !ctx?.createRadialGradient)return 0;
+  let count=0;
+  const visible=(x,y,pad=340)=>x>bounds[0]-pad&&
+   x<bounds[2]+pad&&y>bounds[1]-pad&&y<bounds[3]+pad;
+  // Properly grounded forest shoulders: the real old-growth roots
+  // supply one shaded landscape mass with TWO ORIGINAL R18 fern
+  // paintings, not long stretched bands of repeated texture.
+  for(const root of fallsRoots(bounds)){
+   if(!root.authoredFallsFrameR38||!visible(root.x,root.y))continue;
+   const x=root.x,y=root.y,r=root.radius,
+    side=Math.sign(x-fallsAnchor.x)||1,
+    radius=r*(root.kind==="oak"?5.1:4.4);
+   const moss=ctx.createRadialGradient(x-r*.35,y-r*.75,r*.2,
+    x,y-r*.32,radius);
+   moss.addColorStop(0,"rgba(21,53,35,.39)");
+   moss.addColorStop(.40,"rgba(39,74,46,.26)");
+   moss.addColorStop(.78,"rgba(70,108,68,.075)");
+   moss.addColorStop(1,"rgba(75,109,65,0)");
+   ctx.save();ctx.fillStyle=moss;
+   ctx.fillRect(x-radius,y-radius,radius*2,radius*2);ctx.restore();
+   for(let i=0;i<2;i++){
+    const px=x+side*r*(i===0?1.18:-.78),
+     py=y-r*(i===0?.23:.58);
+    if(!visible(px,py,180)||geometry.waterAt(px,py,24)||
+       geometry.nearRoad(px,py,()=>true,40))continue;
+    const w=r*(i===0?2.1:1.85),h=w*(i===0?.83:1.03);
+    ctx.save();ctx.globalAlpha=i===0?.78:.64;
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(px-w*.5),Math.round(py-h*.8),
+     Math.round(w),Math.round(h));
+    ctx.restore();count++
+   }
+  }
+  // The actual climbable stone approach receives subtly planted,
+  // physically grounded native fern margins. No fake stair/stone wall.
+  const a=fallsNodes[fallsStair?.from],b=fallsNodes[fallsStair?.to];
+  if(a&&b){
+   const dx=b[0]-a[0],dy=b[1]-a[1],
+    len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len;
+   for(let k=0;k<8;k++){
+    const t=.48+k*.064;
+    for(const side of [-1,1]){
+     const off=167+(k%3)*26,
+      px=a[0]+dx*t+nx*off*side,
+      py=a[1]+dy*t+ny*off*side;
+     if(!visible(px,py,190)||!forest(px,py)||
+        geometry.waterAt(px,py,40)||geometry.obstacle(px,py,30)||
+        geometry.nearRoad(px,py,()=>true,45))continue;
+     const range=130+(k%3)*15,
+      moss=ctx.createRadialGradient(px,py-18,5,px,py,range);
+     moss.addColorStop(0,"rgba(42,77,51,.26)");
+     moss.addColorStop(.60,"rgba(68,105,64,.11)");
+     moss.addColorStop(1,"rgba(74,114,72,0)");
+     ctx.save();ctx.fillStyle=moss;
+     ctx.fillRect(px-range,py-range,range*2,range*2);
+     const w=114+(k%3)*9,h=w*.92;
+     ctx.globalAlpha=.54;ctx.imageSmoothingEnabled=true;
+     ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
+      Math.round(px-w*.5),Math.round(py-h*.80),
+      Math.round(w),Math.round(h));
+     ctx.restore();count++
+    }
+   }
+  }
+  return count
+ }
+
  // R34: Greenwood Falls' banks are drawn from the authoritative
  // FROSTBRIDGE RIVER centreline and dry, walkable shore, not guessed
  // decorative stepping stones or an invented waterfall collision mesh.
@@ -1215,6 +1292,7 @@ function create({footprint,geometry,model}={}){
   // R34: physically sourced moss/stone riverbanks beneath existing decks.
   paintFallsRiverBanks(ctx,bounds);
   paintFallsRootedGorge(ctx,bounds);
+  paintFallsComposedGround(ctx,bounds);
   for(const o of anchored){
    if(!["oak","pine","scrub"].includes(o.kind)||!forest(o.x,o.y)||
        geometry.waterAt(o.x,o.y,2))continue;
@@ -1263,12 +1341,13 @@ function create({footprint,geometry,model}={}){
   fallsNativeWaterAndWoodlandR34b:true,
   fallsOriginalLookoutR36:true,fallsLookoutReducedStripesR36b:true,
   fallsCollisionRootedGorgeR37:true,fallsNativeCanopyFrameR37:true,
+  fallsLandscapeCompositionR38:true,fallsStairShoulderNativeR38:true,
   riverSourcedEscarpmentR35:true,sculptedBankContrastR35b:true,nonGeometricBankBlendR35c:true,
   nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,paintFallsRiverBanks,paintFallsOverlook,paintFallsRootedGorge,paintFallsCanopyBoughs,fallsBankSources:()=>sourceFallsBanks().map(o=>({...o})),stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,paintFallsRiverBanks,paintFallsOverlook,paintFallsRootedGorge,paintFallsCanopyBoughs,paintFallsComposedGround,fallsBankSources:()=>sourceFallsBanks().map(o=>({...o})),stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},
