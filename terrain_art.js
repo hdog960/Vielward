@@ -284,10 +284,12 @@ function create(model,geometry,options={}){
  // surface; do not change its collision, source point order or crossings.
  const fallsChannel=water.find(w=>w.id==="frostbridge_river")?.line.slice(6)||[];
  const fallsChannelBounds=fallsChannel.length>1?[
-  Math.min(...fallsChannel.map(p=>p[0]))-205,
-  Math.min(...fallsChannel.map(p=>p[1]))-205,
-  Math.max(...fallsChannel.map(p=>p[0]))+205,
-  Math.max(...fallsChannel.map(p=>p[1]))+205]:null;
+  // Include the complete 286-unit dry-bank feather at channel endpoints.
+  // A 205-unit water-only cull clipped the outer 81 units on edge tiles.
+  Math.min(...fallsChannel.map(p=>p[0]))-300,
+  Math.min(...fallsChannel.map(p=>p[1]))-300,
+  Math.max(...fallsChannel.map(p=>p[0]))+300,
+  Math.max(...fallsChannel.map(p=>p[1]))+300]:null;
  function paintFallsWaterChannel(ctx,bounds){
   if(!fallsChannelBounds||bounds[2]<fallsChannelBounds[0]||
    bounds[0]>fallsChannelBounds[2]||
