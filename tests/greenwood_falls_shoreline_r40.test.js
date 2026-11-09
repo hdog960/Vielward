@@ -68,6 +68,14 @@ for(const q of bands){
 const n=art.paintFallsShorelineTransition(canvasContext(),zone);
 assert.ok(n>=4,"the real shoreline is shaded continuously across the zone");
 assert.ok(gradients.length>=n,"every segment uses a native local cross-bank gradient");
+// R40c: every gradient spans the full bank width even around sharp bends.
+// The source-water polygon still uses the original per-vertex normals.
+for(const gradient of gradients){
+ const [x0,y0,x1,y1]=gradient.coordinates;
+ assert.ok(Math.abs(Math.hypot(x1-x0,y1-y0)-172)<1e-6,
+  "bank gradient must not collapse at a river bend");
+}
+
 assert.ok(gradients.some(g=>g.stops.length===6&&g.stops[0][1].endsWith(",0)")&&
  g.stops[g.stops.length-1][1].endsWith(",0)")),
  "both ends of shore pigment return to source terrain without a hard boundary");
@@ -82,7 +90,7 @@ assert.equal(model.edges.filter(e=>e.crossing).length,7);
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 for(const path of ["index.html","sw.js"]){
  const t=read(path);
- assert.ok(t.includes("terrain_art.js?v=32&rev=25&falls=34b&palette=34c&channel=35d&shore=40"),
+ assert.ok(t.includes("terrain_art.js?v=32&rev=25&falls=34b&palette=34c&channel=35d&shore=40&bend=40c"),
  "PWA and web use the same R40 terrain script");
 }
 const capture=read("scripts/visual_capture.mjs");
