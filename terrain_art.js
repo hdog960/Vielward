@@ -515,6 +515,13 @@ function create(model,geometry,options={}){
       st=station(t),norm=normalAt(st),
       depth=204+seed*58,
       px=st.x+norm.x*depth,py=st.y+norm.y*depth;
+     // Keep foliage off the unpainted source-bank crossing gaps, even
+     // when its root alone happens to be outside the bridge clearance.
+     // A leaf spray has a wider footprint than its anchor point.
+     const sectionIndex=Math.min(sections-1,Math.floor(t*sections));
+     if(!clear[sectionIndex]||
+        (sectionIndex>0&&!clear[sectionIndex-1])||
+        (sectionIndex<sections-1&&!clear[sectionIndex+1]))continue;
      if(px<bounds[0]-18||px>bounds[2]+18||
         py<bounds[1]-18||py>bounds[3]+18||
         geometry.nearRoad(px,py,e=>!!e.crossing,92)||
@@ -548,6 +555,40 @@ function create(model,geometry,options={}){
         tipY-tangent.y*width*.55,tipX,tipY);
        ctx.fillStyle=seed>.55?'rgba(70,113,75,.18)':'rgba(149,170,109,.16)';
        ctx.fill();
+      }
+     }
+     // Distinct low, lateral fern fronds add a layered woodland-bank
+     // silhouette rather than more identical vertical grass stamps.
+     // Each frond is painted with narrow tapered curved leaflets.
+     if(seed>.36){
+      const frondCount=seed>.72?3:2;
+      for(let fr=0;fr<frondCount;fr++){
+       const turn=hash(q.index*113+k*41,fr+11,937),
+        angle=(fr-(frondCount-1)/2)*.67+(turn-.5)*.3,
+        length=size*(1.25+turn*.85),
+        ax=tangent.x*Math.cos(angle)+norm.x*Math.sin(angle),
+        ay=tangent.y*Math.cos(angle)+norm.y*Math.sin(angle),
+        ex=px+ax*length,ey=py+ay*length;
+       ctx.beginPath();ctx.moveTo(px,py);
+       ctx.quadraticCurveTo(px+ax*length*.56+norm.x*2,
+        py+ay*length*.56+norm.y*2,ex,ey);
+       ctx.strokeStyle='rgba(49,91,67,.24)';
+       ctx.lineWidth=.85;ctx.stroke();
+       for(let leaflet=1;leaflet<=3;leaflet++){
+        const u=leaflet/4,baseX=px+ax*length*u,
+         baseY=py+ay*length*u,
+         breadth=length*(.20-u*.12);
+        for(const direction of [-1,1]){
+         const lx=baseX+(-ay)*direction*breadth+ax*breadth*.22,
+          ly=baseY+ax*direction*breadth+ay*breadth*.22;
+         ctx.beginPath();ctx.moveTo(baseX,baseY);
+         ctx.quadraticCurveTo(lx+ax*breadth*.12,
+          ly+ay*breadth*.12,lx,ly);
+         ctx.strokeStyle=direction>0?
+          'rgba(139,164,105,.26)':'rgba(55,111,74,.25)';
+         ctx.lineWidth=1.7;ctx.stroke();
+        }
+       }
       }
      }
      ctx.restore();
