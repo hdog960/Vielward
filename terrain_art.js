@@ -442,10 +442,10 @@ function create(model,geometry,options={}){
    // Follow the same interpolated bank normal as the actual painted
    // vertices. A segment-only perpendicular makes the pigment gradient
    // detach from the feathered bank at curved source joints.
-   const normalAt=s=>{
-    const length=Math.hypot(s.nx,s.ny)||1;
-    return {x:s.nx/length*side,y:s.ny/length*side}
-   };
+   // Keep the pigment gradient in the exact interpolated normal frame
+   // used by the bank polygon. Re-normalizing at bends shifts its color
+   // stops outward even though the physical source-bank vertices do not.
+   const normalAt=s=>({x:s.nx*side,y:s.ny*side});
    for(let j=0;j<sections;j++){
     if(!clear[j])continue;
     const s0=station(j/sections),s1=station((j+1)/sections),
