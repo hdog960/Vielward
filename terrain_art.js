@@ -472,7 +472,7 @@ function create(model,geometry,options={}){
     // rectangular step against its fully painted neighbor. Slice only
     // the transition section into four tapered source-aligned ribbons;
     // the existing transverse watercolor gradient remains unchanged.
-    const fadeIn=j===0||!clear[j-1],fadeOut=j===sections-1||!clear[j+1];
+    const fadeIn=j>0&&!clear[j-1],fadeOut=j<sections-1&&!clear[j+1];
     if(fadeIn||fadeOut){
      ctx.restore();
      for(let h=0;h<4;h++){
