@@ -460,6 +460,10 @@ function create(model,geometry,options={}){
       streak=17+seed*25;
      if(x<bounds[0]-65||x>bounds[2]+65||
         y<bounds[1]-65||y>bounds[3]+65)continue;
+     // A dry-bank midpoint can be clear while a long water segment
+     // passes directly beneath a bridge. Keep the physical crossing
+     // free of decorative current strokes, even on curved approaches.
+     if(geometry.nearRoad(x,y,e=>!!e.crossing,65))continue;
      ctx.save();ctx.beginPath();
      ctx.moveTo(x-tx*streak*.55,y-ty*streak*.55);
      ctx.quadraticCurveTo(x+norm.x*6,y+norm.y*6,
