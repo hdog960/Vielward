@@ -857,12 +857,32 @@ function create(model,geometry,options={}){
    ctx.strokeStyle=s.material==="cliff-face"?"#34384b":"#49495a";ctx.lineWidth=18;ctx.stroke();
    const xs=p.map(pt=>pt[0]),ys=p.map(pt=>pt[1]),left=Math.min(...xs),top=Math.min(...ys);
    const ww=Math.max(...xs)-left,hh=Math.max(...ys)-top;
-   ctx.fillStyle=s.material==="cliff-face"?"#9294a5":"#c1bbb4";
-   ctx.fillRect(left+9,top+4,Math.max(15,ww*.78),Math.max(6,hh*.1));
-   if(s.material==="cliff-face")for(let j=0;j<4;j++){
-    const px=left+ww*.17+j*ww*.19;
-    ctx.fillStyle=j%2?"#62677e":"#596076";
-    ctx.fillRect(px,top+hh*.22,Math.max(8,ww*.14),Math.max(12,hh*.7))
+   if(s.material==="cliff-face"){
+    // R40s: clipped, irregular mineral strata replace the four hard
+    // rectangular columns. Keep the original physical cliff polygon.
+    ctx.save();polygon(ctx,p);ctx.clip();
+    for(let j=0;j<5;j++){
+     const u=j/5,px=left+ww*(.07+u*.91),
+      crest=top+hh*(.08+.035*Math.sin(j*2.7)),
+      foot=top+hh*(.73+.13*Math.sin(j*1.9+1));
+     ctx.beginPath();
+     ctx.moveTo(px-ww*.09,crest+hh*.045);
+     ctx.quadraticCurveTo(px+ww*.04,crest-hh*.075,px+ww*.13,crest+hh*.02);
+     ctx.lineTo(px+ww*.085,foot-hh*.07);
+     ctx.quadraticCurveTo(px+ww*.015,foot+hh*.06,px-ww*.045,foot);
+     ctx.closePath();
+     ctx.fillStyle=j%3===0?"rgba(169,171,164,.40)":j%3===1?
+      "rgba(86,104,105,.46)":"rgba(121,132,125,.38)";
+     ctx.fill();
+     ctx.beginPath();ctx.moveTo(px-ww*.055,crest+hh*.09);
+     ctx.quadraticCurveTo(px-ww*.085,top+hh*.42,px-ww*.035,foot-hh*.12);
+     ctx.strokeStyle="rgba(36,54,58,.28)";ctx.lineWidth=Math.max(2,ww*.008);
+     ctx.stroke();
+    }
+    ctx.restore();
+   }else{
+    ctx.fillStyle="#c1bbb4";
+    ctx.fillRect(left+9,top+4,Math.max(15,ww*.78),Math.max(6,hh*.1));
    }
   }
  }
