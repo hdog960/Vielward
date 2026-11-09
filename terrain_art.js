@@ -467,9 +467,32 @@ function create(model,geometry,options={}){
     ctx.save();ctx.beginPath();
     ctx.moveTo(...ai);ctx.lineTo(...bi);ctx.lineTo(...bo);
     ctx.lineTo(...ao);ctx.closePath();
-    // Avoid hard rectangular edges beside decks and on the source ends.
-    ctx.globalAlpha=(!clear[j-1]||!clear[j+1])?.48:1;
-    ctx.fillStyle=wash;ctx.fill();ctx.restore();painted++
+    // Feather the *longitudinal* ends of sections adjacent to bridge
+    // clearance gaps. A single 0.48 alpha per section left a visible
+    // rectangular step against its fully painted neighbor. Slice only
+    // the transition section into four tapered source-aligned ribbons;
+    // the existing transverse watercolor gradient remains unchanged.
+    const fadeIn=j===0||!clear[j-1],fadeOut=j===sections-1||!clear[j+1];
+    if(fadeIn||fadeOut){
+     ctx.restore();
+     for(let h=0;h<4;h++){
+      const t0=(j+h/4)/sections,t1=(j+(h+1)/4)/sections,
+       u0=station(t0),u1=station(t1),
+       pAi=point(u0,inner),pBi=point(u1,inner),
+       pBo=point(u1,outer),pAo=point(u0,outer),
+       along=(h+.5)/4,
+       // Smoothstep gives a continuous pigment ramp at the gap edge.
+       ease=v=>v*v*(3-2*v),
+       opacity=Math.min(fadeIn?ease(along):1,fadeOut?ease(1-along):1);
+      ctx.save();ctx.beginPath();ctx.moveTo(...pAi);
+      ctx.lineTo(...pBi);ctx.lineTo(...pBo);ctx.lineTo(...pAo);
+      ctx.closePath();ctx.globalAlpha=opacity;ctx.fillStyle=wash;
+      ctx.fill();ctx.restore()
+     }
+    }else{
+     ctx.fillStyle=wash;ctx.fill();ctx.restore()
+    }
+    painted++
    }
    // Subtle broken current brush strokes remain on the WATER side
    // only, aligned to this same physical channel segment. They are
