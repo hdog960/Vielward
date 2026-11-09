@@ -336,6 +336,122 @@ function create(model,geometry,options={}){
   ctx.restore();return 1
  }
 
+
+ // R40: the R35d water polygon must have a watercolor shoreline, not
+ // an unfeathered cyan-to-grass diagonal. ALL station coordinates come
+ // from the original Frostbridge centerline and the exact, unchanged
+ // 180-unit physical water radius. This is visual pigment only, with
+ // smooth fade INTO the river and OUT onto the original dry bank.
+ // No noise shifts the actual physical shore, collision or crossing.
+ const fallsShoreHalfWidth=180,fallsShoreWaterInset=66,
+  fallsShoreDryReach=106;
+ function fallsShoreBands(bounds){
+  if(!fallsChannelBounds||fallsChannel.length<2||
+    bounds[2]<fallsChannelBounds[0]-fallsShoreDryReach||
+    bounds[0]>fallsChannelBounds[2]+fallsShoreDryReach||
+    bounds[3]<fallsChannelBounds[1]-fallsShoreDryReach||
+    bounds[1]>fallsChannelBounds[3]+fallsShoreDryReach)return[];
+  const normals=fallsChannel.map((p,i)=>{
+   const before=fallsChannel[Math.max(0,i-1)],
+    after=fallsChannel[Math.min(fallsChannel.length-1,i+1)],
+    dx=after[0]-before[0],dy=after[1]-before[1],
+    len=Math.hypot(dx,dy)||1;
+   return{x:-dy/len,y:dx/len}
+  });
+  const groups=[];
+  for(let i=1;i<fallsChannel.length;i++){
+   const a=fallsChannel[i-1],b=fallsChannel[i],
+    ax=a[0],ay=a[1],bx=b[0],by=b[1],
+    n0=normals[i-1],n1=normals[i],
+    tx=bx-ax,ty=by-ay,len=Math.hypot(tx,ty)||1;
+   // Never invent shore art on a large source road crossing.
+   const midx=(ax+bx)*.5,midy=(ay+by)*.5;
+   for(const side of [-1,1]){
+    const off=fallsShoreHalfWidth,outer=off+fallsShoreDryReach,
+     inner=off-fallsShoreWaterInset,
+     dryX=midx+(n0.x+n1.x)*side*outer*.5,
+     dryY=midy+(n0.y+n1.y)*side*outer*.5;
+    if(footprint&&
+       !["greenwood","greenwood_falls"].includes(
+        footprint.regionAt(dryX,dryY)?.id))continue;
+    const minx=Math.min(ax+side*n0.x*outer,bx+side*n1.x*outer,
+      ax+side*n0.x*inner,bx+side*n1.x*inner),
+     maxx=Math.max(ax+side*n0.x*outer,bx+side*n1.x*outer,
+      ax+side*n0.x*inner,bx+side*n1.x*inner),
+     miny=Math.min(ay+side*n0.y*outer,by+side*n1.y*outer,
+      ay+side*n0.y*inner,by+side*n1.y*inner),
+     maxy=Math.max(ay+side*n0.y*outer,by+side*n1.y*outer,
+      ay+side*n0.y*inner,by+side*n1.y*inner);
+    if(minx>bounds[2]+25||maxx<bounds[0]-25||
+       miny>bounds[3]+25||maxy<bounds[1]-25)continue;
+    groups.push({
+     index:i,side,length:len,
+     a:[ax,ay],b:[bx,by],n0,n1,
+     dry:[dryX,dryY],
+     inner,outer,waterRadius:off,
+     nearPhysicalCrossing:!!geometry.nearRoad(
+      dryX,dryY,e=>!!e.crossing,65)
+    })
+   }
+  }
+  return groups
+ }
+ function paintFallsShorelineTransition(ctx,bounds){
+  if(!ctx?.createLinearGradient||!ctx?.beginPath)return 0;
+  let painted=0;
+  for(const q of fallsShoreBands(bounds)){
+   const{a,b,n0,n1,side,inner,outer}=q;
+   // The *true* physical decks and bridge approaches always remain
+   // legible: never shade across a constructed crossing.
+   if(q.nearPhysicalCrossing)continue;
+   const point=(p,n,d)=>[p[0]+n.x*side*d,p[1]+n.y*side*d],
+    ai=point(a,n0,inner),bi=point(b,n1,inner),
+    bo=point(b,n1,outer),ao=point(a,n0,outer);
+   const m=(q.index%3===0?.88:1),
+    mid=[(a[0]+b[0])*.5,(a[1]+b[1])*.5],
+    norm={x:(n0.x+n1.x)*.5*side,y:(n0.y+n1.y)*.5*side},
+    p0=[mid[0]+norm.x*inner,mid[1]+norm.y*inner],
+    p1=[mid[0]+norm.x*outer,mid[1]+norm.y*outer];
+   const wash=ctx.createLinearGradient(...p0,...p1);
+   // No bright white rail or flat teal outline: gradual desaturated
+   // aquatic shadow -> wet ochre/moss -> transparent native ground.
+   wash.addColorStop(0,"rgba(37,96,111,0)");
+   wash.addColorStop(.19,"rgba(59,122,124,"+(.23*m)+")");
+   wash.addColorStop(.39,"rgba(82,133,121,"+(.44*m)+")");
+   wash.addColorStop(.53,"rgba(105,146,119,"+(.49*m)+")");
+   wash.addColorStop(.70,"rgba(72,114,91,"+(.25*m)+")");
+   wash.addColorStop(1,"rgba(53,94,76,0)");
+   ctx.save();ctx.beginPath();
+   ctx.moveTo(...ai);ctx.lineTo(...bi);ctx.lineTo(...bo);
+   ctx.lineTo(...ao);ctx.closePath();
+   ctx.fillStyle=wash;ctx.fill();
+   ctx.restore();painted++
+   // Subtle broken current brush strokes remain on the WATER side
+   // only, aligned to this same physical channel segment. They are
+   // not stepping stones, fixed parallel rails or a fake shore.
+   if(q.length>160&&ctx.quadraticCurveTo){
+    const dx=b[0]-a[0],dy=b[1]-a[1],
+     len=Math.hypot(dx,dy)||1,tx=dx/len,ty=dy/len;
+    for(let k=0;k<Math.min(4,Math.floor(q.length/240));k++){
+     const seed=hash(q.index*53+k,side*13,405),
+      t=.19+(k+.32)*.69/Math.max(1,Math.min(4,Math.floor(q.length/240))),
+      x=a[0]+dx*t+norm.x*(112+seed*18),
+      y=a[1]+dy*t+norm.y*(112+seed*18),
+      streak=17+seed*25;
+     if(x<bounds[0]-65||x>bounds[2]+65||
+        y<bounds[1]-65||y>bounds[3]+65)continue;
+     ctx.save();ctx.beginPath();
+     ctx.moveTo(x-tx*streak*.55,y-ty*streak*.55);
+     ctx.quadraticCurveTo(x+norm.x*6,y+norm.y*6,
+      x+tx*streak*.48,y+ty*streak*.48);
+     ctx.strokeStyle="rgba(158,197,182,.14)";
+     ctx.lineWidth=1.9;ctx.stroke();ctx.restore()
+    }
+   }
+  }
+  return painted
+ }
+
  function drawBase(ctx,bounds){
   const cells=boundsCells(bounds);
   for(const c of cells){
@@ -549,6 +665,9 @@ function create(model,geometry,options={}){
   if(footprint)footprint.draws(ctx,bounds);
   drawSurfaces(ctx,bounds);
   if(illustration)illustration.drawGround(ctx,bounds);
+  // R40: overlay the native water/dry-bank contact AFTER forest floor,
+  // BEFORE source road/deck drawing. No physical geometry is touched.
+  paintFallsShorelineTransition(ctx,bounds);
   if(raster)raster.drawVillageGround(ctx,bounds,setpieces?.objects||[]);
   if(routeArt)routeArt.draw(ctx,bounds);else drawRoads(ctx,bounds);
   // Actual boots have walked the original snowy roads; never stamp false paths.
@@ -589,9 +708,11 @@ function create(model,geometry,options={}){
  function diagnostics(){return{version:VERSION,atlasWidth:atlas.width,atlasHeight:atlas.height,
   materials:MATERIALS.length,variants:VARIANTS,sourceTilePixels:TILE,worldCellSize:WORLD_CELL,
   biomeCount:Object.keys(biomeMaterial).length,
-  continuousFallsWaterR35d:true,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,illustrationEnabled:!!illustration,setpiecesEnabled:!!setpieces,rasterPilot:!!raster,usesAuthoritativeSolids:true}}
+  continuousFallsWaterR35d:true,fallsPhysicalShoreFeatherR40:true,
+  fallsShoreCollisionUntouchedR40:true,landmass:footprint?.stats()??null,climateEnabled:!!climate,routeNetworkEnabled:!!routeArt,illustrationEnabled:!!illustration,setpiecesEnabled:!!setpieces,rasterPilot:!!raster,usesAuthoritativeSolids:true}}
  return{version:VERSION,atlas,materials:MATERIALS,climate,routeArt,illustration,setpieces,raster,paintChunk,paintForeground,
-  materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,paintFallsWaterChannel,diagnostics}
+  materialAt,waterAt,sameSourceCell,atlasRect,boundsCells,paintFallsWaterChannel,
+  paintFallsShorelineTransition,fallsShoreBands,diagnostics}
 }
 window.VeilwardTerrainArt={version:VERSION,create,makeGreenwoodFloorPlates,palettes:PALETTES,materials:MATERIALS,
  sourceTileSize:TILE,variants:VARIANTS,worldTileSpan:WORLD_CELL};

@@ -1106,7 +1106,29 @@ function create({footprint,geometry,model}={}){
      PAINTED_SIZE,PAINTED_SIZE,
      Math.round(o.x-w*.5),Math.round(o.y-h*.78),
      Math.round(w),Math.round(h));
-   ctx.restore();count++
+   ctx.restore();
+   // R40: native R18 fern+root material grows on the REAL dry-bank
+   // side of the original rock ledge, not in water or as false stones.
+   // One reserved source cluster per three geological shelves avoids
+   // striped or clone-stamped landscaping.
+   if(count%3===0){
+    const vx=o.x-o.wx,vy=o.y-o.wy,
+     length=Math.hypot(vx,vy)||1,
+     fx=o.x+vx/length*54,fy=o.y+vy/length*54;
+    if(footprint.onLand(fx,fy)&&
+       !geometry.waterAt(fx,fy,18)&&
+       !geometry.nearRoad(fx,fy,()=>true,58)&&
+       !geometry.obstacle(fx,fy,18)){
+     const fsize=78+hash(o.segment,o.step,o.side)*20;
+     ctx.save();ctx.globalAlpha=.46;ctx.imageSmoothingEnabled=true;
+     ctx.drawImage(painted,PAINTED_SIZE*2,0,
+      PAINTED_SIZE,PAINTED_SIZE,
+      Math.round(fx-fsize*.5),Math.round(fy-fsize*.84),
+      Math.round(fsize),Math.round(fsize));
+     ctx.restore()
+    }
+   }
+   count++
   }
   return count
  }
@@ -1494,6 +1516,7 @@ function create({footprint,geometry,model}={}){
   fallsCollisionRootedGorgeR37:true,fallsNativeCanopyFrameR37:true,
   fallsLandscapeCompositionR38:true,fallsStairShoulderNativeR38:true,
   fallsLowReliefSourceBedrockR39:true,fallsRealRiverNativeLedgesR39:true,
+  fallsRootLinkedBankFernR40:true,
   riverSourcedEscarpmentR35:true,sculptedBankContrastR35b:true,nonGeometricBankBlendR35c:true,
   nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),

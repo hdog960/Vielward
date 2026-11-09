@@ -1024,6 +1024,40 @@ try{
  await sleep(1700);
  await capture(page,"GREENWOOD_R39_SOURCE_RIVER_GORGE");
 
+ // R40: the *same real source-dry riverbank* camera, with original
+ // physical water, original renderer and original actor, not a mockup.
+ const r40=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,
+   art=s.art,x=s.player.x,y=s.player.y,
+   bounds=[x-1600,y-1600,x+1600,y+1600];
+  const c=document.createElement("canvas");
+  c.width=8;c.height=8;
+  const sections=art.fallsShoreBands(bounds),
+   drawn=art.paintFallsShorelineTransition(c.getContext("2d"),bounds);
+  const channel=s.model.waterways.find(w=>w.id==="frostbridge_river");
+  const center=channel.centerline[8].map(v=>v*60);
+  return {drawn,segments:sections.length,
+   riverSource:s.geometry.waterAt(...center,0)?.id,
+   artist:art.diagnostics().fallsPhysicalShoreFeatherR40,
+   physical:art.diagnostics().fallsShoreCollisionUntouchedR40,
+   walkable:!s.blocked(x,y),
+   dry:!s.geometry.waterAt(x,y,24),
+   roads:s.routeArt.stats().roads,
+   crossings:s.routeArt.stats().crossings,
+   sideA:sections.some(q=>q.side===-1),
+   sideB:sections.some(q=>q.side===1)}
+ });
+ if(r40.drawn<2||r40.segments<4||!r40.artist||
+    !r40.physical||!r40.walkable||!r40.dry||
+    !r40.sideA||!r40.sideB||r40.roads!==65||
+    r40.crossings!==7||r40.riverSource!=="frostbridge_river")
+   throw Error("R40 real-water shoreline or actor contract failed "+
+    JSON.stringify(r40));
+ console.log("R40_PHYSICAL_SHORELINE_GRADIENT "+JSON.stringify(r40));
+ await sleep(1450);
+ await capture(page,"GREENWOOD_R40_FEATHERED_RIVERBANK");
+
+
 
 
 

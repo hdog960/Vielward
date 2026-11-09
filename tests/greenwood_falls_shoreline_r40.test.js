@@ -1,0 +1,75 @@
+/* Phase 9 R40 — actual Frostbridge water-to-forest bank without collision lies */
+"use strict";
+const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/strict");
+const read=f=>fs.readFileSync(f,"utf8");
+const model=JSON.parse(read("docs/overworld/world_blueprint.json")),
+ terrain=JSON.parse(read("docs/overworld/terrain_geometry.json"));
+const host={console};host.window=host;
+vm.runInNewContext(read("world_geometry.js"),host);
+vm.runInNewContext(read("terrain_art.js"),host);
+const geo=host.VeilwardGeometry.create(model,terrain);
+let fills=0,gradients=[],strokes=0;
+function canvasContext(){
+ return{save(){},restore(){},fillRect(){fills++},drawImage(){},
+  translate(){},scale(){},moveTo(){},lineTo(){},closePath(){},beginPath(){},
+  arc(){},clip(){},stroke(){strokes++},quadraticCurveTo(){},fill(){fills++},
+  createImageData(w,h){return{data:new Uint8ClampedArray(w*h*4)}},
+  putImageData(){},
+  createLinearGradient(...coordinates){
+   const g={coordinates,stops:[],addColorStop(t,color){this.stops.push([t,color])}};
+   gradients.push(g);return g
+  }}
+}
+const art=host.VeilwardTerrainArt.create(model,geo,{
+ canvasFactory:()=>({width:0,height:0,getContext:()=>canvasContext()})
+});
+const channel=model.waterways.find(w=>w.id==="frostbridge_river"),
+ line=channel.centerline.slice(6).map(p=>p.map(x=>x*60));
+assert.ok(line.length>=3,"same original R35d physical Frostbridge source");
+const zone=[Math.min(...line.map(p=>p[0]))-500,
+ Math.min(...line.map(p=>p[1]))-500,
+ Math.max(...line.map(p=>p[0]))+500,
+ Math.max(...line.map(p=>p[1]))+500];
+const bands=art.fallsShoreBands(zone);
+assert.ok(bands.length>=6,"world-aligned bank sections on both source shore sides");
+assert.ok(bands.some(q=>q.side===-1)&&bands.some(q=>q.side===1));
+assert.ok(bands.every(q=>q.waterRadius===180&&q.inner===114&&q.outer===286),
+ "R40 transitions cover both sides of unchanged 180-unit physical shore");
+for(const q of bands){
+ assert.ok(q.index>0&&q.index<line.length);
+ assert.ok(q.length>0);
+ assert.ok(geo.waterAt(...q.a,0)?.id==="frostbridge_river",
+  "water center remains the same collision-backed source");
+ const n=q.n0,inner=[q.a[0]+q.side*n.x*q.inner,
+  q.a[1]+q.side*n.y*q.inner];
+ // At ordinary (non-crossing) source sites the water half of R40's
+ // feather still lies within the UNCHANGED physical water hazard.
+ if(!q.nearPhysicalCrossing&&q.length>180)
+  assert.ok(!!geo.waterAt(...inner,0),
+   "the aquatic half of the gradient is genuinely physical water");
+}
+const n=art.paintFallsShorelineTransition(canvasContext(),zone);
+assert.ok(n>=4,"the real shoreline is shaded continuously across the zone");
+assert.ok(gradients.length>=n,"every segment uses a native local cross-bank gradient");
+assert.ok(gradients.some(g=>g.stops.length===6&&g.stops[0][1].endsWith(",0)")&&
+ g.stops[g.stops.length-1][1].endsWith(",0)")),
+ "both ends of shore pigment return to source terrain without a hard boundary");
+assert.equal(art.paintFallsShorelineTransition(canvasContext(),[0,0,500,500]),0,
+ "painting cannot leak onto unrelated regions");
+assert.equal(art.fallsShoreBands([0,0,500,500]).length,0);
+assert.ok(art.diagnostics().fallsPhysicalShoreFeatherR40);
+assert.ok(art.diagnostics().fallsShoreCollisionUntouchedR40);
+assert.equal(model.nodes.length,48);
+assert.equal(model.edges.length,65);
+assert.equal(model.edges.filter(e=>e.crossing).length,7);
+assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
+for(const path of ["index.html","sw.js"]){
+ const t=read(path);
+ assert.ok(t.includes("terrain_art.js?v=32&rev=25&falls=34b&palette=34c&channel=35d&shore=40"),
+ "PWA and web use the same R40 terrain script");
+}
+const capture=read("scripts/visual_capture.mjs");
+assert.ok(capture.includes('capture(page,"GREENWOOD_R40_FEATHERED_RIVERBANK")'));
+assert.ok(capture.includes("R40_PHYSICAL_SHORELINE_GRADIENT"));
+console.log("R40 PASS: "+n+" watercolor native shoreline panels at original physical water edge, "+
+ gradients.length+" cross-bank gradients, zero topology/collision/save changes");
