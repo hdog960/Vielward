@@ -407,8 +407,9 @@ function create(model,geometry,options={}){
    const point=(p,n,d)=>[p[0]+n.x*side*d,p[1]+n.y*side*d],
     ai=point(a,n0,inner),bi=point(b,n1,inner),
     bo=point(b,n1,outer),ao=point(a,n0,outer);
-   const m=(q.index%3===0?.88:1),
-    mid=[(a[0]+b[0])*.5,(a[1]+b[1])*.5],
+   const mid=[(a[0]+b[0])*.5,(a[1]+b[1])*.5],
+    // Continuous world-space modulation avoids repeating every-third-panel bands.
+    m=.94+.06*Math.sin((mid[0]+mid[1])*.00037),
     norm={x:(n0.x+n1.x)*.5*side,y:(n0.y+n1.y)*.5*side},
     p0=[mid[0]+norm.x*inner,mid[1]+norm.y*inner],
     p1=[mid[0]+norm.x*outer,mid[1]+norm.y*outer];
