@@ -1072,15 +1072,19 @@ function create({footprint,geometry,model}={}){
   if(!painted||!ctx?.drawImage||!ctx?.createRadialGradient)return 0;
   const sources=sourceFallsBanks(),seen=new Set();
   let count=0;
-  for(let i=0;i<sources.length;i+=7){
-   const o=sources[i],key=o.segment+":"+o.side+":"+
-    Math.floor(o.step/7);
+  // R39b: choose the FIRST *valid* dry source within each ten-step
+  // geological reach. The initial R39 seventh-index shortcut skipped
+  // many physically verified anchors and contributed no visible ledge.
+  // Group only AFTER clearance: no invalid river location can consume
+  // a group's original painted rock source slot.
+  for(const o of sources){
+   const key=o.segment+":"+o.side+":"+Math.floor(o.step/10);
    if(seen.has(key))continue;
-   seen.add(key);
    if(o.x<bounds[0]-210||o.x>bounds[2]+210||
       o.y<bounds[1]-210||o.y>bounds[3]+210||
-      geometry.waterAt(o.x,o.y,10)||
+      geometry.waterAt(o.x,o.y,0)||
       geometry.nearRoad(o.x,o.y,()=>true,115))continue;
+   seen.add(key);
    const w=158+hash(o.segment,o.step,o.side)*47,
     h=w*.57;
    const bank=ctx.createRadialGradient(o.x,o.y-h*.22,5,
