@@ -91,9 +91,13 @@ assert.equal(model.edges.filter(e=>e.crossing).length,7);
 // the authoritative physical crossing, not only their center sample.
 const source=read("terrain_art.js");
 assert.ok(source.includes("const startX=x-tx*streak*.55,startY=y-ty*streak*.55"));
-assert.ok(source.includes("[startX,startY],[x,y],[controlX,controlY],[endX,endY]"));
-assert.ok(source.includes(".some(([sx,sy])=>geometry.nearRoad(sx,sy,e=>!!e.crossing,65))"),
- "both endpoints and the control point must respect real bridge approaches");
+assert.ok(source.includes("const curveTouchesCrossing=[0,.25,.5,.75,1].some(t=>{"),
+ "R40g checks five positions ON the actual quadratic water stroke");
+assert.ok(source.includes("sx=u*u*startX+2*u*t*controlX+t*t*endX")&&
+ source.includes("sy=u*u*startY+2*u*t*controlY+t*t*endY"),
+ "crossing checks follow the painted Bezier curve, not an off-curve handle");
+assert.ok(source.includes("if(curveTouchesCrossing)continue;"),
+ "strokes intersecting an original bridge must be skipped");
 for(const path of ["index.html","sw.js"])
  assert.ok(read(path).includes("&brush=40e"),"R40e cache key matches deployed source");
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
