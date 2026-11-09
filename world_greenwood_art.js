@@ -970,17 +970,18 @@ function create({footprint,geometry,model}={}){
  // Exactly the native R18 rock/fern art shared by existing real trees.
  // All shapes are GLOBAL world positions to preserve chunk seams.
  const fallsRockComposition=[
-  // Two broad weathered woodland shoulders around the real stair.
-  {dx:-352,dy:-276,w:248,h:154,lean:-.10,flip:false,depth:.91},
-  {dx:262,dy:-285,w:294,h:173,lean:.12,flip:true,depth:1},
-  // Uneven trailing bedrock strata lead into the original R36 shelf.
-  {dx:-349,dy:-33,w:223,h:133,lean:.08,flip:true,depth:.72},
-  {dx:320,dy:-45,w:236,h:139,lean:-.07,flip:false,depth:.81},
-  {dx:-267,dy:176,w:201,h:127,lean:-.11,flip:false,depth:.62},
-  {dx:325,dy:162,w:214,h:126,lean:.10,flip:true,depth:.60},
-  // Flanking near-screen tree roots link the trail into the wider woods.
-  {dx:-563,dy:-354,w:211,h:141,lean:-.13,flip:false,depth:.69},
-  {dx:563,dy:-359,w:249,h:144,lean:.07,flip:true,depth:.75}
+  // R39c: shift authentic groundstone toward the CURRENT playable 720px
+  // camera rather than measuring pieces that live beyond its top/edges.
+  // The R36 native real landmark rock remains the formation's anchor.
+  {dx:-292,dy:-82,w:237,h:148,lean:-.10,flip:false,depth:.94},
+  {dx:201,dy:-183,w:273,h:167,lean:.12,flip:true,depth:1},
+  {dx:-288,dy:88,w:221,h:140,lean:.08,flip:true,depth:.86},
+  {dx:179,dy:-19,w:232,h:148,lean:-.07,flip:false,depth:.93},
+  {dx:-258,dy:212,w:206,h:132,lean:-.11,flip:false,depth:.74},
+  {dx:205,dy:134,w:223,h:137,lean:.10,flip:true,depth:.79},
+  // Background shallow ledges visually connect to rooted forest edges.
+  {dx:-526,dy:-338,w:211,h:141,lean:-.13,flip:false,depth:.70},
+  {dx:407,dy:-290,w:249,h:144,lean:.07,flip:true,depth:.80}
  ];
  function fallsRockCandidates(){return fallsRockComposition.map((o,i)=>({
   ...o,id:"falls_rock_bed_"+i,x:fallsAnchor.x+o.dx,
@@ -1007,9 +1008,9 @@ function create({footprint,geometry,model}={}){
    // mass into one connected hillside, instead of loose scenic props.
    const shadow=ctx.createRadialGradient(x-w*.06,y-h*.28,4,
     x+w*.04,y-h*.06,w*.84);
-   shadow.addColorStop(0,"rgba(22,48,41,.33)");
-   shadow.addColorStop(.40,"rgba(55,82,67,.21)");
-   shadow.addColorStop(.75,"rgba(83,111,80,.085)");
+   shadow.addColorStop(0,"rgba(22,48,41,.42)");
+   shadow.addColorStop(.40,"rgba(55,82,67,.28)");
+   shadow.addColorStop(.75,"rgba(83,111,80,.12)");
    shadow.addColorStop(1,"rgba(92,123,87,0)");
    ctx.save();ctx.fillStyle=shadow;
    ctx.fillRect(x-w,y-w,w*2,w*2);
@@ -1025,8 +1026,8 @@ function create({footprint,geometry,model}={}){
    ctx.closePath();
    const stone=ctx.createLinearGradient?.(x,y-h*.55,x,y+h*.25);
    if(stone){
-    stone.addColorStop(0,"rgba(132,147,121,.18)");
-    stone.addColorStop(.36,"rgba(86,107,91,.16)");
+    stone.addColorStop(0,"rgba(132,147,121,.24)");
+    stone.addColorStop(.36,"rgba(86,107,91,.22)");
     stone.addColorStop(.78,"rgba(43,68,60,.105)");
     stone.addColorStop(1,"rgba(34,67,51,0)");
    }
@@ -1035,9 +1036,9 @@ function create({footprint,geometry,model}={}){
    // Original R18 transparent rock silhouette keeps its full native
    // contour, with restrained translucency so it reads as integrated
    // foot-level bedrock rather than a solid inaccessible obelisk.
-   const nativeW=Math.round(w*.84),nativeH=Math.round(h*.72);
+   const nativeW=Math.round(w*.91),nativeH=Math.round(h*.90);
    ctx.save();
-   ctx.globalAlpha=.56*o.depth;
+   ctx.globalAlpha=.74*o.depth;
    ctx.imageSmoothingEnabled=true;
    ctx.translate(Math.round(x),Math.round(y));
    ctx.rotate?.(o.lean);
@@ -1054,7 +1055,7 @@ function create({footprint,geometry,model}={}){
    if(!geometry.waterAt(fx,fy,15)&&
       !geometry.nearRoad(fx,fy,()=>true,38)){
     const fern=Math.round(w*.43);
-    ctx.save();ctx.globalAlpha=.64*o.depth;
+    ctx.save();ctx.globalAlpha=.72*o.depth;
     ctx.imageSmoothingEnabled=true;
     ctx.drawImage(painted,PAINTED_SIZE*2,0,
       PAINTED_SIZE,PAINTED_SIZE,

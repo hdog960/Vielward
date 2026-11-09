@@ -991,17 +991,29 @@ try{
    window.VeilwardGreenwoodArt.create({
     model:s.model,geometry:s.geometry,footprint:s.footprint}),
    sources=g.fallsBankSources();
-  const candidate=sources.find(o=>
-   o.segment>=8&&!s.geometry.waterAt(o.x,o.y,20)&&
-   !s.geometry.nearRoad(o.x,o.y,()=>true,115))||
-   sources.find(o=>!s.geometry.waterAt(o.x,o.y,20));
-  if(!candidate)throw Error("Missing genuine dry riverbank review point");
-  // Teleport only the in-memory QA Wanderer; gameplay data, geometry and
-  // saved player state are not edited. Reset the camera via real node jump.
+  // R39c: the native bank image is sourced at the FIRST *dry* pixel
+  // next to water. A full-sized Wanderer cannot safely stand on that
+  // same edge pixel. Move 55-210 units LANDWARD along the verified
+  // shore normal, never into the physical river or a real road.
+  let candidate=null,spot=null;
+  const ordered=[...sources].sort((a,b)=>
+    (a.segment===8?-100:0)-(b.segment===8?-100:0));
+  for(const o of ordered){
+   const dx=o.x-o.wx,dy=o.y-o.wy,
+    length=Math.hypot(dx,dy)||1,nx=dx/length,ny=dy/length;
+   for(const dist of [55,95,145,210]){
+    const x=o.x+nx*dist,y=o.y+ny*dist;
+    if(!s.footprint.onLand(x,y)||s.blocked(x,y)||
+       s.geometry.waterAt(x,y,24)||
+       s.geometry.nearRoad(x,y,()=>true,40))continue;
+    candidate=o;spot={x,y};break
+   }
+   if(candidate)break
+  }
+  if(!candidate||!spot)
+   throw Error("No safe real bank interior point after physical shore search");
+  // Move only the QA session actor. Never edit source terrain or saves.
   s.jumpToNode("falls_overlook");
-  const spot=s.footprint.safePoint(candidate.x,candidate.y);
-  if(s.blocked(spot.x,spot.y))
-   throw Error("R39 source river landing blocks Wanderer");
   s.player.x=spot.x;s.player.y=spot.y;s.player.moving=false;
   s.player.groundHeight=s.geometry.elevationAt(spot.x,spot.y);
   s.warm(spot.x,spot.y,1800,1400);

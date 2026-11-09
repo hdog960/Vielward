@@ -21,3 +21,9 @@ In the R38d *actual browser game capture*, the two physically rooted forest silh
 ## Next art slice
 
 Inspect the true 720px landscape screenshots. If the terracing remains visually repetitive or makes the walkable ground look blocked, revise native image masses and edge transitions rather than accepting by passing programmatic tests. Preserve the original beautiful high-resolution pixel illustration direction, character silhouettes and routes. Physical iPhone playtesting and creator art approval remain outstanding.
+
+## R39c screenshot-driven polish and QA correction
+
+The real R39b overlook frame showed that several original bedrock groupings remained off-camera or visually too faint. R39c re-anchors the eight original painted rock beds around the **actual live 720px overlook view**, retaining native source proportions and improving opacity while leaving the approach corridor visible. The real-bank browser review previously attempted to stand the Wanderer at a dry *bank painting source pixel*, which is not necessarily a safe character-foot coordinate. The updated QA camera follows the original bank's water-to-land normal until it finds a collision-verified, fully dry player location. This is an **in-memory browser QA-only repositioning**, not a gameplay map or collision edit.
+
+The PWA asset URL and cache key were rotated again to ensure actual iPhone Home Screen users receive the new art rather than the older cached shader.
