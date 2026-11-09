@@ -439,9 +439,13 @@ function create(model,geometry,options={}){
       !geometry.nearRoad(s.x+s.nx*side*d,s.y+s.ny*side*d,crossing,65))
     })
    });
-   const segmentLength=Math.hypot(b[0]-a[0],b[1]-a[1])||1,
-    norm={x:-(b[1]-a[1])/segmentLength*side,
-      y:(b[0]-a[0])/segmentLength*side};
+   // Follow the same interpolated bank normal as the actual painted
+   // vertices. A segment-only perpendicular makes the pigment gradient
+   // detach from the feathered bank at curved source joints.
+   const normalAt=s=>{
+    const length=Math.hypot(s.nx,s.ny)||1;
+    return {x:s.nx/length*side,y:s.ny/length*side}
+   };
    for(let j=0;j<sections;j++){
     if(!clear[j])continue;
     const s0=station(j/sections),s1=station((j+1)/sections),
@@ -450,8 +454,9 @@ function create(model,geometry,options={}){
      ai=point(s0,inner),bi=point(s1,inner),
      bo=point(s1,outer),ao=point(s0,outer),
      m=.94+.06*Math.sin((mid.x+mid.y)*.00037),
-     p0=[mid.x+norm.x*inner,mid.y+norm.y*inner],
-     p1=[mid.x+norm.x*outer,mid.y+norm.y*outer];
+     midNormal=normalAt(mid),
+     p0=[mid.x+midNormal.x*inner,mid.y+midNormal.y*inner],
+     p1=[mid.x+midNormal.x*outer,mid.y+midNormal.y*outer];
     const wash=ctx.createLinearGradient(...p0,...p1);
     wash.addColorStop(0,"rgba(37,96,111,0)");
     wash.addColorStop(.19,"rgba(59,122,124,"+(.23*m)+")");
@@ -475,8 +480,9 @@ function create(model,geometry,options={}){
     for(let k=0;k<Math.min(4,Math.floor(q.length/240));k++){
      const seed=hash(q.index*53+k,side*13,405),
       t=.19+(k+.32)*.69/Math.max(1,Math.min(4,Math.floor(q.length/240))),
-      x=a[0]+dx*t+norm.x*(112+seed*18),
-      y=a[1]+dy*t+norm.y*(112+seed*18),
+      localNormal=normalAt(station(t)),
+      x=a[0]+dx*t+localNormal.x*(112+seed*18),
+      y=a[1]+dy*t+localNormal.y*(112+seed*18),
       streak=17+seed*25;
      if(x<bounds[0]-65||x>bounds[2]+65||
         y<bounds[1]-65||y>bounds[3]+65)continue;
@@ -489,7 +495,7 @@ function create(model,geometry,options={}){
      // of a long current stroke from bleeding underneath a crossing.
      const startX=x-tx*streak*.55,startY=y-ty*streak*.55,
       endX=x+tx*streak*.48,endY=y+ty*streak*.48,
-      controlX=x+norm.x*6,controlY=y+norm.y*6;
+      controlX=x+localNormal.x*6,controlY=y+localNormal.y*6;
      // A quadratic brush can bow between its endpoints and control
      // point. Check points ON the painted curve, not just its handles,
      // so a narrow bridge approach cannot slip between the samples.
@@ -502,7 +508,7 @@ function create(model,geometry,options={}){
      if(curveTouchesCrossing)continue;
      ctx.save();ctx.beginPath();
      ctx.moveTo(x-tx*streak*.55,y-ty*streak*.55);
-     ctx.quadraticCurveTo(x+norm.x*6,y+norm.y*6,
+     ctx.quadraticCurveTo(x+localNormal.x*6,y+localNormal.y*6,
       x+tx*streak*.48,y+ty*streak*.48);
      ctx.strokeStyle="rgba(158,197,182,.14)";
      ctx.lineWidth=1.9;ctx.stroke();ctx.restore()
