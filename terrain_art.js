@@ -463,7 +463,15 @@ function create(model,geometry,options={}){
      // A dry-bank midpoint can be clear while a long water segment
      // passes directly beneath a bridge. Keep the physical crossing
      // free of decorative current strokes, even on curved approaches.
-     if(geometry.nearRoad(x,y,e=>!!e.crossing,65))continue;
+     // The entire curved brush footprint, not only its midpoint, must
+     // stay clear of the original bridge deck and its approaches.
+     // Sampling both endpoints and the control point prevents the ends
+     // of a long current stroke from bleeding underneath a crossing.
+     const startX=x-tx*streak*.55,startY=y-ty*streak*.55,
+      endX=x+tx*streak*.48,endY=y+ty*streak*.48,
+      controlX=x+norm.x*6,controlY=y+norm.y*6;
+     if([[startX,startY],[x,y],[controlX,controlY],[endX,endY]]
+       .some(([sx,sy])=>geometry.nearRoad(sx,sy,e=>!!e.crossing,65)))continue;
      ctx.save();ctx.beginPath();
      ctx.moveTo(x-tx*streak*.55,y-ty*streak*.55);
      ctx.quadraticCurveTo(x+norm.x*6,y+norm.y*6,
