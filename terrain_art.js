@@ -481,8 +481,16 @@ function create(model,geometry,options={}){
      const startX=x-tx*streak*.55,startY=y-ty*streak*.55,
       endX=x+tx*streak*.48,endY=y+ty*streak*.48,
       controlX=x+norm.x*6,controlY=y+norm.y*6;
-     if([[startX,startY],[x,y],[controlX,controlY],[endX,endY]]
-       .some(([sx,sy])=>geometry.nearRoad(sx,sy,e=>!!e.crossing,65)))continue;
+     // A quadratic brush can bow between its endpoints and control
+     // point. Check points ON the painted curve, not just its handles,
+     // so a narrow bridge approach cannot slip between the samples.
+     const curveTouchesCrossing=[0,.25,.5,.75,1].some(t=>{
+      const u=1-t;
+      const sx=u*u*startX+2*u*t*controlX+t*t*endX,
+       sy=u*u*startY+2*u*t*controlY+t*t*endY;
+      return geometry.nearRoad(sx,sy,e=>!!e.crossing,65);
+     });
+     if(curveTouchesCrossing)continue;
      ctx.save();ctx.beginPath();
      ctx.moveTo(x-tx*streak*.55,y-ty*streak*.55);
      ctx.quadraticCurveTo(x+norm.x*6,y+norm.y*6,
