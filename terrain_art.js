@@ -512,17 +512,34 @@ function create(model,geometry,options={}){
         geometry.nearRoad(px,py,e=>!e.crossing,35))continue;
      if(footprint&&!['greenwood','greenwood_falls'].includes(
         footprint.regionAt(px,py)?.id))continue;
+     // A single identical three-stem stamp read as mechanical grass.
+     // Each native bank plant now has an asymmetric silhouette, with
+     // staggered blades and a restrained translucent leaf on two stems.
+     // These are tiny ground details, never foreground occluders.
      const tangent={x:-norm.y,y:norm.x},size=4+seed*7;
-     ctx.save();ctx.lineCap='round';ctx.lineWidth=1.2;
+     ctx.save();ctx.lineCap='round';ctx.lineWidth=1.1;
      ctx.strokeStyle=seed>.55?'rgba(39,78,59,.28)':'rgba(175,184,126,.25)';
      for(let leaf=-1;leaf<=1;leaf++){
-      const ox=tangent.x*leaf*size*.36,oy=tangent.y*leaf*size*.36;
+      const variation=hash(q.index*97+k*31,leaf+3,827),
+       height=size*(.65+variation*.58),
+       spread=leaf*size*(.27+variation*.20),
+       ox=tangent.x*spread,oy=tangent.y*spread,
+       tipX=px+ox+norm.x*height+tangent.x*leaf*height*.45,
+       tipY=py+oy+norm.y*height+tangent.y*leaf*height*.45,
+       bendX=px+ox+norm.x*height*.45+tangent.x*leaf*height*.22,
+       bendY=py+oy+norm.y*height*.45+tangent.y*leaf*height*.22;
       ctx.beginPath();ctx.moveTo(px+ox,py+oy);
-      ctx.quadraticCurveTo(px+ox+norm.x*size*.4+tangent.x*leaf*2,
-       py+oy+norm.y*size*.4+tangent.y*leaf*2,
-       px+ox+norm.x*size+tangent.x*leaf*size*.46,
-       py+oy+norm.y*size+tangent.y*leaf*size*.46);
-      ctx.stroke();
+      ctx.quadraticCurveTo(bendX,bendY,tipX,tipY);ctx.stroke();
+      if(leaf!==0){
+       const width=height*(.13+variation*.06);
+       ctx.beginPath();ctx.moveTo(tipX,tipY);
+       ctx.quadraticCurveTo(tipX+tangent.x*width,tipY+tangent.y*width,
+        bendX,bendY);
+       ctx.quadraticCurveTo(tipX-tangent.x*width*.55,
+        tipY-tangent.y*width*.55,tipX,tipY);
+       ctx.fillStyle=seed>.55?'rgba(70,113,75,.18)':'rgba(149,170,109,.16)';
+       ctx.fill();
+      }
      }
      ctx.restore();
     }
