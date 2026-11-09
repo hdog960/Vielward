@@ -947,6 +947,72 @@ try{
  console.log("R38_COMPOSED_PHYSICAL_OVERLOOK "+JSON.stringify(r38));
  await sleep(1500);await capture(page,"GREENWOOD_R38_COMPOSED_FALLS_FOREST");
 
+ // R39: inspect and photograph REAL playable terrain, not a composited
+ // concept image. The exact source atlas supplies the rock/fern layers;
+ // the only standing cliffs remain the existing physical source cliffs.
+ const r39=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,
+   n=s.model.nodes.find(o=>o.id==="falls_overlook"),
+   x=n.point[0]*60,y=n.point[1]*60,
+   bounds=[x-920,y-800,x+920,y+900],
+   g=window.VeilwardGreenwoodArt.create({
+    model:s.model,geometry:s.geometry,footprint:s.footprint});
+  const c=document.createElement("canvas");c.width=8;c.height=8;
+  const ctx=c.getContext("2d");
+  const bank=g.fallsBankSources(),
+   river=[Math.min(...bank.map(o=>o.x))-300,
+    Math.min(...bank.map(o=>o.y))-300,
+    Math.max(...bank.map(o=>o.x))+300,
+    Math.max(...bank.map(o=>o.y))+300];
+  s.jumpToNode("falls_overlook");
+  return{siteBedrock:g.paintFallsEscarpmentFloor(ctx,bounds),
+   realRiverLedges:g.paintFallsRiverNativeLedges(ctx,river),
+   nativeSource:g.stats().paintedAssetReady,
+   lowRelief:g.stats().fallsLowReliefSourceBedrockR39,
+   sourceBank:g.stats().fallsRealRiverNativeLedgesR39,
+   bankCount:bank.length,
+   rocks:g.fallsRockCandidates().length,
+   sourceGeometry:s.geometry.roads.length,
+   crossings:s.geometry.roads.filter(e=>e.crossing).length,
+   playerWalkable:!s.blocked(s.player.x,s.player.y)}
+ });
+ if(r39.siteBedrock<4||r39.realRiverLedges<2||
+    !r39.nativeSource||!r39.lowRelief||!r39.sourceBank||
+    r39.bankCount<20||r39.rocks!==8||
+    r39.sourceGeometry!==65||r39.crossings!==7||
+    !r39.playerWalkable)
+  throw Error("R39 physical source / playable landscape mismatch "+
+   JSON.stringify(r39));
+ console.log("R39_REAL_GEOLOGICAL_COMPOSITION "+JSON.stringify(r39));
+ await sleep(1350);
+ await capture(page,"GREENWOOD_R39_BEDROCK_OVERLOOK");
+ const riverPhoto=await page.evaluate(()=>{
+  const s=window.__veilwardCaptureStream,g=
+   window.VeilwardGreenwoodArt.create({
+    model:s.model,geometry:s.geometry,footprint:s.footprint}),
+   sources=g.fallsBankSources();
+  const candidate=sources.find(o=>
+   o.segment>=8&&!s.geometry.waterAt(o.x,o.y,20)&&
+   !s.geometry.nearRoad(o.x,o.y,()=>true,115))||
+   sources.find(o=>!s.geometry.waterAt(o.x,o.y,20));
+  if(!candidate)throw Error("Missing genuine dry riverbank review point");
+  // Teleport only the in-memory QA Wanderer; gameplay data, geometry and
+  // saved player state are not edited. Reset the camera via real node jump.
+  s.jumpToNode("falls_overlook");
+  const spot=s.footprint.safePoint(candidate.x,candidate.y);
+  if(s.blocked(spot.x,spot.y))
+   throw Error("R39 source river landing blocks Wanderer");
+  s.player.x=spot.x;s.player.y=spot.y;s.player.moving=false;
+  s.player.groundHeight=s.geometry.elevationAt(spot.x,spot.y);
+  s.warm(spot.x,spot.y,1800,1400);
+  return{sourceX:candidate.x,sourceY:candidate.y,
+    playerX:spot.x,playerY:spot.y,sourceWater:false}
+ });
+ console.log("R39_REAL_SOURCE_RIVER_CAMERA "+JSON.stringify(riverPhoto));
+ await sleep(1700);
+ await capture(page,"GREENWOOD_R39_SOURCE_RIVER_GORGE");
+
+
 
 
 

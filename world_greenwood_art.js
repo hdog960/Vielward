@@ -962,6 +962,150 @@ function create({footprint,geometry,model}={}){
   return count
  }
 
+
+ // R39: source-bound, site-composed rock and forest floor at the
+ // ACTUAL Falls overlook. These are shallow, traversable painted
+ // ground terraces only: no false towering cliff, fake collider, new
+ // walkway, procedural checkerboard, or unrelated image billboards.
+ // Exactly the native R18 rock/fern art shared by existing real trees.
+ // All shapes are GLOBAL world positions to preserve chunk seams.
+ const fallsRockComposition=[
+  // Two broad weathered woodland shoulders around the real stair.
+  {dx:-352,dy:-276,w:248,h:154,lean:-.10,flip:false,depth:.91},
+  {dx:262,dy:-285,w:294,h:173,lean:.12,flip:true,depth:1},
+  // Uneven trailing bedrock strata lead into the original R36 shelf.
+  {dx:-349,dy:-33,w:223,h:133,lean:.08,flip:true,depth:.72},
+  {dx:320,dy:-45,w:236,h:139,lean:-.07,flip:false,depth:.81},
+  {dx:-267,dy:176,w:201,h:127,lean:-.11,flip:false,depth:.62},
+  {dx:325,dy:162,w:214,h:126,lean:.10,flip:true,depth:.60},
+  // Flanking near-screen tree roots link the trail into the wider woods.
+  {dx:-563,dy:-354,w:211,h:141,lean:-.13,flip:false,depth:.69},
+  {dx:563,dy:-359,w:249,h:144,lean:.07,flip:true,depth:.75}
+ ];
+ function fallsRockCandidates(){return fallsRockComposition.map((o,i)=>({
+  ...o,id:"falls_rock_bed_"+i,x:fallsAnchor.x+o.dx,
+  y:fallsAnchor.y+o.dy,groundOnly:true
+ })) }
+ function paintFallsEscarpmentFloor(ctx,bounds){
+  if(!painted||!fallsAnchor||!ctx?.drawImage||
+     !ctx?.createRadialGradient||!ctx?.beginPath)return 0;
+  const minx=fallsAnchor.x-1200,miny=fallsAnchor.y-1150,
+   maxx=fallsAnchor.x+1200,maxy=fallsAnchor.y+1150;
+  if(bounds[0]>maxx||bounds[2]<minx||
+     bounds[1]>maxy||bounds[3]<miny)return 0;
+  let paintedBeds=0;
+  for(const o of fallsRockCandidates()){
+   const{x,y,w,h}=o;
+   if(x+w*.85<bounds[0]||x-w*.85>bounds[2]||
+      y+h*.9<bounds[1]||y-h*1.3>bounds[3])continue;
+   if(!footprint.onLand(x,y)||!forest(x,y)||
+     geometry.waterAt(x,y,42)||geometry.obstacle(x,y,20))continue;
+   // Native road is always drawn later on top of *shallow* soil/stone;
+   // however an actual step centre does not receive a standing rock.
+   if(geometry.nearRoad(x,y,()=>true,84))continue;
+   // Continuous original ground colour blends every low stone/moss
+   // mass into one connected hillside, instead of loose scenic props.
+   const shadow=ctx.createRadialGradient(x-w*.06,y-h*.28,4,
+    x+w*.04,y-h*.06,w*.84);
+   shadow.addColorStop(0,"rgba(22,48,41,.33)");
+   shadow.addColorStop(.40,"rgba(55,82,67,.21)");
+   shadow.addColorStop(.75,"rgba(83,111,80,.085)");
+   shadow.addColorStop(1,"rgba(92,123,87,0)");
+   ctx.save();ctx.fillStyle=shadow;
+   ctx.fillRect(x-w,y-w,w*2,w*2);
+   // An organic, shallow eroded shelf; no crisp grey polygons or
+   // full-height painted rock face implying false collisions.
+   ctx.beginPath();
+   ctx.moveTo(x-w*.54,y+h*.04);
+   ctx.quadraticCurveTo(x-w*.48,y-h*.40,x-w*.21,y-h*.51);
+   ctx.quadraticCurveTo(x+w*.07,y-h*.66,x+w*.34,y-h*.37);
+   ctx.quadraticCurveTo(x+w*.60,y-h*.12,x+w*.49,y+h*.14);
+   ctx.quadraticCurveTo(x+w*.21,y+h*.34,x-w*.18,y+h*.25);
+   ctx.quadraticCurveTo(x-w*.48,y+h*.25,x-w*.54,y+h*.04);
+   ctx.closePath();
+   const stone=ctx.createLinearGradient?.(x,y-h*.55,x,y+h*.25);
+   if(stone){
+    stone.addColorStop(0,"rgba(132,147,121,.18)");
+    stone.addColorStop(.36,"rgba(86,107,91,.16)");
+    stone.addColorStop(.78,"rgba(43,68,60,.105)");
+    stone.addColorStop(1,"rgba(34,67,51,0)");
+   }
+   ctx.fillStyle=stone||"rgba(83,105,85,.12)";
+   ctx.fill();ctx.restore();
+   // Original R18 transparent rock silhouette keeps its full native
+   // contour, with restrained translucency so it reads as integrated
+   // foot-level bedrock rather than a solid inaccessible obelisk.
+   const nativeW=Math.round(w*.84),nativeH=Math.round(h*.72);
+   ctx.save();
+   ctx.globalAlpha=.56*o.depth;
+   ctx.imageSmoothingEnabled=true;
+   ctx.translate(Math.round(x),Math.round(y));
+   ctx.rotate?.(o.lean);
+   if(o.flip)ctx.scale(-1,1);
+   ctx.drawImage(painted,PAINTED_SIZE*3,0,
+    PAINTED_SIZE,PAINTED_SIZE,
+    -Math.round(nativeW*.5),-Math.round(nativeH*.77),
+    nativeW,nativeH);
+   ctx.restore();paintedBeds++;
+   // Original forest fern art grows at one varied foot of each rock
+   // grouping. Dimensions preserve the native image proportions.
+   const sign=o.flip?-1:1,
+    fx=x+sign*w*.34,fy=y+h*.14;
+   if(!geometry.waterAt(fx,fy,15)&&
+      !geometry.nearRoad(fx,fy,()=>true,38)){
+    const fern=Math.round(w*.43);
+    ctx.save();ctx.globalAlpha=.64*o.depth;
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,PAINTED_SIZE*2,0,
+      PAINTED_SIZE,PAINTED_SIZE,
+      Math.round(fx-fern*.5),Math.round(fy-fern*.83),
+      fern,fern);
+    ctx.restore();paintedBeds++
+   }
+  }
+  return paintedBeds
+ }
+ // R39: increase the visual depth of the *actual physical Frostbridge
+ // riverbank*, not of an invented cliff next to the overlook. Banks
+ // remain attached to the existing dry and water-verified R34 sources.
+ function paintFallsRiverNativeLedges(ctx,bounds){
+  if(!painted||!ctx?.drawImage||!ctx?.createRadialGradient)return 0;
+  const sources=sourceFallsBanks(),seen=new Set();
+  let count=0;
+  for(let i=0;i<sources.length;i+=7){
+   const o=sources[i],key=o.segment+":"+o.side+":"+
+    Math.floor(o.step/7);
+   if(seen.has(key))continue;
+   seen.add(key);
+   if(o.x<bounds[0]-210||o.x>bounds[2]+210||
+      o.y<bounds[1]-210||o.y>bounds[3]+210||
+      geometry.waterAt(o.x,o.y,10)||
+      geometry.nearRoad(o.x,o.y,()=>true,115))continue;
+   const w=158+hash(o.segment,o.step,o.side)*47,
+    h=w*.57;
+   const bank=ctx.createRadialGradient(o.x,o.y-h*.22,5,
+    o.x,o.y,w*.72);
+   bank.addColorStop(0,"rgba(39,72,62,.23)");
+   bank.addColorStop(.72,"rgba(73,109,85,.08)");
+   bank.addColorStop(1,"rgba(77,112,87,0)");
+   ctx.save();ctx.fillStyle=bank;
+   ctx.fillRect(o.x-w,o.y-w,w*2,w*2);
+   ctx.globalAlpha=.53;ctx.imageSmoothingEnabled=true;
+   if(o.side<0){
+    ctx.translate(Math.round(o.x),0);ctx.scale(-1,1);
+    ctx.drawImage(painted,PAINTED_SIZE*3,0,
+     PAINTED_SIZE,PAINTED_SIZE,
+     -Math.round(w*.5),Math.round(o.y-h*.78),
+     Math.round(w),Math.round(h));
+   }else ctx.drawImage(painted,PAINTED_SIZE*3,0,
+     PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(o.x-w*.5),Math.round(o.y-h*.78),
+     Math.round(w),Math.round(h));
+   ctx.restore();count++
+  }
+  return count
+ }
+
  // R34: Greenwood Falls' banks are drawn from the authoritative
  // FROSTBRIDGE RIVER centreline and dry, walkable shore, not guessed
  // decorative stepping stones or an invented waterfall collision mesh.
@@ -1293,6 +1437,8 @@ function create({footprint,geometry,model}={}){
   paintFallsRiverBanks(ctx,bounds);
   paintFallsRootedGorge(ctx,bounds);
   paintFallsComposedGround(ctx,bounds);
+  paintFallsEscarpmentFloor(ctx,bounds);
+  paintFallsRiverNativeLedges(ctx,bounds);
   for(const o of anchored){
    if(!["oak","pine","scrub"].includes(o.kind)||!forest(o.x,o.y)||
        geometry.waterAt(o.x,o.y,2))continue;
@@ -1342,12 +1488,13 @@ function create({footprint,geometry,model}={}){
   fallsOriginalLookoutR36:true,fallsLookoutReducedStripesR36b:true,
   fallsCollisionRootedGorgeR37:true,fallsNativeCanopyFrameR37:true,
   fallsLandscapeCompositionR38:true,fallsStairShoulderNativeR38:true,
+  fallsLowReliefSourceBedrockR39:true,fallsRealRiverNativeLedgesR39:true,
   riverSourcedEscarpmentR35:true,sculptedBankContrastR35b:true,nonGeometricBankBlendR35c:true,
   nonBlockingCanopyProjection:true,
   namedHabitatAnchors:habitatAnchors.map(h=>h.id),
   paintedAssetReady:!!painted,paintedAssetPixels:PAINTED_SIZE,
   paintedAssetKinds:4,paintedAssetError:paintedError}}
- return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,paintFallsRiverBanks,paintFallsOverlook,paintFallsRootedGorge,paintFallsCanopyBoughs,paintFallsComposedGround,fallsBankSources:()=>sourceFallsBanks().map(o=>({...o})),stats}
+ return{load,stamp,paintFeature,paintForestFloor,paintRootedForestEdge,paintRoadVerges,paintRootedUnderstory,paintLandmarkHabitat,paintCanopyLinks,paintHearthEdgeBoughs,paintHearthUpperForest,paintForegroundCanopy,paintFallsRiverBanks,paintFallsOverlook,paintFallsRootedGorge,paintFallsCanopyBoughs,paintFallsComposedGround,paintFallsEscarpmentFloor,paintFallsRiverNativeLedges,fallsRockCandidates,fallsBankSources:()=>sourceFallsBanks().map(o=>({...o})),stats}
 }
 window.VeilwardGreenwoodArt={version:V,load,loadPainted,create,
  get paintedReady(){return !!painted},
