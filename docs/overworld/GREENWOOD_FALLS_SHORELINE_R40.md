@@ -20,3 +20,7 @@ The Falls river looked like a straight cyan diagonal because R35d clipped its co
 
 ## Next priority
 Inspect the actual R39 vs R40 river screenshots. If hard line remains, refine the exact-source water mask and original-bank atlas blending without inventing phantom cliffs or disconnected props. Then complete the wider 2.5D forest-and-cliff art composition.
+
+## Follow-up: channel-edge stream culling (2026-11-08)
+
+The native R40 shoreline pigment extends to **286 world units** from the original river centerline (180 physical water + 106 dry-bank feather), but the broad channel bounding box was padded by only **205**. On streamed edge tiles this could omit the outer shoreline fade while adjacent tiles still painted it, leaving a visible transition seam. `terrain_art.js` now uses a conservative 300-unit channel bound for its initial cull. The original river centerline, 180-unit physical hazard, crossings, roads, save keys, pigments and actual shoreline panel geometry are unchanged. This is a targeted render-culling fix, not an art-approval claim. GitHub commit `69a67240526b0dc4ffd0a9b114eef9acd3224d9d`. Browser screenshots, full tests, deployment, and physical iPhone inspection remain to be verified; Phase 9 stays locked at 0% creator acceptance and Phase 10 remains closed.
