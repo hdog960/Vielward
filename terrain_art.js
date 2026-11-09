@@ -494,6 +494,39 @@ function create(model,geometry,options={}){
     }
     painted++
    }
+   // R40m: fine source-aligned riparian inkwork on safe dry banks.
+   // Each mark is a short organic tuft, never a solid barrier or repeated
+   // tile. Use the SAME crossing clearance and source normals as the wash.
+   // Keep all strokes outside the 180-unit physical water radius.
+   if(ctx.quadraticCurveTo&&q.length>75){
+    const tufts=Math.min(7,Math.floor(q.length/85));
+    for(let k=0;k<tufts;k++){
+     const seed=hash(q.index*71+k*17,side*29,619),
+      t=(k+.24+seed*.5)/tufts,
+      st=station(t),norm=normalAt(st),
+      depth=204+seed*58,
+      px=st.x+norm.x*depth,py=st.y+norm.y*depth;
+     if(px<bounds[0]-18||px>bounds[2]+18||
+        py<bounds[1]-18||py>bounds[3]+18||
+        geometry.nearRoad(px,py,e=>!!e.crossing,92)||
+        geometry.nearRoad(px,py,e=>!e.crossing,35))continue;
+     if(footprint&&!['greenwood','greenwood_falls'].includes(
+        footprint.regionAt(px,py)?.id))continue;
+     const tangent={x:-norm.y,y:norm.x},size=4+seed*7;
+     ctx.save();ctx.lineCap='round';ctx.lineWidth=1.2;
+     ctx.strokeStyle=seed>.55?'rgba(39,78,59,.28)':'rgba(175,184,126,.25)';
+     for(let leaf=-1;leaf<=1;leaf++){
+      const ox=tangent.x*leaf*size*.36,oy=tangent.y*leaf*size*.36;
+      ctx.beginPath();ctx.moveTo(px+ox,py+oy);
+      ctx.quadraticCurveTo(px+ox+norm.x*size*.4+tangent.x*leaf*2,
+       py+oy+norm.y*size*.4+tangent.y*leaf*2,
+       px+ox+norm.x*size+tangent.x*leaf*size*.46,
+       py+oy+norm.y*size+tangent.y*leaf*size*.46);
+      ctx.stroke();
+     }
+     ctx.restore();
+    }
+   }
    // Subtle broken current brush strokes remain on the WATER side
    // only, aligned to this same physical channel segment. They are
    // not stepping stones, fixed parallel rails or a fake shore.
