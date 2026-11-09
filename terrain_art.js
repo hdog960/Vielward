@@ -858,25 +858,35 @@ function create(model,geometry,options={}){
    const xs=p.map(pt=>pt[0]),ys=p.map(pt=>pt[1]),left=Math.min(...xs),top=Math.min(...ys);
    const ww=Math.max(...xs)-left,hh=Math.max(...ys)-top;
    if(s.material==="cliff-face"){
-    // R40s: clipped, irregular mineral strata replace the four hard
-    // rectangular columns. Keep the original physical cliff polygon.
+    // R40u: non-repeating, source-polygon-clipped mineral folds.
+    // Their deterministic widths, lean and highlights vary by cliff, while
+    // the physical cliff outline and all collision geometry stay unchanged.
     ctx.save();polygon(ctx,p);ctx.clip();
+    const salt=Math.floor(left*.13+top*.07);
+    const bend=(cx,cy,x,y)=>{
+     if(typeof ctx.quadraticCurveTo==="function")ctx.quadraticCurveTo(cx,cy,x,y);
+     else ctx.lineTo(x,y); // synthetic Canvas QA contexts only
+    };
     for(let j=0;j<5;j++){
-     const u=j/5,px=left+ww*(.07+u*.91),
-      crest=top+hh*(.08+.035*Math.sin(j*2.7)),
-      foot=top+hh*(.73+.13*Math.sin(j*1.9+1));
+     const shift=(hash(j,salt,831)-.5)*ww*.065;
+     const px=left+ww*(.075+j*.192)+shift;
+     const spread=ww*(.055+hash(salt,j,833)*.057);
+     const crest=top+hh*(.075+hash(j,salt,835)*.12);
+     const foot=top+hh*(.64+hash(salt,j,837)*.27);
+     const lean=(hash(j,salt,839)-.5)*ww*.095;
      ctx.beginPath();
-     ctx.moveTo(px-ww*.09,crest+hh*.045);
-     ctx.quadraticCurveTo(px+ww*.04,crest-hh*.075,px+ww*.13,crest+hh*.02);
-     ctx.lineTo(px+ww*.085,foot-hh*.07);
-     ctx.quadraticCurveTo(px+ww*.015,foot+hh*.06,px-ww*.045,foot);
+     ctx.moveTo(px-spread,crest+hh*.04);
+     bend(px+lean*.5,crest-hh*.08,px+spread*.84,crest+hh*.015);
+     ctx.lineTo(px+lean+spread*.52,foot-hh*.065);
+     bend(px+lean,foot+hh*.045,px+lean-spread*.53,foot);
      ctx.closePath();
      ctx.fillStyle=j%3===0?"rgba(169,171,164,.40)":j%3===1?
       "rgba(86,104,105,.46)":"rgba(121,132,125,.38)";
      ctx.fill();
-     ctx.beginPath();ctx.moveTo(px-ww*.055,crest+hh*.09);
-     ctx.quadraticCurveTo(px-ww*.085,top+hh*.42,px-ww*.035,foot-hh*.12);
-     ctx.strokeStyle="rgba(36,54,58,.28)";ctx.lineWidth=Math.max(2,ww*.008);
+     ctx.beginPath();ctx.moveTo(px-spread*.51,crest+hh*.09);
+     bend(px+lean*.3-spread*.6,top+hh*.42,px+lean-spread*.22,foot-hh*.12);
+     ctx.strokeStyle="rgba(36,54,58,.28)";
+     ctx.lineWidth=Math.max(2,ww*.005+hash(salt,j,841)*ww*.005);
      ctx.stroke();
     }
     ctx.restore();
