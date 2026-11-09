@@ -87,6 +87,15 @@ assert.ok(art.diagnostics().fallsShoreCollisionUntouchedR40);
 assert.equal(model.nodes.length,48);
 assert.equal(model.edges.length,65);
 assert.equal(model.edges.filter(e=>e.crossing).length,7);
+// R40e: current strokes must check the full quadratic footprint against
+// the authoritative physical crossing, not only their center sample.
+const source=read("terrain_art.js");
+assert.ok(source.includes("const startX=x-tx*streak*.55,startY=y-ty*streak*.55"));
+assert.ok(source.includes("[startX,startY],[x,y],[controlX,controlY],[endX,endY]"));
+assert.ok(source.includes(".some(([sx,sy])=>geometry.nearRoad(sx,sy,e=>!!e.crossing,65))"),
+ "both endpoints and the control point must respect real bridge approaches");
+for(const path of ["index.html","sw.js"])
+ assert.ok(read(path).includes("&brush=40e"),"R40e cache key matches deployed source");
 assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
 for(const path of ["index.html","sw.js"]){
  const t=read(path);
