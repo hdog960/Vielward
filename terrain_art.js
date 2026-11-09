@@ -366,8 +366,10 @@ function create(model,geometry,options={}){
     vx=after[0]-at[0],vy=after[1]-at[1],
     ul=Math.hypot(ux,uy)||1,vl=Math.hypot(vx,vy)||1,
     bend=(ux*vx+uy*vy)/(ul*vl);
-   // At hairpins, avoid an exaggerated miter that could cross the river.
-   if(bend<-.2)return{x:-uy/ul,y:ux/ul};
+   // Match R35d's exact physical-water polygon normal at every vertex.
+   // Switching to a previous-segment normal at a bend makes R40's wash
+   // detach from the visible channel and leaves a sharp triangular seam.
+   // The source tangent is already unit-length; no miter extrusion occurs.
    return tangent
   });
   const groups=[];
