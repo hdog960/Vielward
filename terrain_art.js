@@ -351,12 +351,22 @@ function create(model,geometry,options={}){
     bounds[0]>fallsChannelBounds[2]+fallsShoreDryReach||
     bounds[3]<fallsChannelBounds[1]-fallsShoreDryReach||
     bounds[1]>fallsChannelBounds[3]+fallsShoreDryReach)return[];
+  // Smooth source-tangent normals at each station, with a miter cap at
+  // sharp bends: prevents shoreline wash from forming protruding spikes.
   const normals=fallsChannel.map((p,i)=>{
    const before=fallsChannel[Math.max(0,i-1)],
-    after=fallsChannel[Math.min(fallsChannel.length-1,i+1)],
-    dx=after[0]-before[0],dy=after[1]-before[1],
+    at=fallsChannel[i],after=fallsChannel[Math.min(fallsChannel.length-1,i+1)];
+   const dx=after[0]-before[0],dy=after[1]-before[1],
     len=Math.hypot(dx,dy)||1;
-   return{x:-dy/len,y:dx/len}
+   const tangent={x:-dy/len,y:dx/len};
+   if(i===0||i===fallsChannel.length-1)return tangent;
+   const ux=at[0]-before[0],uy=at[1]-before[1],
+    vx=after[0]-at[0],vy=after[1]-at[1],
+    ul=Math.hypot(ux,uy)||1,vl=Math.hypot(vx,vy)||1,
+    bend=(ux*vx+uy*vy)/(ul*vl);
+   // At hairpins, avoid an exaggerated miter that could cross the river.
+   if(bend<-.2)return{x:-uy/ul,y:ux/ul};
+   return tangent
   });
   const groups=[];
   for(let i=1;i<fallsChannel.length;i++){
