@@ -33,6 +33,23 @@ const zone=[Math.min(...line.map(p=>p[0]))-500,
 const bands=art.fallsShoreBands(zone);
 assert.ok(bands.length>=6,"world-aligned bank sections on both source shore sides");
 assert.ok(bands.some(q=>q.side===-1)&&bands.some(q=>q.side===1));
+
+// R40b: the wash must share the SAME vertex normal as the R35d river
+// polygon, including bends; otherwise a triangular hard edge appears
+// between the visible water mask and the gradient.
+for(const q of bands){
+ const centerline=line;
+ for(const [vertex,normal] of [[q.index-1,q.n0],[q.index,q.n1]]){
+  const before=centerline[Math.max(0,vertex-1)],
+   after=centerline[Math.min(centerline.length-1,vertex+1)];
+  const dx=after[0]-before[0],dy=after[1]-before[1],
+   len=Math.hypot(dx,dy)||1;
+  assert.ok(Math.abs(normal.x+dy/len)<1e-9&&
+   Math.abs(normal.y-dx/len)<1e-9,
+   "shoreline normal must coincide with physical water mask at every bend");
+ }
+}
+
 assert.ok(bands.every(q=>q.waterRadius===180&&q.inner===114&&q.outer===286),
  "R40 transitions cover both sides of unchanged 180-unit physical shore");
 for(const q of bands){
