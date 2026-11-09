@@ -534,6 +534,30 @@ function create(model,geometry,options={}){
      // These are tiny ground details, never foreground occluders.
      const tangent={x:-norm.y,y:norm.x},size=4+seed*7;
      ctx.save();ctx.lineCap='round';ctx.lineWidth=1.1;
+     // R40r: root each frond in a translucent, irregular forest-floor
+     // rosette. Five individually shaped leaf silhouettes provide depth
+     // and a soft contact shadow without a square stamp or new obstacle.
+     // All marks remain small, decorative, and in the verified dry-bank
+     // corridor; their maximum radius is under 17 world units.
+     ctx.beginPath();
+     ctx.ellipse(px,py+2,size*1.05,size*.43,
+      Math.atan2(tangent.y,tangent.x),0,TAU);
+     ctx.fillStyle='rgba(31,61,49,.12)';ctx.fill();
+     for(let groundLeaf=0;groundLeaf<5;groundLeaf++){
+      const v=hash(q.index*131+k*47,groundLeaf+19,1049),
+       angle=groundLeaf*TAU/5+(seed-.5)*.6,
+       along=size*(.48+v*.50),
+       lateral=size*(.17+v*.15),
+       dx=Math.cos(angle),dy=Math.sin(angle),
+       tipX=px+dx*along,tipY=py+dy*along,
+       perpX=-dy*lateral,perpY=dx*lateral;
+      ctx.beginPath();ctx.moveTo(px,py);
+      ctx.quadraticCurveTo(px+perpX,py+perpY,tipX,tipY);
+      ctx.quadraticCurveTo(px-perpX*.7,py-perpY*.7,px,py);
+      ctx.fillStyle=groundLeaf%2?
+       'rgba(120,146,94,.19)':'rgba(52,93,70,.22)';
+      ctx.fill();
+     }
      ctx.strokeStyle=seed>.55?'rgba(39,78,59,.28)':'rgba(175,184,126,.25)';
      for(let leaf=-1;leaf<=1;leaf++){
       const variation=hash(q.index*97+k*31,leaf+3,827),
