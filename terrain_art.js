@@ -349,10 +349,10 @@ function create(model,geometry,options={}){
   fallsShoreDryReach=106;
  function fallsShoreBands(bounds){
   if(!fallsChannelBounds||fallsChannel.length<2||
-    bounds[2]<fallsChannelBounds[0]-fallsShoreDryReach||
-    bounds[0]>fallsChannelBounds[2]+fallsShoreDryReach||
-    bounds[3]<fallsChannelBounds[1]-fallsShoreDryReach||
-    bounds[1]>fallsChannelBounds[3]+fallsShoreDryReach)return[];
+    bounds[2]<fallsChannelBounds[0]-(fallsShoreHalfWidth+fallsShoreDryReach)||
+    bounds[0]>fallsChannelBounds[2]+fallsShoreHalfWidth+fallsShoreDryReach||
+    bounds[3]<fallsChannelBounds[1]-(fallsShoreHalfWidth+fallsShoreDryReach)||
+    bounds[1]>fallsChannelBounds[3]+fallsShoreHalfWidth+fallsShoreDryReach)return[];
   // Smooth source-tangent normals at each station, with a miter cap at
   // sharp bends: prevents shoreline wash from forming protruding spikes.
   const normals=fallsChannel.map((p,i)=>{
