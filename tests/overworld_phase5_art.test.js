@@ -19,7 +19,7 @@ const stats={pixelFills:0,atlasBlits:0,paths:0,clips:0};
 function context(){
  return {fillStyle:"",strokeStyle:"",lineWidth:1,lineCap:"",lineJoin:"",imageSmoothingEnabled:true,globalAlpha:1,
   fillRect(){stats.pixelFills++},drawImage(){stats.atlasBlits++},
-  beginPath(){stats.paths++},moveTo(){},lineTo(){},closePath(){},arc(){},clip(){stats.clips++},
+  beginPath(){stats.paths++},moveTo(){},lineTo(){},quadraticCurveTo(){stats.paths++},bezierCurveTo(){stats.paths++},closePath(){},arc(){},clip(){stats.clips++},
   fill(){stats.pixelFills++},stroke(){},save(){},restore(){},scale(){},translate(){},setLineDash(){},fillText(){}
  }
 }
