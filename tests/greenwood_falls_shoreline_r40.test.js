@@ -8,11 +8,11 @@ const host={console};host.window=host;
 vm.runInNewContext(read("world_geometry.js"),host);
 vm.runInNewContext(read("terrain_art.js"),host);
 const geo=host.VeilwardGeometry.create(model,terrain);
-let fills=0,gradients=[],strokes=0;
+let fills=0,gradients=[],strokes=0,groundedRosettes=0;
 function canvasContext(){
  return{save(){},restore(){},fillRect(){fills++},drawImage(){},
   translate(){},scale(){},moveTo(){},lineTo(){},closePath(){},beginPath(){},
-  arc(){},clip(){},stroke(){strokes++},quadraticCurveTo(){},fill(){fills++},
+  arc(){},ellipse(){groundedRosettes++},clip(){},stroke(){strokes++},quadraticCurveTo(){},bezierCurveTo(){},fill(){fills++},
   createImageData(w,h){return{data:new Uint8ClampedArray(w*h*4)}},
   putImageData(){},
   createLinearGradient(...coordinates){
@@ -67,6 +67,7 @@ for(const q of bands){
 }
 const n=art.paintFallsShorelineTransition(canvasContext(),zone);
 assert.ok(n>=4,"the real shoreline is shaded continuously across the zone");
+assert.ok(groundedRosettes>0,"R40r rooted fern artwork draws native Canvas contact shadows in the shoreline audit");
 assert.ok(gradients.length>=n,"every segment uses a native local cross-bank gradient");
 // R40q: pigment follows the *interpolated* source-bank normal at bends.
 // Its magnitude may be shorter than 172 units where adjacent normals
