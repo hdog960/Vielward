@@ -421,42 +421,51 @@ function create(model,geometry,options={}){
    // midpoint is clear. Check the complete source-aligned wash corridor
    // at five stations, on both edges and at the physical waterline.
    // Roads/decks remain painted afterward; never tint their approaches.
+   // R40h: bridge clearance is local to each shoreline section. Skipping
+   // an entire long source segment created a hard bare-bank rectangle at
+   // crossings. Paint only safe sections and feather their ends.
    const crossing=e=>!!e.crossing;
-   const touchesCrossing=[0,.25,.5,.75,1].some(t=>{
+   const sections=Math.max(8,Math.ceil(q.length/42));
+   const station=t=>{
     const x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t,
      nx=n0.x+(n1.x-n0.x)*t,ny=n0.y+(n1.y-n0.y)*t;
-    return [inner,180,outer].some(d=>
-     geometry.nearRoad(x+nx*side*d,y+ny*side*d,crossing,65));
+    return {x,y,nx,ny}
+   };
+   const clear=Array.from({length:sections},(_,j)=>{
+    // Sample section endpoints and center at all three wash depths.
+    return [j/sections,(j+.5)/sections,(j+1)/sections].every(t=>{
+     const s=station(t);
+     return [inner,180,outer].every(d=>
+      !geometry.nearRoad(s.x+s.nx*side*d,s.y+s.ny*side*d,crossing,65))
+    })
    });
-   if(q.nearPhysicalCrossing||touchesCrossing)continue;
-   const point=(p,n,d)=>[p[0]+n.x*side*d,p[1]+n.y*side*d],
-    ai=point(a,n0,inner),bi=point(b,n1,inner),
-    bo=point(b,n1,outer),ao=point(a,n0,outer);
-   const mid=[(a[0]+b[0])*.5,(a[1]+b[1])*.5],
-    // Continuous world-space modulation avoids repeating every-third-panel bands.
-    m=.94+.06*Math.sin((mid[0]+mid[1])*.00037),
-    // A segment's tangent stays nonzero even at a tight source bend.
-    // Averaging endpoint normals can collapse the gradient to zero there,
-    // leaving a hard-colored wedge. Keep polygon vertices on R35d normals.
-    segmentLength=Math.hypot(b[0]-a[0],b[1]-a[1])||1,
+   const segmentLength=Math.hypot(b[0]-a[0],b[1]-a[1])||1,
     norm={x:-(b[1]-a[1])/segmentLength*side,
-      y:(b[0]-a[0])/segmentLength*side},
-    p0=[mid[0]+norm.x*inner,mid[1]+norm.y*inner],
-    p1=[mid[0]+norm.x*outer,mid[1]+norm.y*outer];
-   const wash=ctx.createLinearGradient(...p0,...p1);
-   // No bright white rail or flat teal outline: gradual desaturated
-   // aquatic shadow -> wet ochre/moss -> transparent native ground.
-   wash.addColorStop(0,"rgba(37,96,111,0)");
-   wash.addColorStop(.19,"rgba(59,122,124,"+(.23*m)+")");
-   wash.addColorStop(.39,"rgba(82,133,121,"+(.44*m)+")");
-   wash.addColorStop(.53,"rgba(105,146,119,"+(.49*m)+")");
-   wash.addColorStop(.70,"rgba(72,114,91,"+(.25*m)+")");
-   wash.addColorStop(1,"rgba(53,94,76,0)");
-   ctx.save();ctx.beginPath();
-   ctx.moveTo(...ai);ctx.lineTo(...bi);ctx.lineTo(...bo);
-   ctx.lineTo(...ao);ctx.closePath();
-   ctx.fillStyle=wash;ctx.fill();
-   ctx.restore();painted++
+      y:(b[0]-a[0])/segmentLength*side};
+   for(let j=0;j<sections;j++){
+    if(!clear[j])continue;
+    const s0=station(j/sections),s1=station((j+1)/sections),
+     mid=station((j+.5)/sections),
+     point=(s,d)=>[s.x+s.nx*side*d,s.y+s.ny*side*d],
+     ai=point(s0,inner),bi=point(s1,inner),
+     bo=point(s1,outer),ao=point(s0,outer),
+     m=.94+.06*Math.sin((mid.x+mid.y)*.00037),
+     p0=[mid.x+norm.x*inner,mid.y+norm.y*inner],
+     p1=[mid.x+norm.x*outer,mid.y+norm.y*outer];
+    const wash=ctx.createLinearGradient(...p0,...p1);
+    wash.addColorStop(0,"rgba(37,96,111,0)");
+    wash.addColorStop(.19,"rgba(59,122,124,"+(.23*m)+")");
+    wash.addColorStop(.39,"rgba(82,133,121,"+(.44*m)+")");
+    wash.addColorStop(.53,"rgba(105,146,119,"+(.49*m)+")");
+    wash.addColorStop(.70,"rgba(72,114,91,"+(.25*m)+")");
+    wash.addColorStop(1,"rgba(53,94,76,0)");
+    ctx.save();ctx.beginPath();
+    ctx.moveTo(...ai);ctx.lineTo(...bi);ctx.lineTo(...bo);
+    ctx.lineTo(...ao);ctx.closePath();
+    // Avoid hard rectangular edges beside decks and on the source ends.
+    ctx.globalAlpha=(!clear[j-1]||!clear[j+1])?.48:1;
+    ctx.fillStyle=wash;ctx.fill();ctx.restore();painted++
+   }
    // Subtle broken current brush strokes remain on the WATER side
    // only, aligned to this same physical channel segment. They are
    // not stepping stones, fixed parallel rails or a fake shore.
