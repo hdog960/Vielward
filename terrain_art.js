@@ -450,7 +450,16 @@ function create(model,geometry,options={}){
     if(!clear[j])continue;
     const s0=station(j/sections),s1=station((j+1)/sections),
      mid=station((j+.5)/sections),
-     point=(s,d)=>[s.x+s.nx*side*d,s.y+s.ny*side*d],
+     // World-anchored, low-amplitude outer watercolor contour; adjacent
+     // sections share the exact same edge at their common station.
+     // Never perturb the inner/physical water boundary or collisions.
+     point=(s,d)=>{
+      const ripple=d===outer?
+       10*Math.sin(s.x*.0061+s.y*.0027)+
+       5*Math.sin(s.y*.0113-s.x*.0049):0;
+      return [s.x+s.nx*side*(d+ripple),
+       s.y+s.ny*side*(d+ripple)]
+     },
      ai=point(s0,inner),bi=point(s1,inner),
      bo=point(s1,outer),ao=point(s0,outer),
      m=.94+.06*Math.sin((mid.x+mid.y)*.00037),
