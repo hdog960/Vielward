@@ -417,7 +417,18 @@ function create(model,geometry,options={}){
    const{a,b,n0,n1,side,inner,outer}=q;
    // The *true* physical decks and bridge approaches always remain
    // legible: never shade across a constructed crossing.
-   if(q.nearPhysicalCrossing)continue;
+   // A long bank panel can cross a bridge even when its dry-bank
+   // midpoint is clear. Check the complete source-aligned wash corridor
+   // at five stations, on both edges and at the physical waterline.
+   // Roads/decks remain painted afterward; never tint their approaches.
+   const crossing=e=>!!e.crossing;
+   const touchesCrossing=[0,.25,.5,.75,1].some(t=>{
+    const x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t,
+     nx=n0.x+(n1.x-n0.x)*t,ny=n0.y+(n1.y-n0.y)*t;
+    return [inner,180,outer].some(d=>
+     geometry.nearRoad(x+nx*side*d,y+ny*side*d,crossing,65));
+   });
+   if(q.nearPhysicalCrossing||touchesCrossing)continue;
    const point=(p,n,d)=>[p[0]+n.x*side*d,p[1]+n.y*side*d],
     ai=point(a,n0,inner),bi=point(b,n1,inner),
     bo=point(b,n1,outer),ao=point(a,n0,outer);
