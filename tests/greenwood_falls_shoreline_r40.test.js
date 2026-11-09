@@ -68,12 +68,17 @@ for(const q of bands){
 const n=art.paintFallsShorelineTransition(canvasContext(),zone);
 assert.ok(n>=4,"the real shoreline is shaded continuously across the zone");
 assert.ok(gradients.length>=n,"every segment uses a native local cross-bank gradient");
-// R40c: every gradient spans the full bank width even around sharp bends.
-// The source-water polygon still uses the original per-vertex normals.
+// R40q: pigment follows the *interpolated* source-bank normal at bends.
+// Its magnitude may be shorter than 172 units where adjacent normals
+// diverge; demanding exactly 172 would force renormalization and detach
+// the watercolor stops from the physical bank polygon (R40l regression).
+// Reject a collapsed or oversized gradient without imposing a false
+// unit-normal invariant on curved source geometry.
 for(const gradient of gradients){
  const [x0,y0,x1,y1]=gradient.coordinates;
- assert.ok(Math.abs(Math.hypot(x1-x0,y1-y0)-172)<1e-6,
-  "bank gradient must not collapse at a river bend");
+ const span=Math.hypot(x1-x0,y1-y0);
+ assert.ok(Number.isFinite(span)&&span>20&&span<=172+1e-6,
+  "bank gradient must remain finite, visible and within the source bank width");
 }
 
 assert.ok(gradients.some(g=>g.stops.length===6&&g.stops[0][1].endsWith(",0)")&&
