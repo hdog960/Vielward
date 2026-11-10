@@ -1496,18 +1496,23 @@ function create({footprint,geometry,model}={}){
       if(!footprintClear(px,py)){clear=false;break}
      }
      if(!clear)continue;
-     const glow=ctx.createRadialGradient(x-spread*.18,y-spread*.25,3,
-      x,y,spread);
+     // R40aa: transform the watercolor gradient AND its ellipse as one
+     // world-anchored volume. The old circular gradient was painted inside
+     // an ellipse, creating abrupt oval edges rather than a soft fade.
+     // Keep the light entirely decorative and within the R40z road guards.
+     ctx.save();
+     ctx.translate(x,y);
+     ctx.rotate(theta*.12);
+     ctx.scale(1,.59);
+     const glow=ctx.createRadialGradient(-spread*.18,-spread*.25,3,
+      0,0,spread);
      glow.addColorStop(0,k===0?"rgba(195,197,128,.19)":"rgba(154,176,112,.13)");
      glow.addColorStop(.48,"rgba(130,156,101,.07)");
      glow.addColorStop(1,"rgba(99,137,93,0)");
-     ctx.save();ctx.fillStyle=glow;
+     ctx.fillStyle=glow;
      ctx.beginPath();
-     // Elliptical low relief, not a rectangular texture stamp.
-     if(typeof ctx.ellipse==="function"){
-      ctx.ellipse(x,y,spread,spread*.59,theta*.12,0,Math.PI*2);
-      ctx.fill()
-     }else ctx.fillRect(x-spread,y-spread*.59,spread*2,spread*1.18);
+     ctx.arc(0,0,spread,0,Math.PI*2);
+     ctx.fill();
      ctx.restore()
     }
    }
