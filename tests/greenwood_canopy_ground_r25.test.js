@@ -77,7 +77,12 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{filename:"world_greenwood
   "unreachable crown tips cannot be joined by floating decorative foliage");
  // The corridor between trunks can be clear while the raised painted
  // canopy footprint is obstructed. No invisible link may be counted.
- const elevatedGeo={...geo,obstacle(x,y){return y<200?{id:"cliff"}:null}};
+ let clearanceSamples=0;
+ const elevatedGeo={...geo,obstacle(){
+  // 65 root-corridor + 25 elevated envelope probes pass; each of the
+  // three actual painted lobe footprints is then deliberately rejected.
+  return ++clearanceSamples>90?{id:"canopy-occluder"}:null;
+ }};
  const elevated=env.VeilwardGreenwoodArt.create({geometry:elevatedGeo,footprint});
  drawn.length=0;
  assert.equal(elevated.paintCanopyLinks(groundContext(),bounds,roots),0,
