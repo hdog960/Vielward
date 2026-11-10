@@ -75,6 +75,14 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{filename:"world_greenwood
  drawn.length=0;
  assert.equal(art.paintCanopyLinks(groundContext(),bounds,[roots[0],{...roots[1],x:398}]),0,
   "unreachable crown tips cannot be joined by floating decorative foliage");
+ // The corridor between trunks can be clear while the raised painted
+ // canopy footprint is obstructed. No invisible link may be counted.
+ const elevatedGeo={...geo,obstacle(x,y){return y<200?{id:"cliff"}:null}};
+ const elevated=env.VeilwardGreenwoodArt.create({geometry:elevatedGeo,footprint});
+ drawn.length=0;
+ assert.equal(elevated.paintCanopyLinks(groundContext(),bounds,roots),0,
+  "an entirely culled elevated crown is not reported as rendered");
+ assert.equal(drawn.length,0,"no decorative canopy crosses the elevated cliff");
  assert.equal(JSON.stringify(roots),frozen,"root geometry never mutates");
  blocked=true;drawn.length=0;
  assert.equal(art.paintCanopyLinks(groundContext(),bounds,roots),0,
