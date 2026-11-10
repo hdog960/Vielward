@@ -719,10 +719,20 @@ function create({footprint,geometry,model}={}){
     if(!crownClear)break
    }
    if(!crownClear)continue;
+   // R40ai: replace the broad identical canopy strip with three
+   // overlapping, native-aspect painted crown lobes. Every lobe remains
+   // inside the already-checked crown footprint; no invented tree roots.
    const kind=a.kind==="pine"&&b.kind==="pine"?1:0;
+   const lobeWidth=w*.54,lobeHeight=lobeWidth*78/PAINTED_SIZE;
    ctx.save();ctx.globalAlpha=.68;ctx.imageSmoothingEnabled=true;
-   ctx.drawImage(painted,kind*PAINTED_SIZE,0,PAINTED_SIZE,78,
-    Math.round(x-w*.5),Math.round(y-h*.5),Math.round(w),Math.round(h));
+   for(let lobe=0;lobe<3;lobe++){
+    const offset=lobe-1;
+    const lx=x+offset*w*.22;
+    const ly=y+(hash(Math.round(a.x),Math.round(b.y),lobe+811)-.5)*h*.16;
+    ctx.drawImage(painted,kind*PAINTED_SIZE,0,PAINTED_SIZE,78,
+     Math.round(lx-lobeWidth*.5),Math.round(ly-lobeHeight*.5),
+     Math.round(lobeWidth),Math.round(lobeHeight));
+   }
    ctx.restore();
    linked.add(a.id);linked.add(b.id);count++
   }
