@@ -376,6 +376,23 @@ function create({footprint,geometry,model}={}){
        geometry.obstacle(x,y,35))continue;
     const w=r*(2.9+hash(seed,j,177)*1.1),
      h=w*(.37+hash(j,seed,179)*.10);
+    // R40am: the old centre-only exclusion let a broad painted fern mat
+    // cover the edge of a diagonal path or stream. Test the actual
+    // translucent sprite footprint before placing it. This is artwork
+    // clearance only: no source paths, colliders, or roots are changed.
+    let clearFootprint=true;
+    for(const fy of [-.45,0,.45]){
+     for(const fx of [-.45,0,.45]){
+      const px=x+w*fx,py=y-h*.30+h*fy;
+      if(!forest(px,py)||geometry.waterAt(px,py,10)||
+         geometry.nearRoad(px,py,()=>true,22)||
+         geometry.obstacle(px,py,20)){
+       clearFootprint=false;break
+      }
+     }
+     if(!clearFootprint)break
+    }
+    if(!clearFootprint)continue;
     ctx.save();ctx.globalAlpha=.29+hash(seed,j,181)*.13;
     ctx.imageSmoothingEnabled=true;
     ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
