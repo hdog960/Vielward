@@ -868,19 +868,40 @@ function create({footprint,geometry,model}={}){
    if(!root?.authoredFallsGrove||seen.has(root.id)||
       geometry.waterAt(root.x,root.y,12))continue;
    seen.add(root.id);
-   const r=root.radius,w=r*(root.kind==="oak"?3.65:3.25),
-    h=w*(root.kind==="oak"?.58:.70),
-    x=root.x+r*(root.kind==="oak"?.40:-.35),
-    y=root.y-r*(root.kind==="oak"?3.65:4.25);
-   if(x-w*.5>bounds[2]||x+w*.5<bounds[0]||
-      y-h>bounds[3]||y<bounds[1])continue;
-   if(Math.abs(x-fallsAnchor.x)<w*.5+105&&
-      y+h>fallsAnchor.y-145)continue;
-   ctx.save();ctx.globalAlpha=.76;ctx.imageSmoothingEnabled=true;
-   const src=root.kind==="oak"?0:PAINTED_SIZE;
-   ctx.drawImage(painted,src,0,PAINTED_SIZE,78,
-    Math.round(x-w*.5),Math.round(y-h),Math.round(w),Math.round(h));
-   ctx.restore();count++
+   // R40ab: compose two staggered painted canopy tiers from each REAL
+   // old-growth crown instead of a single identical flat horizontal stamp.
+   // The native R18 source painting is used intact (never stretched into
+   // a long strip). These boughs are visual only, with no new tree roots.
+   const r=root.radius,seed=Math.floor((root.variant||0)*8191);
+   for(let tier=0;tier<2;tier++){
+    const oak=root.kind==="oak";
+    const w=r*(oak?3.10:2.72)*(tier===0?1:.78)*
+     (.90+hash(seed,tier,963)*.22);
+    const h=w*(oak?.70:.82);
+    const side=(hash(seed,tier,965)>.5?1:-1);
+    const x=root.x+side*r*(tier===0?.72:1.18);
+    const y=root.y-r*(oak?3.85:4.45)+tier*r*.56;
+    if(x-w*.5>bounds[2]||x+w*.5<bounds[0]||
+       y-h>bounds[3]||y<bounds[1])continue;
+    // Preserve the real overlook stair, bridges, and visible paths.
+    // A bough must be clear across its footprint, not only at its root.
+    if(Math.abs(x-fallsAnchor.x)<w*.5+120&&
+       y+h>fallsAnchor.y-165)continue;
+    const clear=(px,py)=>forest(px,py)&&
+      !geometry.waterAt(px,py,30)&&
+      !geometry.nearRoad(px,py,()=>true,75);
+    if(!clear(x,y)||!clear(x-w*.43,y-h*.40)||
+       !clear(x+w*.43,y-h*.40)||
+       !clear(x-w*.43,y-h*.83)||
+       !clear(x+w*.43,y-h*.83))continue;
+    ctx.save();ctx.globalAlpha=tier===0?.80:.68;
+    ctx.imageSmoothingEnabled=true;
+    const src=oak?0:PAINTED_SIZE;
+    ctx.drawImage(painted,src,0,PAINTED_SIZE,90,
+     Math.round(x-w*.5),Math.round(y-h),Math.round(w),
+     Math.round(h));
+    ctx.restore();count++
+   }
   }
   return count
  }
