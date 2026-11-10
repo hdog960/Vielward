@@ -786,6 +786,7 @@ function create({footprint,geometry,model}={}){
    // Widths and heights vary together to retain the native 128:78 crop
    // proportions. Staggered crowns are still inside the cleared envelope.
    const kinds=[a.kind,a.kind===b.kind?a.kind:b.kind,b.kind];
+   let paintedLobes=0;
    ctx.save();ctx.globalAlpha=.68;ctx.imageSmoothingEnabled=true;
    for(let lobe=0;lobe<3;lobe++){
     const offset=lobe-1;
@@ -813,8 +814,13 @@ function create({footprint,geometry,model}={}){
     ctx.drawImage(painted,index*PAINTED_SIZE,0,PAINTED_SIZE,78,
      Math.round(lx-lobeWidth*.5),Math.round(ly-lobeHeight*.5),
      Math.round(lobeWidth),Math.round(lobeHeight));
+    paintedLobes++;
    }
    ctx.restore();
+   // A clear trunk corridor does not guarantee a clear elevated crown.
+   // Do not consume either tree as a linked pair if all three authentic
+   // painted lobes were rejected by the source road/water/obstacle checks.
+   if(!paintedLobes)continue;
    linked.add(a.id);linked.add(b.id);count++
   }
   return count
