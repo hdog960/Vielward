@@ -1460,6 +1460,45 @@ function create({footprint,geometry,model}={}){
   // on random new solid objects or painted pathways. Roads render afterward.
   const anchored=[...footprint.cells(bounds,420),...footprint.groves(bounds,420)];
   paintRootedUnderstory(ctx,bounds,anchored);
+  // R40y: interleaved canopy-filtered forest light beneath the EXISTING
+  // Greenwood Falls old-growth roots. Each irregular translucent pool is
+  // anchored to a verified original trunk; no new prop, collision or road.
+  // Keep the ground treatment below source riverbanks, paths and actors.
+  if(typeof ctx.createRadialGradient==="function"){
+   for(const root of anchored){
+    if(!root?.authoredFallsGrove||!["oak","pine"].includes(root.kind)||
+       footprint.regionAt(root.x,root.y)?.id!=="greenwood_falls"||
+       geometry.waterAt(root.x,root.y,30))continue;
+    const radius=root.radius||50;
+    if(root.x<bounds[0]-radius*7||root.x>bounds[2]+radius*7||
+       root.y<bounds[1]-radius*6||root.y>bounds[3]+radius*6)continue;
+    const seed=Math.floor(root.variant*8191);
+    // Broad overlapping light pockets break up the uniform forest carpet,
+    // but fade to transparent before reaching the original physical roads.
+    for(let k=0;k<3;k++){
+     const theta=hash(seed,k,907)*Math.PI*2;
+     const offset=radius*(.55+hash(seed,k,911)*1.10);
+     const x=root.x+Math.cos(theta)*offset;
+     const y=root.y+Math.sin(theta)*offset*.64-radius*.48;
+     if(geometry.waterAt(x,y,35)||
+        geometry.nearRoad(x,y,110))continue;
+     const spread=radius*(1.5+hash(seed,k,919)*1.45);
+     const glow=ctx.createRadialGradient(x-spread*.18,y-spread*.25,3,
+      x,y,spread);
+     glow.addColorStop(0,k===0?"rgba(195,197,128,.19)":"rgba(154,176,112,.13)");
+     glow.addColorStop(.48,"rgba(130,156,101,.07)");
+     glow.addColorStop(1,"rgba(99,137,93,0)");
+     ctx.save();ctx.fillStyle=glow;
+     ctx.beginPath();
+     // Elliptical low relief, not a rectangular texture stamp.
+     if(typeof ctx.ellipse==="function"){
+      ctx.ellipse(x,y,spread,spread*.59,theta*.12,0,Math.PI*2);
+      ctx.fill()
+     }else ctx.fillRect(x-spread,y-spread*.59,spread*2,spread*1.18);
+     ctx.restore()
+    }
+   }
+  }
   // R34: physically sourced moss/stone riverbanks beneath existing decks.
   paintFallsRiverBanks(ctx,bounds);
   paintFallsRootedGorge(ctx,bounds);
