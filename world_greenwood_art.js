@@ -335,13 +335,32 @@ function create({footprint,geometry,model}={}){
        const seed=Math.floor(hash(i,j,side)*9973);
        const offset=hw+74+hash(j,i,side)*31;
        const xx=x+nx*side*offset,yy=y+ny*side*offset;
-       if(!forest(xx,yy)||geometry.waterAt(xx,yy,7))continue;
-       const sz=91+hash(seed,j,51)*38;
-       ctx.save();ctx.globalAlpha=.38;
+       // R40ao: keep the painted verge ferns on genuinely dry, open
+       // woodland rather than allowing a centre-clear sprite to overlap
+       // diagonal trails, river bends or collidable bridge approaches.
+       // Vary the painted source aspect and translucency deterministically
+       // to avoid a repeating row of identical rectangular fern stamps.
+       const sz=78+hash(seed,j,51)*54;
+       const fw=sz*(.83+hash(seed,j,61)*.29);
+       const fh=sz*(.43+hash(j,seed,63)*.20);
+       let safe=true;
+       for(const fy of [-.48,0,.48]){
+        for(const fx of [-.48,0,.48]){
+         const px=xx+fw*fx,py=yy-fh*.53+fh*fy;
+         if(!forest(px,py)||geometry.waterAt(px,py,12)||
+            geometry.nearRoad(px,py,()=>true,18)||
+            geometry.obstacle(px,py,18)||footprint.blocked?.(px,py,18)){
+          safe=false;break
+         }
+        }
+        if(!safe)break
+       }
+       if(!safe)continue;
+       ctx.save();ctx.globalAlpha=.27+hash(seed,j,67)*.17;
        ctx.imageSmoothingEnabled=true;
        ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
-        Math.round(xx-sz*.5),Math.round(yy-sz*.53),
-        Math.round(sz),Math.round(sz*.65));
+        Math.round(xx-fw*.5),Math.round(yy-fh*.53),
+        Math.round(fw),Math.round(fh));
        ctx.restore()
       }
      }
