@@ -224,7 +224,12 @@ function create({footprint,geometry,model}={}){
   if(o.kind==="oak"||o.kind==="pine"){
    // Only the original painted R18 source for newly curated old-growth
    // roots: no mismatched generated fallback in this focal forest scene.
-   if(o.authoredGrove&&n%VARIANTS===1)n++;
+   // Falls is the visual-acceptance focal scene: once the four R18
+   // painted sources decode, do not interleave the mismatched procedural
+   // crown variant among otherwise coherent authored forest paintings.
+   // The existing fallback remains available if paintings cannot load.
+   if((o.authoredGrove||footprint.regionAt(o.x,o.y)?.id==="greenwood_falls")&&
+      n%VARIANTS===1)n++;
    // Source-original R18 artwork keeps its native proportions. Only
    // selected, real old-growth roots get a slightly taller/wider crown.
    const elder=o.authoredGrove?(o.kind==="oak"?1.20:1.08):1;
