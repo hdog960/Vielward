@@ -1480,9 +1480,22 @@ function create({footprint,geometry,model}={}){
      const offset=radius*(.55+hash(seed,k,911)*1.10);
      const x=root.x+Math.cos(theta)*offset;
      const y=root.y+Math.sin(theta)*offset*.64-radius*.48;
-     if(geometry.waterAt(x,y,35)||
-        geometry.nearRoad(x,y,110))continue;
      const spread=radius*(1.5+hash(seed,k,919)*1.45);
+     // R40z: the source road API takes a predicate BEFORE clearance.
+     // A two-argument call silently bypassed the intended exclusion.
+     // Check the entire visible light footprint, not just its center:
+     // sampled rim points keep the soft pool off original roads/water.
+     const footprintClear=(px,py)=>
+      forest(px,py)&&!geometry.waterAt(px,py,35)&&
+      !geometry.nearRoad(px,py,()=>true,58);
+     if(!footprintClear(x,y))continue;
+     let clear=true;
+     for(let sample=0;sample<12;sample++){
+      const a=sample*Math.PI/6,px=x+Math.cos(a)*spread*.94,
+       py=y+Math.sin(a)*spread*.59;
+      if(!footprintClear(px,py)){clear=false;break}
+     }
+     if(!clear)continue;
      const glow=ctx.createRadialGradient(x-spread*.18,y-spread*.25,3,
       x,y,spread);
      glow.addColorStop(0,k===0?"rgba(195,197,128,.19)":"rgba(154,176,112,.13)");
