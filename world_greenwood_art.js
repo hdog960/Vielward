@@ -877,7 +877,9 @@ function create({footprint,geometry,model}={}){
     const oak=root.kind==="oak";
     const w=r*(oak?3.10:2.72)*(tier===0?1:.78)*
      (.90+hash(seed,tier,963)*.22);
-    const h=w*(oak?.70:.82);
+    // Keep the original R18 crown crop at its exact pixel aspect ratio.
+    // The former .82 pine scale stretched painted foliage vertically.
+    const h=w*90/PAINTED_SIZE;
     const side=(hash(seed,tier,965)>.5?1:-1);
     const x=root.x+side*r*(tier===0?.72:1.18);
     const y=root.y-r*(oak?3.85:4.45)+tier*r*.56;
