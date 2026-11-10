@@ -448,13 +448,26 @@ function create({footprint,geometry,model}={}){
     for(let j=i+1;j<patches.length;j++){
      const b=patches[j],d=Math.hypot(a.x-b.x,a.y-b.y);
      if(d>465||d<75||d>=dist)continue;
+     // The habitat stroke follows a curved, wide footprint. Sampling only
+     // four points on its straight centreline could miss a crossing or
+     // stream bend beneath the actual painted arc. Validate the curved
+     // brush footprint at short intervals and across both shoulders.
+     const vx=(b.x-a.x)/d,vy=(b.y-a.y)/d;
+     const midX=(a.x+b.x)*.5-vy*22,midY=(a.y+b.y)*.5+vx*22;
+     const brushWidth=Math.min(125,Math.max(66,(a.h+b.h)*.60));
      let safe=true;
-     for(const t of [.20,.40,.60,.80]){
-      const x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;
-      if(!forest(x,y)||geometry.waterAt(x,y,100)||
-       geometry.nearRoad(x,y,()=>true,113)||
-       geometry.obstacle(x,y,104)||footprint.blocked?.(x,y,90)){
-       safe=false;break
+     const stations=Math.max(8,Math.ceil(d/28));
+     for(let k=0;k<=stations&&safe;k++){
+      const t=k/stations,u=1-t;
+      const x=u*u*a.x+2*u*t*midX+t*t*b.x;
+      const y=u*u*a.y+2*u*t*midY+t*t*b.y;
+      for(const offset of [-.5,0,.5]){
+       const px=x-vy*brushWidth*offset,py=y+vx*brushWidth*offset;
+       if(!forest(px,py)||geometry.waterAt(px,py,14)||
+          geometry.nearRoad(px,py,()=>true,26)||
+          geometry.obstacle(px,py,25)||footprint.blocked?.(px,py,22)){
+        safe=false;break
+       }
       }
      }
      if(safe){nearest=b;dist=d}
