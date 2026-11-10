@@ -61,15 +61,20 @@ vm.runInNewContext(read("world_greenwood_art.js"),env,{filename:"world_greenwood
  const art=env.VeilwardGreenwoodArt.create({geometry:geo,footprint});
  const roots=[
   {id:"old-oak",kind:"oak",x:100,y:340,radius:65,variant:.3},
-  {id:"old-pine",kind:"pine",x:398,y:362,radius:62,variant:.7}
+  {id:"old-pine",kind:"pine",x:375,y:362,radius:62,variant:.7}
  ];
  const frozen=JSON.stringify(roots),bounds=[0,0,600,500];
  drawn.length=0;
  assert.equal(art.paintCanopyLinks(groundContext(),bounds,roots),1,
   "one foliage connection only between existing rooted trees");
- assert.equal(drawn.length,1);
+ assert.equal(drawn.length,3,"source-rooted connection paints three proportionate foliage lobes");
  assert.equal(drawn[0].length,9);
- assert.ok(drawn[0][4]<128,"only crown painting; never a second trunk");
+ assert.ok(drawn.every(args=>args[4]<128),"only cropped crown painting; never a second trunk");
+ assert.equal(drawn[0][1],0,"oak-connected lobe comes from the original oak artwork");
+ assert.equal(drawn[2][1],128,"pine-connected lobe comes from the original pine artwork");
+ drawn.length=0;
+ assert.equal(art.paintCanopyLinks(groundContext(),bounds,[roots[0],{...roots[1],x:398}]),0,
+  "unreachable crown tips cannot be joined by floating decorative foliage");
  assert.equal(JSON.stringify(roots),frozen,"root geometry never mutates");
  blocked=true;drawn.length=0;
  assert.equal(art.paintCanopyLinks(groundContext(),bounds,roots),0,
