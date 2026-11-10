@@ -745,6 +745,21 @@ function create({footprint,geometry,model}={}){
     const lobeHeight=lobeWidth*78/PAINTED_SIZE;
     const lx=x+offset*w*.22;
     const ly=y+(hash(Math.round(a.x),Math.round(b.y),lobe+811)-.5)*h*.16;
+    // Each offset lobe has its own true footprint. The earlier 5x5
+    // envelope clearance did not cover the outer tips of staggered
+    // lobes; a diagonal path could be painted over at those tips.
+    // Cull only the unsafe decoration, never its rooted trees.
+    let lobeClear=true;
+    for(const fy of [-.48,-.24,0,.24,.48]){
+     for(const fx of [-.48,-.24,0,.24,.48]){
+      const px=lx+lobeWidth*fx,py=ly+lobeHeight*fy;
+      if(!forest(px,py)||geometry.waterAt(px,py,20)||
+         geometry.nearRoad(px,py,()=>true,45)||
+         geometry.obstacle(px,py,24)){lobeClear=false;break}
+     }
+     if(!lobeClear)break
+    }
+    if(!lobeClear)continue;
     const index=kinds[lobe]==="pine"?1:0;
     ctx.drawImage(painted,index*PAINTED_SIZE,0,PAINTED_SIZE,78,
      Math.round(lx-lobeWidth*.5),Math.round(ly-lobeHeight*.5),
