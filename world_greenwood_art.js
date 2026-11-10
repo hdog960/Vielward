@@ -890,10 +890,19 @@ function create({footprint,geometry,model}={}){
     const clear=(px,py)=>forest(px,py)&&
       !geometry.waterAt(px,py,30)&&
       !geometry.nearRoad(px,py,()=>true,75);
-    if(!clear(x,y)||!clear(x-w*.43,y-h*.40)||
-       !clear(x+w*.43,y-h*.40)||
-       !clear(x-w*.43,y-h*.83)||
-       !clear(x+w*.43,y-h*.83))continue;
+    // R40ac: inspect the entire visible canopy footprint, not just five
+    // points. A narrow diagonal trail can pass between the old samples,
+    // leaving an opaque painted crown over an otherwise traversable path.
+    // Three depth rows and five lateral stations follow the actual source
+    // road/water clearance without creating any new physical geometry.
+    let open=true;
+    for(const depth of [.16,.36,.56,.76,.94]){
+     for(const across of [-.46,-.23,0,.23,.46]){
+      if(!clear(x+w*across,y-h*depth)){open=false;break}
+     }
+     if(!open)break
+    }
+    if(!open)continue;
     ctx.save();ctx.globalAlpha=tier===0?.80:.68;
     ctx.imageSmoothingEnabled=true;
     const src=oak?0:PAINTED_SIZE;
