@@ -894,6 +894,31 @@ function create(model,geometry,options={}){
      ctx.lineWidth=Math.max(2,ww*.005+hash(salt,j,841)*ww*.005);
      ctx.stroke();
     }
+    // R40x: source-clipped, broken shale shelves and moss-lit ledges.
+    // Unlike repeated columns, these follow the original polygon's upper
+    // silhouette; their staggered short arcs never become new geometry.
+    if(footprint?.regionAt?.(left+ww*.5,top+hh*.5)?.id==="greenwood_falls"){
+     const ledges=8+Math.floor(hash(salt,47,851)*5);
+     for(let k=0;k<ledges;k++){
+      const t=(k+.35+hash(salt,k,853)*.3)/ledges;
+      const sx=left+ww*t, sy=top+hh*(.14+hash(k,salt,855)*.66);
+      const reach=ww*(.035+hash(salt,k,857)*.065);
+      const drop=hh*(.012+hash(k,salt,859)*.028);
+      ctx.beginPath();ctx.moveTo(sx-reach*.7,sy+drop);
+      bend(sx-reach*.16,sy-drop*1.4,sx+reach*.28,sy-drop*.5);
+      bend(sx+reach*.65,sy+drop*.15,sx+reach,sy+drop*.7);
+      ctx.strokeStyle=k%3===0?"rgba(159,173,137,.42)":"rgba(29,48,52,.32)";
+      ctx.lineWidth=Math.max(2,Math.min(10,hh*.012));
+      ctx.lineCap="round";ctx.stroke();
+      // Moss is a sparse broken edge, not a flat stripe.
+      if(k%3===0){
+       ctx.beginPath();ctx.moveTo(sx-reach*.36,sy-drop*.2);
+       bend(sx,sy-drop*2.2,sx+reach*.26,sy-drop*.55);
+       ctx.strokeStyle="rgba(114,148,109,.44)";
+       ctx.lineWidth=Math.max(2,Math.min(7,hh*.009));ctx.stroke();
+      }
+     }
+    }
     ctx.restore();
    }else{
     ctx.fillStyle="#c1bbb4";
