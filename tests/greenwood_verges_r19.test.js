@@ -36,7 +36,10 @@ vm.runInNewContext(src,host,{filename:"world_greenwood_art.js"});
  const geo={
   roads:[original,forbidden],
   waterAt(){return null},
-  nearRoad(){return null}
+  nearRoad(){return null},
+  // Match the real VeilwardGeometry API. This test represents open woodland,
+  // so no existing solid blocks the sampled decorative fern footprints.
+  obstacle(){return null}
  };
  const footprint={regionAt(x,y){return{x,y,id:x>500?"hollowreach":"greenwood"}}};
  const art=painter.create({geometry:geo,footprint});
