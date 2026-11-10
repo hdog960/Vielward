@@ -674,10 +674,18 @@ function create({footprint,geometry,model}={}){
     // The real road and river must never be disguised by overhanging
     // leaf bridges, even when their end roots are physically valid.
     let clear=true;
-    for(const t of [.25,.5,.75]){
-     const x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;
-     if(!forest(x,y)||geometry.waterAt(x,y,25)||
-      geometry.nearRoad(x,y,()=>true,60)){clear=false;break}
+    // Sample the complete painted crown corridor, not merely its centre.
+    // A diagonal path can cross between three old centreline probes.
+    const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);
+    const nx=-dy/len,ny=dx/len;
+    for(let step=0;step<=12&&clear;step++){
+     const t=step/12;
+     for(const offset of [-85,-42,0,42,85]){
+      const x=a.x+dx*t+nx*offset,y=a.y+dy*t+ny*offset;
+      if(!forest(x,y)||geometry.waterAt(x,y,20)||
+       geometry.nearRoad(x,y,()=>true,45)||
+       geometry.obstacle(x,y,28)){clear=false;break}
+     }
     }
     if(!clear)continue;
     partner=b;closest=distance
