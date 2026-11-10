@@ -192,7 +192,9 @@ function create({footprint,geometry,model}={}){
  const forest=(x,y)=>["greenwood","greenwood_falls"].includes(
    footprint.regionAt(x,y)?.id);
  function stamp(ctx,type,x,y,w,h,seed=0){
-  if(!load())return false;
+  // Painted sources should render even if procedural atlas allocation fails.
+  // Keep the atlas requirement only for the fallback sprite path.
+  loadPainted();
   const v=((seed|0)%VARIANTS+VARIANTS)%VARIANTS;
   // Retain some original procedural varieties to prevent clone repetition;
   // the new paintings replace most tree, shrub and real boulder source roots.
@@ -210,6 +212,7 @@ function create({footprint,geometry,model}={}){
    ctx.restore();return true
   }
   if(type==="rock")return false;
+  if(!load())return false;
   const offset=(type==="oak"?0:type==="pine"?VARIANTS:VARIANTS*2)+v;
   ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.drawImage(atlas,offset*SIZE,0,SIZE,HEIGHT,
