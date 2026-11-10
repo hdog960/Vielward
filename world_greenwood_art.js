@@ -677,7 +677,17 @@ function create({footprint,geometry,model}={}){
    for(let j=i+1;j<trees.length;j++){
     const b=trees[j];if(linked.has(b.id))continue;
     const distance=Math.hypot(a.x-b.x,a.y-b.y);
-    if(distance<175||distance>520||Math.abs(a.y-b.y)>225||
+    // Only join crowns whose REAL painted tree silhouettes can meet.
+    // A fixed 520-unit bridge between small roots looked like floating
+    // foliage with no physical support. Use the exact mature-tree width
+    // rules from paintFeature; no invented trunks or world geometry.
+    const aw=a.radius*(a.kind==="oak"?5.4:4.6)*
+      (a.authoredGrove?(a.kind==="oak"?1.20:1.08):1);
+    const bw=b.radius*(b.kind==="oak"?5.4:4.6)*
+      (b.authoredGrove?(b.kind==="oak"?1.20:1.08):1);
+    const crownReach=(aw+bw)*.46;
+    if(distance<175||distance>Math.min(520,crownReach)||
+       Math.abs(a.y-b.y)>Math.min(225,(aw+bw)*.26)||
        distance>=closest)continue;
     // The real road and river must never be disguised by overhanging
     // leaf bridges, even when their end roots are physically valid.
