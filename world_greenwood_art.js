@@ -972,11 +972,37 @@ function create({footprint,geometry,model}={}){
    shade.addColorStop(1,"rgba(76,113,66,0)");
    ctx.save();ctx.fillStyle=shade;
    ctx.fillRect(px-rx,py-rx,rx*2,rx*2);
-   const w=r*2.30,h=r*1.40;
-   ctx.globalAlpha=.39;ctx.imageSmoothingEnabled=true;
-   ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
-    Math.round(o.x-w*.5),Math.round(o.y-h*.81),
-    Math.round(w),Math.round(h));
+   // R40ap: ground the existing Falls root in an irregular, native
+   // illustrated fern/lichen skirt. Three individually clear source-art
+   // fragments follow the tree's real foot rather than repeating one
+   // centered oval stamp. This is low ground pigment, not new scenery.
+   const seed=Math.floor((o.variant||0)*8191);
+   for(let i=0;i<3;i++){
+    const angle=(i-1)*1.05+(hash(seed,i,1201)-.5)*.33;
+    const reach=r*(i===1?.22:.78);
+    const x=o.x+Math.sin(angle)*reach;
+    const y=o.y+r*(.03+Math.cos(angle)*.15);
+    const w=r*(1.45+hash(seed,i,1203)*.85);
+    const h=w*(.44+hash(seed,i,1205)*.12);
+    let clear=true;
+    for(const fy of [-.45,0,.45]){
+     for(const fx of [-.45,0,.45]){
+      const sx=x+w*fx,sy=y-h*.46+h*fy;
+      if(!forest(sx,sy)||geometry.waterAt(sx,sy,12)||
+         geometry.nearRoad(sx,sy,()=>true,35)||
+         geometry.obstacle(sx,sy,22)){
+       clear=false;break
+      }
+     }
+     if(!clear)break
+    }
+    if(!clear)continue;
+    ctx.globalAlpha=.25+hash(seed,i,1207)*.17;
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(x-w*.5),Math.round(y-h*.82),
+     Math.round(w),Math.round(h));
+   }
    ctx.restore();count++
   }
   return count
