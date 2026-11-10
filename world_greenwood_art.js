@@ -402,10 +402,11 @@ function create({footprint,geometry,model}={}){
     let clearFootprint=true;
     for(const fy of [-.45,0,.45]){
      for(const fx of [-.45,0,.45]){
-      const px=x+w*fx,py=y-h*.30+h*fy;
+      const px=x+w*fx,py=y-h*.8+h*(fy+.5);
       if(!forest(px,py)||geometry.waterAt(px,py,10)||
          geometry.nearRoad(px,py,()=>true,22)||
-         geometry.obstacle(px,py,20)){
+         geometry.obstacle(px,py,20)||
+         footprint.blocked?.(px,py,20)){
        clearFootprint=false;break
       }
      }
@@ -460,7 +461,7 @@ function create({footprint,geometry,model}={}){
     let clear=true;
     for(const fy of [-.42,0,.42]){
      for(const fx of [-.42,0,.42]){
-      const px=x+w*fx,py=y-h*.38+h*fy;
+      const px=x+w*fx,py=y-h*.88+h*(fy+.5);
       if(!forest(px,py)||geometry.waterAt(px,py,20)||
          geometry.nearRoad(px,py,()=>true,30)||
          geometry.obstacle(px,py,26)||
