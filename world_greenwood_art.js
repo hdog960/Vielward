@@ -722,14 +722,21 @@ function create({footprint,geometry,model}={}){
    // R40ai: replace the broad identical canopy strip with three
    // overlapping, native-aspect painted crown lobes. Every lobe remains
    // inside the already-checked crown footprint; no invented tree roots.
-   const kind=a.kind==="pine"&&b.kind==="pine"?1:0;
-   const lobeWidth=w*.54,lobeHeight=lobeWidth*78/PAINTED_SIZE;
+   // Mixed groves must read as mixed groves: reuse each endpoint's
+   // authentic R18 crown painting, not three clones of the oak painting.
+   // Widths and heights vary together to retain the native 128:78 crop
+   // proportions. Staggered crowns are still inside the cleared envelope.
+   const kinds=[a.kind,a.kind===b.kind?a.kind:b.kind,b.kind];
    ctx.save();ctx.globalAlpha=.68;ctx.imageSmoothingEnabled=true;
    for(let lobe=0;lobe<3;lobe++){
     const offset=lobe-1;
+    const variation=hash(Math.round(a.x),Math.round(b.y),lobe+823);
+    const lobeWidth=w*(.47+variation*.11);
+    const lobeHeight=lobeWidth*78/PAINTED_SIZE;
     const lx=x+offset*w*.22;
     const ly=y+(hash(Math.round(a.x),Math.round(b.y),lobe+811)-.5)*h*.16;
-    ctx.drawImage(painted,kind*PAINTED_SIZE,0,PAINTED_SIZE,78,
+    const index=kinds[lobe]==="pine"?1:0;
+    ctx.drawImage(painted,index*PAINTED_SIZE,0,PAINTED_SIZE,78,
      Math.round(lx-lobeWidth*.5),Math.round(ly-lobeHeight*.5),
      Math.round(lobeWidth),Math.round(lobeHeight));
    }
