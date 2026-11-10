@@ -704,6 +704,21 @@ function create({footprint,geometry,model}={}){
     w=Math.min(250,closest*.72),h=Math.min(155,r*2.35);
    if(x+w*.5<bounds[0]||x-w*.5>bounds[2]||
       y+h*.5<bounds[1]||y-h*.5>bounds[3])continue;
+   // The painted crown sits NORTH of the root-to-root corridor. Test its
+   // actual screen footprint as well: a road or river can lie beneath the
+   // elevated foliage even when the ground between both trunks is clear.
+   // Reject only the decorative bridge; never alter the real tree roots.
+   let crownClear=true;
+   for(const v of [.12,.34,.56,.78,.94]){
+    for(const u of [-.44,-.22,0,.22,.44]){
+     const px=x+w*u,py=y+h*(v-.5);
+     if(!forest(px,py)||geometry.waterAt(px,py,20)||
+        geometry.nearRoad(px,py,()=>true,45)||
+        geometry.obstacle(px,py,24)){crownClear=false;break}
+    }
+    if(!crownClear)break
+   }
+   if(!crownClear)continue;
    const kind=a.kind==="pine"&&b.kind==="pine"?1:0;
    ctx.save();ctx.globalAlpha=.68;ctx.imageSmoothingEnabled=true;
    ctx.drawImage(painted,kind*PAINTED_SIZE,0,PAINTED_SIZE,78,
