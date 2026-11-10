@@ -454,9 +454,23 @@ function create({footprint,geometry,model}={}){
      y=hub.y+Math.sin(angle)*radius*.82;
     const w=148+hash(salt,j,305)*114,
      h=w*(.46+hash(j,salt,307)*.14);
-    if(!forest(x,y)||geometry.waterAt(x,y,35)||
-       geometry.nearRoad(x,y,()=>true,55)||
-       geometry.obstacle(x,y,50)||footprint.blocked?.(x,y,33))continue;
+    // Check the entire visible fern mat, not just its centre. The
+    // Hearth/Hermit clearing has diagonal paths and curved stream edges:
+    // a centre-clear billboard can otherwise cover either one.
+    let clear=true;
+    for(const fy of [-.42,0,.42]){
+     for(const fx of [-.42,0,.42]){
+      const px=x+w*fx,py=y-h*.38+h*fy;
+      if(!forest(px,py)||geometry.waterAt(px,py,20)||
+         geometry.nearRoad(px,py,()=>true,30)||
+         geometry.obstacle(px,py,26)||
+         footprint.blocked?.(px,py,22)){
+       clear=false;break
+      }
+     }
+     if(!clear)break
+    }
+    if(!clear)continue;
     patches.push({x,y,w,h,j});
    }
    // Restrained, low-chroma soil/lichen masses join the independent mats
