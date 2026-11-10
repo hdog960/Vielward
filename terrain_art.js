@@ -867,9 +867,13 @@ function create(model,geometry,options={}){
      if(typeof ctx.quadraticCurveTo==="function")ctx.quadraticCurveTo(cx,cy,x,y);
      else ctx.lineTo(x,y); // synthetic Canvas QA contexts only
     };
-    for(let j=0;j<5;j++){
-     const shift=(hash(j,salt,831)-.5)*ww*.065;
-     const px=left+ww*(.075+j*.192)+shift;
+    // R40w: different cliff silhouettes must not all resolve to five
+    // evenly spaced stone columns. Vary the fold count and distribute
+    // centers within the existing source polygon, with asymmetric gaps.
+    const foldCount=3+Math.floor(hash(salt,Math.floor(hh),843)*5);
+    for(let j=0;j<foldCount;j++){
+     const shift=(hash(j,salt,831)-.5)*ww*.11;
+     const px=left+ww*((j+.5)/foldCount)+shift;
      const spread=ww*(.055+hash(salt,j,833)*.057);
      const crest=top+hh*(.075+hash(j,salt,835)*.12);
      const foot=top+hh*(.64+hash(salt,j,837)*.27);
@@ -880,7 +884,8 @@ function create(model,geometry,options={}){
      ctx.lineTo(px+lean+spread*.52,foot-hh*.065);
      bend(px+lean,foot+hh*.045,px+lean-spread*.53,foot);
      ctx.closePath();
-     ctx.fillStyle=j%3===0?"rgba(169,171,164,.40)":j%3===1?
+     const tone=hash(j,salt,845);
+     ctx.fillStyle=tone<.34?"rgba(169,171,164,.40)":tone<.67?
       "rgba(86,104,105,.46)":"rgba(121,132,125,.38)";
      ctx.fill();
      ctx.beginPath();ctx.moveTo(px-spread*.51,crest+hh*.09);
