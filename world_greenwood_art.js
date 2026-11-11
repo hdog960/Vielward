@@ -1413,20 +1413,62 @@ function create({footprint,geometry,model}={}){
    const water=run.map(o=>({x:o.wx,y:o.wy}));
    const mid=run.map(o=>inset(o,64));
    const upper=run.map(o=>inset(o,137));
-   // R35c: actual captured play showed huge rectangular seams from the
-   // opaque filled face polygons. Never paint cliff-shaped polygons over
-   // independent streamed terrain chunks. The genuine authored river
-   // stays visible beneath faint, joined, source-positioned contours.
-   ctx.save();ctx.lineJoin="round";ctx.lineCap="round";
-   ctx.beginPath();smooth(mid);
-   ctx.strokeStyle="rgba(43,77,58,.085)";ctx.lineWidth=116;ctx.stroke();
-   ctx.beginPath();smooth(upper);
-   ctx.strokeStyle="rgba(116,145,102,.085)";ctx.lineWidth=85;ctx.stroke();
-   ctx.beginPath();smooth(run.map(o=>inset(o,34)));
-   ctx.strokeStyle="rgba(143,161,126,.10)";ctx.lineWidth=11;ctx.stroke();
-   ctx.beginPath();smooth(water);
-   ctx.strokeStyle="rgba(189,209,194,.12)";ctx.lineWidth=5;ctx.stroke();
-   ctx.restore();
+   // R41: retire the remaining four continuous contour rails. Even with
+   // faint alpha, their 116/85-unit widths read as artificial parallel
+   // strips along the real river. Build a broken, source-grounded river
+   // terrace from the EXISTING R18 transparent stone and fern paintings.
+   // Each irregular island follows an original dry-bank anchor and is
+   // culled independently near the true river, bridge and road corridors.
+   // There is no new walkable shelf, cliff collider or fabricated ford.
+   for(let i=2;i<run.length;i+=5){
+    const o=run[i],n=normal(o);
+    const seed=Math.floor(hash(o.segment,o.step,o.side)*100003);
+    const depth=57+hash(seed,1,1301)*83;
+    const p=inset(o,depth);
+    const w=112+hash(seed,2,1303)*108;
+    const h=w*(.54+hash(seed,3,1305)*.20);
+    if(!inFrame(p)||!forest(p.x,p.y)||
+       geometry.waterAt(p.x,p.y,16)||
+       geometry.nearRoad(p.x,p.y,()=>true,100)||
+       footprint.blocked?.(p.x,p.y,18))continue;
+    // The visible painting must remain dry across its *whole* footprint,
+    // not merely at its anchor. Use small native rock fragments instead
+    // of long image strips that bridge over crossing gaps.
+    let safe=true;
+    for(const fy of [-.35,0,.35]){
+     for(const fx of [-.42,0,.42]){
+      const sx=p.x+w*fx,sy=p.y-h*.65+h*fy;
+      if(!forest(sx,sy)||geometry.waterAt(sx,sy,12)||
+         geometry.nearRoad(sx,sy,()=>true,32)||
+         geometry.obstacle(sx,sy,12)){
+       safe=false;break
+      }
+     }
+     if(!safe)break
+    }
+    if(!safe)continue;
+    const angle=Math.atan2(n.y,n.x)*.10;
+    ctx.save();
+    ctx.globalAlpha=.34+hash(seed,4,1307)*.24;
+    ctx.imageSmoothingEnabled=true;
+    ctx.translate(Math.round(p.x),Math.round(p.y));
+    ctx.rotate?.(angle);
+    if(o.side<0)ctx.scale(-1,1);
+    ctx.drawImage(painted,PAINTED_SIZE*3,0,PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(-w*.5),Math.round(-h*.76),
+     Math.round(w),Math.round(h));
+    // Alternate with the *original* fern material at smaller, native
+    // proportions; no repeated geometric cliff contour is painted.
+    if(i%2===0){
+     const fw=w*(.62+hash(seed,5,1309)*.15),fh=fw*.58;
+     ctx.globalAlpha=.24+hash(seed,6,1311)*.13;
+     ctx.drawImage(painted,PAINTED_SIZE*2,0,
+      PAINTED_SIZE,PAINTED_SIZE,
+      Math.round(-fw*.42),Math.round(-fh*.35),
+      Math.round(fw),Math.round(fh))
+    }
+    ctx.restore()
+   }
    // Organic shaded shelves grow directly from individual dry, physically
    // sourced ledges and fade smoothly to zero. Native moss and stone art
    // sits above them; nothing creates straight boxed cliff edges.
