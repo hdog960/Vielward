@@ -1640,7 +1640,27 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   const roots=fallsRoots(bounds).filter(r=>r.authoredFallsGrove&&
    (r.kind==="oak"||r.kind==="pine"));
   if(!roots.length)return 0;
+  // R53: treat each real grove-to-river corridor as a single landscape
+  // composition. Vary silhouette and material rhythm by source reach,
+  // rather than repeating four equal-sized stamps at every bank anchor.
   const used=new Set();let count=0;
+  const compositions=[
+   // Shallow broken-rock threshold: dark geology, then airy fern floor.
+   [{at:.22,side:-65,size:176,cell:3,alpha:.58},
+    {at:.41,side:58,size:113,cell:3,alpha:.40},
+    {at:.63,side:-35,size:142,cell:2,alpha:.48},
+    {at:.83,side:66,size:96,cell:2,alpha:.32}],
+   // Deep woodland pocket: fern mass with scattered stone shoulders.
+   [{at:.25,side:48,size:119,cell:2,alpha:.38},
+    {at:.44,side:-76,size:151,cell:2,alpha:.55},
+    {at:.65,side:41,size:108,cell:3,alpha:.43},
+    {at:.85,side:-31,size:137,cell:2,alpha:.40}],
+   // Staggered stony bend with a low fern opening at its center.
+   [{at:.24,side:-44,size:139,cell:3,alpha:.47},
+    {at:.46,side:79,size:109,cell:2,alpha:.36},
+    {at:.67,side:-72,size:163,cell:3,alpha:.51},
+    {at:.86,side:34,size:121,cell:2,alpha:.43}]
+  ];
   for(const bank of sourceFallsBanks()){
    if(bank.step%8!==4)continue;
    const nearest=roots.reduce((best,r)=>{
@@ -1648,28 +1668,29 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     return d<(best?.d??Infinity)?{r,d}:best
    },null);
    if(!nearest||nearest.d<135||nearest.d>550)continue;
-   const key=nearest.r.id+":"+bank.side+":"+bank.segment;
+   const root=nearest.r;
+   const key=Math.round(root.x/40)+":"+Math.round(root.y/40)+
+    ":"+bank.side+":"+bank.segment;
    if(used.has(key))continue;
    used.add(key);
-   const dx=nearest.r.x-bank.x,dy=nearest.r.y-bank.y;
+   const dx=root.x-bank.x,dy=root.y-bank.y;
    const tx=-dy/nearest.d,ty=dx/nearest.d;
    const seed=Math.floor(hash(bank.segment,bank.step,bank.side)*100003);
-   const composition=[
-    {at:.28,side:-52,size:146,cell:3,alpha:.52},
-    {at:.48,side:48,size:126,cell:2,alpha:.47},
-    {at:.69,side:-22,size:112,cell:2,alpha:.40},
-    {at:.84,side:55,size:96,cell:3,alpha:.34}
-   ];
+   const profile=(Math.abs(Math.floor(bank.segment*1.37))+
+    Math.floor(bank.step/8)+(bank.side>0?1:0))%compositions.length;
+   const composition=compositions[profile];
    for(const [j,p] of composition.entries()){
-    const drift=(hash(seed,j,1521)-.5)*22;
+    const drift=(hash(seed,j,1521)-.5)*18;
     const x=bank.x+dx*p.at+tx*(p.side+drift);
     const y=bank.y+dy*p.at+ty*(p.side+drift);
     const w=p.size*(.92+hash(seed,j,1523)*.16),h=w;
     if(x<bounds[0]-w||x>bounds[2]+w||
        y<bounds[1]-h||y>bounds[3]+h)continue;
+    // Full native square footprint, with extra intermediate stations to
+    // keep a narrow bridge approach from slipping between sample points.
     let clear=true;
-    for(const fx of [-.46,0,.46]){
-     for(const fy of [-.46,0,.46]){
+    for(const fx of [-.46,-.23,0,.23,.46]){
+     for(const fy of [-.46,-.23,0,.23,.46]){
       const sx=x+w*fx,sy=y-h*.68+h*fy;
       if(!forest(sx,sy)||geometry.waterAt(sx,sy,16)||
          geometry.nearRoad(sx,sy,()=>true,75)||
