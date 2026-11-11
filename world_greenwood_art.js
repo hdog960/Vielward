@@ -1624,6 +1624,57 @@ function create({footprint,geometry,model}={}){
     ctx.restore();paintedRock++;
    }
   }
+  // R44: join the two isolated lookout flanks into grounded, irregular
+  // native-pixel talus gardens. The pieces are authored around the original
+  // lookout, never along the stair axis; every visible crop is validated
+  // against the *real* source terrain, crossing and collision boundaries.
+  // A layered low stone core, lichen skirt and staggered fern tufts give
+  // each flank an identifiable silhouette rather than four loose stamps.
+  const talusGardens=[
+   {side:-1,ox:-382,oy:-86,mirror:false,weight:1.04},
+   {side:1,ox:354,oy:-110,mirror:true,weight:.91}
+  ];
+  if(painted&&ctx.drawImage)for(const garden of talusGardens){
+   const crops=[
+    {dx:-42,dy:-31,w:152,h:109,cell:3,alpha:.79},
+    {dx:63,dy:-18,w:132,h:91,cell:3,alpha:.68},
+    {dx:6,dy:25,w:168,h:81,cell:2,alpha:.55},
+    {dx:-88,dy:35,w:97,h:64,cell:2,alpha:.57},
+    {dx:104,dy:32,w:85,h:69,cell:2,alpha:.50}
+   ];
+   for(const p of crops){
+    const dx=garden.mirror?-p.dx:p.dx;
+    const x=cx+garden.ox+dx*garden.weight,
+     y=cy+garden.oy+p.dy*garden.weight;
+    const w=p.w*garden.weight,h=p.h*garden.weight;
+    // The painted crop is wider than its foot anchor. Reject the entire
+    // footprint if any of its nine sample points touches an authored road,
+    // water, hard obstacle or a different biome.
+    let clear=true;
+    for(const fx of [-.46,0,.46]){
+     for(const fy of [-.43,0,.43]){
+      const sx=x+w*fx,sy=y-h*.48+h*fy;
+      if(footprint.regionAt(sx,sy)?.id!=="greenwood_falls"||
+         geometry.waterAt(sx,sy,12)||
+         geometry.nearRoad(sx,sy,()=>true,42)||
+         geometry.obstacle(sx,sy,12)){
+       clear=false;break
+      }
+     }
+     if(!clear)break
+    }
+    if(!clear)continue;
+    ctx.save();ctx.globalAlpha=p.alpha;
+    ctx.imageSmoothingEnabled=true;
+    ctx.translate(Math.round(x),Math.round(y));
+    if(garden.mirror)ctx.scale(-1,1);
+    ctx.drawImage(painted,PAINTED_SIZE*p.cell,0,
+     PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(-w*.5),Math.round(-h*.79),
+     Math.round(w),Math.round(h));
+    ctx.restore();paintedRock++;
+   }
+  }
   // A single faint open apron is just the ground behind the REAL stairs.
   ctx.save();ctx.beginPath();ctx.moveTo(cx-102,cy-123);
   ctx.quadraticCurveTo(cx,cy-193,cx+105,cy-123);
