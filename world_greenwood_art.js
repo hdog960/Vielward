@@ -1694,8 +1694,10 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     const x=bank.x+dx*p.at+tx*(p.side+drift);
     const y=bank.y+dy*p.at+ty*(p.side+drift);
     const w=p.size*(.92+hash(seed,j,1523)*.16),h=w;
-    if(x<bounds[0]-w||x>bounds[2]+w||
-       y<bounds[1]-h||y>bounds[3]+h)continue;
+    // Resolve every source-bank candidate independently of streamed tile
+    // bounds. Earlier culling before the overlap ledger meant adjacent
+    // chunks could choose different winning paintings at the same bank.
+    // Culling happens AFTER global overlap arbitration below.
     // Full native square footprint, with extra intermediate stations to
     // keep a narrow bridge approach from slipping between sample points.
     let clear=true;
@@ -1720,6 +1722,22 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     if(paintedFootprints.some(q=>Math.abs(q.x-x)<(q.w+w)*.34&&
       Math.abs(q.y-y)<(q.h+h)*.30))continue;
     paintedFootprints.push({x,y,w,h});
+    if(x<bounds[0]-w||x>bounds[2]+w||
+       y<bounds[1]-h||y>bounds[3]+h)continue;
+    // A quiet, root-to-bank tonal foundation sits beneath the native
+    // stone/fern pigment. Unlike a rectangular sprite strip, this
+    // transparent pool disappears at its edges and is confined to the
+    // already validated dry-ground painting. It adds material depth
+    // without new terrain, silhouettes, or physical obstruction.
+    const glow=ctx.createRadialGradient?.(
+     x,y-h*.18,w*.08,x,y-h*.18,w*.49);
+    if(glow){
+     glow.addColorStop(0,p.cell===3?"rgba(28,49,39,.19)":"rgba(31,64,39,.16)");
+     glow.addColorStop(.62,"rgba(39,72,45,.075)");
+     glow.addColorStop(1,"rgba(39,72,45,0)");
+     ctx.save();ctx.fillStyle=glow;
+     ctx.fillRect(x-w*.5,y-h*.68,w,h);ctx.restore();
+    }
     ctx.save();ctx.globalAlpha=p.alpha;
     ctx.translate(Math.round(x),Math.round(y));
     if(bank.side<0)ctx.scale(-1,1);
