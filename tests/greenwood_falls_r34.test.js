@@ -44,8 +44,10 @@ for(const p of ["world_geometry.js","world_climate.js",
  const [fx,fy]=falls.point.map(p=>p*60);
  const view=[fx-3600,fy-3300,fx+2900,fy+3200];
  const n=artist.paintFallsRiverBanks(ctx(),view);
- assert.ok(n>2&&recorded.strokes>0&&recorded.images>0,
-  "native painted rock source and joined riverbanks must both render");
+ assert.ok(n>2&&recorded.images>0,
+  "native source-painted dry-bank fragments must render without contour rails");
+ assert.equal(recorded.strokes,0,
+  "R41 removes the rejected continuous riverbank contour strokes");
  assert.equal(artist.paintFallsRiverBanks(ctx(),[0,0,130,130]),0,
   "worldspace cliff brushes must cull away from falls");
  assert.equal(JSON.stringify({data,footdata,nodes:model.nodes.length,edges:model.edges.length}),before);
