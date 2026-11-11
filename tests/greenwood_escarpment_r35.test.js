@@ -44,9 +44,7 @@ for(const path of ["world_geometry.js","world_climate.js",
  const [x,y]=site.point.map(q=>q*60);
  const n=art.paintFallsRiverBanks(ctx(),[x-3300,y-3200,x+3600,y+3200]);
  assert.ok(n>5,"layered original-source riverbank is visible");
- assert.ok(counts.curves>4,"joined bank contours require organic curved outlines");
- assert.ok(counts.shades>=1,"connected geological faces have shading, not flat stripes");
- assert.ok(counts.fill>=3,"at least 3 architectural planes for terrain depth");
+ // R41 intentionally removed the connected contour rails rejected by the creator.\n // Source-rooted transparent R18 stone/fern fragments now supply depth,\n // with only low-opacity localized radial ground shading.\n assert.equal(counts.curves,0,"no artificial connected riverbank contour rails");\n assert.ok(counts.shades>=1,"native stone islands retain subtle local depth shading");\n assert.ok(counts.fill>=1,"shaded ground islands remain beneath native artwork");
  assert.ok(counts.images>0,"original R18 painted rocks/ferns actually drawn");
  assert.equal(art.paintFallsRiverBanks(ctx(),[0,0,300,300]),0,
   "far-off source bank remains culled");
@@ -64,6 +62,6 @@ for(const path of ["world_geometry.js","world_climate.js",
   'capture(page,"GREENWOOD_R35_SCULPTED_RIVERBANK")'));
  assert.ok(read("scripts/visual_capture.mjs").includes(
   'capture(page,"GREENWOOD_R35_FALLS_OVERLOOK")'));
- console.log("R35 PASS: curved source-linked geological escarpment, native rock and foliage,"+
+ console.log("R35/R41 PASS: source-linked painted bank fragments without rejected contour rails,"+
   " 48 landmarks, 65 roads, seven crossings and unchanged save system");
 })().catch(e=>{console.error(e);process.exitCode=1});
