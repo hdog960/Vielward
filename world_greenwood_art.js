@@ -1426,7 +1426,7 @@ function create({footprint,geometry,model}={}){
     const depth=57+hash(seed,1,1301)*83;
     const p=inset(o,depth);
     const w=112+hash(seed,2,1303)*108;
-    const h=w*(.54+hash(seed,3,1305)*.20);
+    const h=w; // R49: preserve the original square painted stone sheet
     if(!inFrame(p)||!forest(p.x,p.y)||
        geometry.waterAt(p.x,p.y,16)||
        geometry.nearRoad(p.x,p.y,()=>true,100)||
@@ -1435,12 +1435,12 @@ function create({footprint,geometry,model}={}){
     // not merely at its anchor. Use small native rock fragments instead
     // of long image strips that bridge over crossing gaps.
     let safe=true;
-    for(const fy of [-.35,0,.35]){
-     for(const fx of [-.42,0,.42]){
+    for(const fy of [-.46,0,.46]){
+     for(const fx of [-.46,0,.46]){
       const sx=p.x+w*fx,sy=p.y-h*.65+h*fy;
       if(!forest(sx,sy)||geometry.waterAt(sx,sy,12)||
          geometry.nearRoad(sx,sy,()=>true,32)||
-         geometry.obstacle(sx,sy,12)){
+         geometry.obstacle(sx,sy,12)||footprint.blocked?.(sx,sy,12)){
        safe=false;break
       }
      }
@@ -1460,7 +1460,7 @@ function create({footprint,geometry,model}={}){
     // Alternate with the *original* fern material at smaller, native
     // proportions; no repeated geometric cliff contour is painted.
     if(i%2===0){
-     const fw=w*(.62+hash(seed,5,1309)*.15),fh=fw*.58;
+     const fw=w*(.62+hash(seed,5,1309)*.15),fh=fw;
      ctx.globalAlpha=.24+hash(seed,6,1311)*.13;
      ctx.drawImage(painted,PAINTED_SIZE*2,0,
       PAINTED_SIZE,PAINTED_SIZE,
@@ -1551,25 +1551,25 @@ function create({footprint,geometry,model}={}){
    const n=normal(o),seed=Math.floor(hash(o.segment,o.step,o.side)*100003);
    const scale=.78+hash(seed,10,1317)*.33;
    const pieces=[
-    {depth:22,tangent:-37,w:238*scale,h:116*scale,cell:3,alpha:.69},
-    {depth:63,tangent:48,w:167*scale,h:94*scale,cell:3,alpha:.43},
-    {depth:99,tangent:-14,w:184*scale,h:103*scale,cell:2,alpha:.47}
+    {depth:22,tangent:-37,w:166*scale,cell:3,alpha:.69},
+    {depth:63,tangent:48,w:124*scale,cell:3,alpha:.43},
+    {depth:99,tangent:-14,w:136*scale,cell:2,alpha:.47}
    ];
    const tangent={x:-n.y,y:n.x};
    for(const [j,piece] of pieces.entries()){
     const px=o.x+n.x*piece.depth+tangent.x*piece.tangent,
      py=o.y+n.y*piece.depth+tangent.y*piece.tangent;
-    const w=piece.w,h=piece.h;
+    const w=piece.w,h=w; // R49: native aspect on both bank faces
     if(!inFrame({x:px,y:py})||!forest(px,py))continue;
     // Source artwork extends around its foot; reject any candidate whose
     // sampled visible footprint reaches the river, roads or hard obstacles.
     let clear=true;
-    for(const fx of [-.37,0,.37]){
-     for(const fy of [-.34,0,.34]){
+    for(const fx of [-.46,0,.46]){
+     for(const fy of [-.46,0,.46]){
       const xx=px+w*fx,yy=py-h*.55+h*fy;
       if(!forest(xx,yy)||geometry.waterAt(xx,yy,8)||
          geometry.nearRoad(xx,yy,()=>true,35)||
-         geometry.obstacle(xx,yy,8)){
+         geometry.obstacle(xx,yy,8)||footprint.blocked?.(xx,yy,8)){
        clear=false;break
       }
      }
