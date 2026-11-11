@@ -1727,6 +1727,47 @@ function create({footprint,geometry,model}={}){
     ctx.fill();ctx.restore()
    }
   }
+  // R47: a connected, low-lying native woodland apron behind the real
+  // lookout banks. These original R18 fern/stone crops create an irregular
+  // foreground-to-geology transition without a vector shelf or fake cliff.
+  // Source positions are independent: missing safe ground omits only that
+  // crop, never a real path, river, stair or collision-backed object.
+  const woodlandAprons=[
+   {ox:-525,oy:-36,parts:[
+    [-46,12,102,79,2,.66],[42,-20,120,90,3,.72],
+    [117,30,89,65,2,.54],[-113,-10,83,70,3,.63],
+    [12,43,131,68,2,.57],[-73,55,78,53,2,.49]
+   ]},
+   {ox:492,oy:-48,parts:[
+    [28,-33,126,110,3,.75],[-65,3,95,76,2,.61],
+    [105,18,109,75,3,.67],[-130,34,91,61,2,.53],
+    [2,55,143,70,2,.59],[78,63,82,52,2,.48]
+   ]}
+  ];
+  if(painted&&ctx.drawImage)for(const apron of woodlandAprons){
+   for(const [dx,dy,w,h,cell,alpha] of apron.parts){
+    const x=cx+apron.ox+dx,y=cy+apron.oy+dy;
+    let safe=true;
+    for(const fx of [-.46,0,.46]){
+     for(const fy of [-.42,0,.42]){
+      const sx=x+fx*w,sy=y-h*.48+fy*h;
+      if(footprint.regionAt(sx,sy)?.id!=="greenwood_falls"||
+         geometry.waterAt(sx,sy,12)||
+         geometry.nearRoad(sx,sy,()=>true,38)||
+         geometry.obstacle(sx,sy,12)){
+       safe=false;break
+      }
+     }
+     if(!safe)break
+    }
+    if(!safe)continue;
+    ctx.save();ctx.globalAlpha=alpha;
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,PAINTED_SIZE*cell,0,PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(x-w*.5),Math.round(y-h*.81),w,h);
+    ctx.restore();paintedRock++
+   }
+  }
   return paintedRock||1
  }
 
