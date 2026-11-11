@@ -1435,9 +1435,11 @@ function create({footprint,geometry,model}={}){
     // not merely at its anchor. Use small native rock fragments instead
     // of long image strips that bridge over crossing gaps.
     let safe=true;
-    for(const fy of [-.46,0,.46]){
-     for(const fx of [-.46,0,.46]){
-      const sx=p.x+w*fx,sy=p.y-h*.65+h*fy;
+    for(const fy of [.03,.265,.5,.735,.97]){
+     for(const fx of [-.47,-.235,0,.235,.47]){
+      // Sample the true R41 destination: top at -.76h, bottom
+      // at +.24h. Earlier sampling straddled only the upper half.
+      const sx=p.x+w*fx,sy=p.y-h*.76+h*fy;
       if(!forest(sx,sy)||geometry.waterAt(sx,sy,12)||
          geometry.nearRoad(sx,sy,()=>true,32)||
          geometry.obstacle(sx,sy,12)||footprint.blocked?.(sx,sy,12)){
@@ -1555,9 +1557,12 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
      if(!inFrame({x:px,y:py}))continue;
      let clear=true;
      // Check corners, sides and centre of the actual painted footprint.
-     for(const fx of [-.48,0,.48]){
-      for(const fy of [-.48,0,.48]){
-       const x=px+fx*w,y=py-h*.78+fy*h;
+     for(const fx of [-.48,-.24,0,.24,.48]){
+      for(const fy of [.02,.26,.5,.74,.98]){
+       // Destination is y-h*.78 through y+h*.22, not centred
+       // at y-h*.78. The old samples missed the lower river-facing
+       // edge and sampled empty space above the actual painting.
+       const x=px-w*.5+(fx+.5)*w,y=py-h*.78+fy*h;
        if(!forest(x,y)||geometry.waterAt(x,y,18)||
           geometry.nearRoad(x,y,()=>true,62)||
           geometry.obstacle(x,y,18)||footprint.blocked?.(x,y,18)){
