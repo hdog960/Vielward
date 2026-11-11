@@ -30,7 +30,7 @@ jobs:
       - name: Install headless browser
         run: |
           npm install --no-save --no-package-lock playwright
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Render real Veilward environment and architecture review views
         run: node scripts/visual_capture.mjs
       - name: Upload human-review screenshots
