@@ -1630,20 +1630,29 @@ function create({footprint,geometry,model}={}){
   // against the *real* source terrain, crossing and collision boundaries.
   // A layered low stone core, lichen skirt and staggered fern tufts give
   // each flank an identifiable silhouette rather than four loose stamps.
+  // R45: two independently composed original-painted silhouettes rather
+  // than a mirrored repeated crop template. The west is low and broken;
+  // the east rises into a rocky shoulder with a staggered fern apron.
   const talusGardens=[
-   {side:-1,ox:-382,oy:-86,mirror:false,weight:1.04},
-   {side:1,ox:354,oy:-110,mirror:true,weight:.91}
+   {side:-1,ox:-382,oy:-86,mirror:false,weight:1.04,crops:[
+    {dx:-59,dy:-29,w:155,h:107,cell:3,alpha:.83},
+    {dx:55,dy:-8,w:111,h:79,cell:3,alpha:.72},
+    {dx:12,dy:29,w:143,h:74,cell:2,alpha:.58},
+    {dx:-108,dy:42,w:81,h:58,cell:2,alpha:.48},
+    {dx:96,dy:43,w:93,h:62,cell:2,alpha:.54}
+   ]},
+   {side:1,ox:354,oy:-110,mirror:false,weight:.91,crops:[
+    {dx:37,dy:-58,w:132,h:133,cell:3,alpha:.87},
+    {dx:-74,dy:-18,w:148,h:93,cell:3,alpha:.72},
+    {dx:-4,dy:26,w:165,h:79,cell:2,alpha:.53},
+    {dx:114,dy:34,w:75,h:63,cell:2,alpha:.49},
+    {dx:-115,dy:45,w:99,h:58,cell:2,alpha:.59}
+   ]}
   ];
   if(painted&&ctx.drawImage)for(const garden of talusGardens){
-   const crops=[
-    {dx:-42,dy:-31,w:152,h:109,cell:3,alpha:.79},
-    {dx:63,dy:-18,w:132,h:91,cell:3,alpha:.68},
-    {dx:6,dy:25,w:168,h:81,cell:2,alpha:.55},
-    {dx:-88,dy:35,w:97,h:64,cell:2,alpha:.57},
-    {dx:104,dy:32,w:85,h:69,cell:2,alpha:.50}
-   ];
+   const crops=garden.crops;
    for(const p of crops){
-    const dx=garden.mirror?-p.dx:p.dx;
+    const dx=p.dx;
     const x=cx+garden.ox+dx*garden.weight,
      y=cy+garden.oy+p.dy*garden.weight;
     const w=p.w*garden.weight,h=p.h*garden.weight;
