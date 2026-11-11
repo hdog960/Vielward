@@ -1643,7 +1643,7 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   // R53: treat each real grove-to-river corridor as a single landscape
   // composition. Vary silhouette and material rhythm by source reach,
   // rather than repeating four equal-sized stamps at every bank anchor.
-  const used=new Set();let count=0;
+  const used=new Set(),paintedFootprints=[];let count=0;
   const compositions=[
    // Shallow broken-rock threshold: dark geology, then airy fern floor.
    [{at:.22,side:-65,size:176,cell:3,alpha:.58},
@@ -1659,7 +1659,17 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
    [{at:.24,side:-44,size:139,cell:3,alpha:.47},
     {at:.46,side:79,size:109,cell:2,alpha:.36},
     {at:.67,side:-72,size:163,cell:3,alpha:.51},
-    {at:.86,side:34,size:121,cell:2,alpha:.43}]
+    {at:.86,side:34,size:121,cell:2,alpha:.43}],
+   // Long, restrained shale shelf with one woodland-softened shoulder.
+   [{at:.18,side:-38,size:162,cell:3,alpha:.53},
+    {at:.39,side:54,size:121,cell:3,alpha:.44},
+    {at:.68,side:-61,size:110,cell:2,alpha:.36},
+    {at:.87,side:42,size:90,cell:2,alpha:.28}],
+   // Open leaf-litter glade: broad fern understorey, isolated rock seams.
+   [{at:.19,side:56,size:126,cell:2,alpha:.34},
+    {at:.43,side:-57,size:153,cell:2,alpha:.44},
+    {at:.64,side:69,size:104,cell:3,alpha:.38},
+    {at:.88,side:-33,size:118,cell:2,alpha:.33}]
   ];
   for(const bank of sourceFallsBanks()){
    if(bank.step%8!==4)continue;
@@ -1689,9 +1699,12 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     // Full native square footprint, with extra intermediate stations to
     // keep a narrow bridge approach from slipping between sample points.
     let clear=true;
-    for(const fx of [-.46,-.23,0,.23,.46]){
-     for(const fy of [-.46,-.23,0,.23,.46]){
-      const sx=x+w*fx,sy=y-h*.68+h*fy;
+    // The source is drawn from y-.68h through y+.32h. Check that
+    // actual full destination rectangle (including its lower bank edge),
+    // not a second square centred above it as in the older sampling.
+    for(const fx of [-.49,-.245,0,.245,.49]){
+     for(const fy of [.01,.255,.5,.745,.99]){
+      const sx=x-w*.5+w*(fx+.5),sy=y-h*.68+h*fy;
       if(!forest(sx,sy)||geometry.waterAt(sx,sy,16)||
          geometry.nearRoad(sx,sy,()=>true,75)||
          geometry.obstacle(sx,sy,16)||footprint.blocked?.(sx,sy,16)){
@@ -1701,6 +1714,12 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
      if(!clear)break
     }
     if(!clear)continue;
+    // Prevent multiple source banks from stacking translucent square
+    // paintings into an opaque, artificial-looking rectangle. This is
+    // visual composition only and does not affect physical geometry.
+    if(paintedFootprints.some(q=>Math.abs(q.x-x)<(q.w+w)*.34&&
+      Math.abs(q.y-y)<(q.h+h)*.30))continue;
+    paintedFootprints.push({x,y,w,h});
     ctx.save();ctx.globalAlpha=p.alpha;
     ctx.translate(Math.round(x),Math.round(y));
     if(bank.side<0)ctx.scale(-1,1);
