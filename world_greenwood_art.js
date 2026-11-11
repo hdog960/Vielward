@@ -1503,7 +1503,10 @@ function create({footprint,geometry,model}={}){
     // Alternate a low broken-stone shelf, a fern-rich woodland shoulder,
     // and a tapered mossy outcrop; mirror by physical bank side below.
     // Every piece still passes the original nine-point dry-ground test.
-    const profile=(o.segment+Math.floor(o.step/11)+(o.side>0?1:0))%3;
+    // R51: five reach-scale silhouettes avoid the repeating three-bank rhythm.
+// Physical segment and bank side determine the stable pattern, never the
+// streamed chunk bounds; all pieces retain the original dry-footprint guard.
+const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0))%5;
     const profiles=[
      [
       {along:-124,out:14,size:158,cell:3,alpha:.60},
@@ -1523,6 +1526,22 @@ function create({footprint,geometry,model}={}){
       {along:-37,out:88,size:100,cell:2,alpha:.38},
       {along:54,out:7,size:185,cell:3,alpha:.58},
       {along:151,out:47,size:113,cell:2,alpha:.43}
+     ],
+     // A split boulder terrace with a sheltered fern pocket.
+     [
+      {along:-163,out:41,size:148,cell:3,alpha:.57},
+      {along:-77,out:105,size:96,cell:2,alpha:.36},
+      {along:8,out:30,size:122,cell:3,alpha:.62},
+      {along:84,out:82,size:119,cell:2,alpha:.51},
+      {along:156,out:13,size:106,cell:3,alpha:.41}
+     ],
+     // A low, fern-led bend with small intermittent stone shoulders.
+     [
+      {along:-149,out:73,size:132,cell:2,alpha:.55},
+      {along:-63,out:28,size:89,cell:3,alpha:.36},
+      {along:12,out:105,size:171,cell:2,alpha:.62},
+      {along:104,out:18,size:102,cell:3,alpha:.48},
+      {along:173,out:74,size:113,cell:2,alpha:.43}
      ]
     ];
     const parts=profiles[profile];
