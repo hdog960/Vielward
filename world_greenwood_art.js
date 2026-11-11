@@ -1488,25 +1488,55 @@ function create({footprint,geometry,model}={}){
     }
    }
    terraces++;
-   // Substantial R18 painted moss/fern banks attach to dry, genuinely
-   // walkable upper terrace. Keep composition sparse and varied rather
-   // than cloning hundreds of little green stamps.
+   // R48: the river's upper forest edge is a composed sequence of native
+   // painted moss, stone and fern clusters, rather than 315x147 squashed
+   // copies of one fern sheet. The dry-bank source and its tangent define
+   // each composition; every independently drawn crop checks its full
+   // footprint against the original river, road and physical obstacles.
    for(let i=3;i<run.length;i+=11){
-    const o=run[i],p=inset(o,104);
-    if(!inFrame(o)||geometry.waterAt(p.x,p.y,0)||
-       geometry.nearRoad(p.x,p.y,()=>true,130)||
-       footprint.blocked?.(p.x,p.y,18))continue;
-    const n=normal(o),scale=.90+hash(o.segment,i,o.side)*.21,
-     w=315*scale,h=147*scale;
-    ctx.save();ctx.globalAlpha=.57;
-    ctx.translate(Math.round(p.x),Math.round(p.y));
-    ctx.rotate?.(Math.atan2(n.y,n.x)*.11);
-    if(o.side<0)ctx.scale(-1,1);
-    ctx.imageSmoothingEnabled=true;
-    ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
-     Math.round(-w*.5),Math.round(-h*.77),
-     Math.round(w),Math.round(h));
-    ctx.restore();fernMasses++
+    const o=run[i],n=normal(o),t={x:-n.y,y:n.x};
+    const seed=Math.floor(hash(o.segment,o.step,o.side)*100003);
+    const base=inset(o,104);
+    if(!inFrame(o))continue;
+    const parts=[
+     {along:-72,out:0,size:145,cell:3,alpha:.49},
+     {along:24,out:38,size:164,cell:2,alpha:.65},
+     {along:112,out:12,size:118,cell:2,alpha:.40},
+     {along:-14,out:83,size:98,cell:3,alpha:.32}
+    ];
+    let composed=0;
+    for(const [j,part] of parts.entries()){
+     const jitter=(hash(seed,j,1451)-.5)*18;
+     const px=base.x+t.x*(part.along+jitter)+n.x*part.out;
+     const py=base.y+t.y*(part.along+jitter)+n.y*part.out;
+     const w=part.size*(.92+hash(seed,j,1453)*.16);
+     const h=w; // Original R18 paintings are square; never stretch them.
+     if(!inFrame({x:px,y:py}))continue;
+     let clear=true;
+     // Check corners, sides and centre of the actual painted footprint.
+     for(const fx of [-.48,0,.48]){
+      for(const fy of [-.48,0,.48]){
+       const x=px+fx*w,y=py-h*.78+fy*h;
+       if(!forest(x,y)||geometry.waterAt(x,y,18)||
+          geometry.nearRoad(x,y,()=>true,62)||
+          geometry.obstacle(x,y,18)||footprint.blocked?.(x,y,18)){
+        clear=false;break
+       }
+      }
+      if(!clear)break
+     }
+     if(!clear)continue;
+     ctx.save();ctx.globalAlpha=part.alpha;
+     ctx.translate(Math.round(px),Math.round(py));
+     if(o.side<0)ctx.scale(-1,1);
+     ctx.imageSmoothingEnabled=true;
+     ctx.drawImage(painted,PAINTED_SIZE*part.cell,0,
+      PAINTED_SIZE,PAINTED_SIZE,
+      Math.round(-w*.5),Math.round(-h*.78),
+      Math.round(w),Math.round(h));
+     ctx.restore();composed++
+    }
+    if(composed)fernMasses++
    }
   }
   // R42: compose the authentic dry-bank outcrops as staggered native
