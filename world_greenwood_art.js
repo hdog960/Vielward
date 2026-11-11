@@ -1684,11 +1684,49 @@ function create({footprint,geometry,model}={}){
     ctx.restore();paintedRock++;
    }
   }
-  // A single faint open apron is just the ground behind the REAL stairs.
-  ctx.save();ctx.beginPath();ctx.moveTo(cx-102,cy-123);
-  ctx.quadraticCurveTo(cx,cy-193,cx+105,cy-123);
-  ctx.strokeStyle="rgba(170,177,143,.12)";ctx.lineWidth=4;
-  ctx.stroke();ctx.restore();
+  // R46: retire the final geometric arc behind the stairs. Build a
+  // connected, asymmetrical woodland-to-stone ground transition beneath
+  // the original painted flanks. Each translucent pocket is a soft
+  // source-grounded pigment wash, never a new physical shelf or barrier.
+  // Nine-point clearance keeps the FULL wash away from roads, water,
+  // authored obstacles and the real central stair corridor.
+  if(ctx.createRadialGradient){
+   const groundShoulders=[
+    {dx:-365,dy:-114,rx:154,ry:73,shade:"rgba(30,61,46,.23)",
+     middle:"rgba(74,102,69,.12)",angle:-.12},
+    {dx:-254,dy:-76,rx:111,ry:59,shade:"rgba(66,87,70,.19)",
+     middle:"rgba(113,126,89,.085)",angle:.15},
+    {dx:339,dy:-139,rx:162,ry:88,shade:"rgba(27,59,49,.27)",
+     middle:"rgba(74,102,80,.13)",angle:.18},
+    {dx:236,dy:-90,rx:107,ry:53,shade:"rgba(72,90,75,.18)",
+     middle:"rgba(115,125,93,.08)",angle:-.11}
+   ];
+   for(const pocket of groundShoulders){
+    const x=cx+pocket.dx,y=cy+pocket.dy;
+    let clear=true;
+    for(const fx of [-.86,0,.86]){
+     for(const fy of [-.86,0,.86]){
+      const sx=x+fx*pocket.rx,sy=y+fy*pocket.ry;
+      if(footprint.regionAt(sx,sy)?.id!=="greenwood_falls"||
+         geometry.waterAt(sx,sy,12)||
+         geometry.nearRoad(sx,sy,()=>true,36)||
+         geometry.obstacle(sx,sy,12)){
+       clear=false;break
+      }
+     }
+     if(!clear)break
+    }
+    if(!clear)continue;
+    ctx.save();ctx.translate(x,y);ctx.rotate?.(pocket.angle);
+    ctx.scale(pocket.rx,pocket.ry);
+    const pigment=ctx.createRadialGradient(-.20,-.18,.03,0,0,1);
+    pigment.addColorStop(0,pocket.shade);
+    pigment.addColorStop(.52,pocket.middle);
+    pigment.addColorStop(1,"rgba(83,110,83,0)");
+    ctx.fillStyle=pigment;ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
+    ctx.fill();ctx.restore()
+   }
+  }
   return paintedRock||1
  }
 
