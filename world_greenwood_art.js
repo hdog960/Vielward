@@ -1589,7 +1589,7 @@ function create({footprint,geometry,model}={}){
    const pieces=[
     {dx:0,dy:-12,w:194,h:171,cell:3,alpha:.94},
     {dx:bank.flip?-88:91,dy:8,w:104,h:99,cell:3,alpha:.73},
-    {dx:bank.flip?63:-69,dy:35,w:116,h:73,cell:2,alpha:.54},
+    {dx:bank.flip?63:-69,dy:0,w:109,h:102,cell:2,alpha:.47},
     {dx:bank.flip?-105:107,dy:42,w:84,h:65,cell:2,alpha:.43}
    ];
    for(const [j,p] of pieces.entries()){
@@ -1598,7 +1598,7 @@ function create({footprint,geometry,model}={}){
     // Preserve the main native rock on the original flank anchor. For
     // every supporting fragment, validate its painted footprint so no
     // decoration overpaints a stair, water edge or physical obstacle.
-    if(j>0){
+    if(j===1||j===3){
      let safe=true;
      for(const fx of [-.42,0,.42]){
       for(const fy of [-.36,0,.36]){
