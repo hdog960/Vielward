@@ -49,9 +49,9 @@ vm.runInNewContext(src,host,{filename:"world_greenwood_art.js"});
  const origin=JSON.stringify(geo.roads),can=ctx();
  assert.equal(art.paintRoadVerges(can,[-200,-240,480,240]),1,
   "one genuine Greenwood road receives natural woodland verges");
- assert.ok(can.fills>=4,"both sides carry organic moss/forest-duff layers");
- assert.ok(can.gradients>=4,"all four source-bound ground bands feather into existing forest soil");
- assert.equal(art.stats().featheredRoadEdges,true);
+ assert.equal(can.fills,0,"road verges must not recreate the rejected continuous polygon bands");
+ assert.equal(can.gradients,0,"road verges must not recreate the rejected gradient rails");
+ assert.equal(art.stats().featheredRoadEdges,true,"source-ground feathering capability remains reported");
  assert.ok(images.length>=2,"roadside ground uses existing original fern painting");
  assert.equal(JSON.stringify(geo.roads),origin,"paint-only changes never alter geometry");
  assert.equal(art.paintRoadVerges(ctx(),[850,-200,1400,210]),0,
