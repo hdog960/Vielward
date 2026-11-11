@@ -4,7 +4,12 @@ const assert=require("node:assert/strict"),fs=require("node:fs");
 const read=f=>fs.readFileSync(f,"utf8");
 const a=read("world_greenwood_art.js"),route=read("world_routes.js");
 assert.ok(a.includes("nonGeometricBankBlendR35c:true"));
-assert.ok(a.includes('ctx.strokeStyle="rgba(43,77,58,.085)"'));
+assert.ok(!a.includes('ctx.strokeStyle="rgba(43,77,58,.085)"'),
+ "retired continuous contour stroke must not return");
+assert.ok(a.includes("const pieces=["),
+ "R42 source-native staggered stone/fern clusters must remain integrated");
+assert.ok(a.includes("geometry.obstacle(xx,yy,8)"),
+ "riverbank artwork must respect the real obstacle footprint");
 assert.ok(a.includes("const stone=ctx.createRadialGradient(0,0,.05,0,0,1)"));
 assert.ok(!a.includes("face.addColorStop("),"no heavy filled gorge face");
 assert.ok(!a.includes("smooth(upper.slice().reverse(),false)"),
