@@ -293,40 +293,11 @@ function create({footprint,geometry,model}={}){
     const nx=-dy/len,ny=dx/len;
     const steps=Math.max(3,Math.ceil(len/78));
     for(const side of [-1,1]){
-     function strip(near,far,col){
-      const nearPts=[],farPts=[];
-      for(let j=0;j<=steps;j++){
-       const t=j/steps,x=a[0]+dx*t,y=a[1]+dy*t;
-       const wiggle=(Math.sin(x*.013+y*.004+side*2.1)+
-        Math.cos(y*.019-x*.006+i))*.5*15;
-       const inner=hw+near+wiggle*.27,outer=hw+far+wiggle;
-       nearPts.push([x+nx*side*inner,y+ny*side*inner]);
-       farPts.push([x+nx*side*outer,y+ny*side*outer])
-      }
-      ctx.beginPath();
-      nearPts.forEach((p,j)=>j?ctx.lineTo(...p):ctx.moveTo(...p));
-      for(let j=farPts.length-1;j>=0;j--)ctx.lineTo(...farPts[j]);
-      ctx.closePath();
-      // Flat polygon-color verges read as dark geometric rails in the
-      // real gameplay capture. Fade both edges into the native illustrated
-      // forest ground instead, leaving natural branching irregularities.
-      let material=col;
-      if(typeof ctx.createLinearGradient==="function"){
-       const centreX=mx+nx*side*(hw+near),centreY=my+ny*side*(hw+near);
-       const outsideX=mx+nx*side*(hw+far),outsideY=my+ny*side*(hw+far);
-       const fade=ctx.createLinearGradient(centreX,centreY,outsideX,outsideY);
-       fade.addColorStop(0,"rgba(37,70,49,0)");
-       fade.addColorStop(.25,col);
-       fade.addColorStop(.59,col);
-       fade.addColorStop(1,"rgba(37,70,49,0)");
-       material=fade
-      }
-      ctx.fillStyle=material;ctx.fill()
-     }
-     // Two irregular, connected ground layers make the illustrated soil,
-     // woodland duff and source path merge instead of appearing as ribbons.
-     strip(14,182,"rgba(37,70,49,.25)");
-     strip(12,89,"rgba(44,87,54,.23)");
+     // The former 182-unit continuous translucent verge polygons produced
+     // long, artificial dark bands along real roads and could bleed into
+     // stream bends. Keep the native ground visible instead: the existing
+     // source-painted fern stamps below provide the only verge decoration,
+     // each individually checked against water, routes and obstacles.
      // Sparse painterly fern material grows only inside the SOURCE verges;
      // no invisible collisions or off-road free-standing decoration.
      if(painted&&ctx.drawImage){
