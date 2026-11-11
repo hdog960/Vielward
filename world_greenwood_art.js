@@ -1509,24 +1509,54 @@ function create({footprint,geometry,model}={}){
     ctx.restore();fernMasses++
    }
   }
-  // Preserve the R34 original source-painted rock outcrops. Larger
-  // transparent R18 masses soften their silhouettes into the terraces.
+  // R42: compose the authentic dry-bank outcrops as staggered native
+  // stone, lichen and fern clusters rather than identical isolated stamps.
+  // All painted pieces stay on their own verified source-bank land, away
+  // from bridge decks, road shoulders and physical water. These are
+  // transparent R18 paintings only: no new collision or terrain mesh.
   let rocks=0;
   for(let i=0;i<sources.length;i++){
    const o=sources[i];
    if(o.step%7!==3||!inFrame(o))continue;
-   const scale=.88+hash(o.segment,o.step,o.side)*.33;
-   const w=260*scale,h=128*scale;
-   ctx.save();ctx.globalAlpha=.64;
-   ctx.translate(Math.round(o.x),Math.round(o.y));
-   ctx.rotate?.(o.dir*.10);
-   if(o.side<0)ctx.scale(-1,1);
-   ctx.imageSmoothingEnabled=true;
-   ctx.drawImage(painted,PAINTED_SIZE*3,0,
-    PAINTED_SIZE,PAINTED_SIZE,
-    Math.round(-w*.5),Math.round(-h*.75),
-    Math.round(w),Math.round(h));
-   ctx.restore();rocks++
+   const n=normal(o),seed=Math.floor(hash(o.segment,o.step,o.side)*100003);
+   const scale=.78+hash(seed,10,1317)*.33;
+   const pieces=[
+    {depth:22,tangent:-37,w:238*scale,h:116*scale,cell:3,alpha:.69},
+    {depth:63,tangent:48,w:167*scale,h:94*scale,cell:3,alpha:.43},
+    {depth:99,tangent:-14,w:184*scale,h:103*scale,cell:2,alpha:.47}
+   ];
+   const tangent={x:-n.y,y:n.x};
+   for(const [j,piece] of pieces.entries()){
+    const px=o.x+n.x*piece.depth+tangent.x*piece.tangent,
+     py=o.y+n.y*piece.depth+tangent.y*piece.tangent;
+    const w=piece.w,h=piece.h;
+    if(!inFrame({x:px,y:py})||!forest(px,py))continue;
+    // Source artwork extends around its foot; reject any candidate whose
+    // sampled visible footprint reaches the river, roads or hard obstacles.
+    let clear=true;
+    for(const fx of [-.37,0,.37]){
+     for(const fy of [-.34,0,.34]){
+      const xx=px+w*fx,yy=py-h*.55+h*fy;
+      if(!forest(xx,yy)||geometry.waterAt(xx,yy,8)||
+         geometry.nearRoad(xx,yy,()=>true,35)||
+         geometry.obstacle(xx,yy,8)){
+       clear=false;break
+      }
+     }
+     if(!clear)break
+    }
+    if(!clear)continue;
+    ctx.save();ctx.globalAlpha=piece.alpha;
+    ctx.translate(Math.round(px),Math.round(py));
+    ctx.rotate?.((hash(seed,j,1321)-.5)*.18);
+    if(o.side<0)ctx.scale(-1,1);
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,PAINTED_SIZE*piece.cell,0,
+     PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(-w*.5),Math.round(-h*.75),
+     Math.round(w),Math.round(h));
+    ctx.restore();rocks++
+   }
   }
   return terraces+fernMasses+rocks
  }
