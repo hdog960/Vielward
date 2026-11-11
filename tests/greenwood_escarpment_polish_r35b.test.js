@@ -16,7 +16,15 @@ assert.ok(route.includes('dist+=112'),
  "natural source stair spacing must not revert to 45-unit rails");
 assert.ok(art.includes("sculptedBankContrastR35b:true"));
 assert.ok(art.includes("PAINTED_SIZE*2,0,"));
-assert.ok(art.includes('ctx.strokeStyle="rgba(43,77,58,.085)"'));
+// R41/R42 retired the rejected parallel shoreline contour rails.
+// Preserve the physical R35b stair treatment while requiring the native
+// staggered bank art and its obstacle checks.
+assert.ok(!art.includes('ctx.strokeStyle="rgba(43,77,58,.085)"'),
+ "rejected shoreline contour stroke must not return");
+assert.ok(art.includes("const pieces=["),
+ "source-native staggered bank artwork must remain integrated");
+assert.ok(art.includes("geometry.obstacle(xx,yy,8)"),
+ "riverbank art must respect source obstacle geometry");
 assert.ok(!art.includes('face.addColorStop(0,"rgba(21,44,45,.76)")'));
 assert.ok(art.includes("sourceFallsBanks()"));
 const footprint=JSON.parse(read("docs/overworld/outdoor_footprint.json"));
