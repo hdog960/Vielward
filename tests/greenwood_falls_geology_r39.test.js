@@ -84,6 +84,22 @@ for(const path of ["world_geometry.js","world_climate.js","world_footprint.js","
  assert.ok(riverLedges>=2,"native R18 rock drawn at real riverbank");
  assert.equal(art.paintFallsRiverNativeLedges(ctx(),[0,0,500,500]),0,
   "no river rock art outside physical river");
+ // R41: the genuine dry-bank escarpment is no longer painted as four
+ // broad parallel contour rails. The river painter instead places
+ // original R18 rock/fern fragments at individually verified source
+ // bank positions. This guards against reintroducing rejected stripes.
+ const bankSprites=[],bankStrokes=[];
+ const bankCtx={...ctx(),drawImage(...a){bankSprites.push(a)},
+  stroke(){bankStrokes.push(this.lineWidth||0)}};
+ const bankPass=art.paintFallsRiverBanks(bankCtx,riverBounds);
+ assert.ok(bankPass>=1,"source-bank artwork must remain visible");
+ assert.ok(bankSprites.some(a=>a[1]===384),
+  "original painted stone fragments replace the rejected broad rails");
+ assert.ok(bankSprites.every(a=>a.length===9),
+  "bank fragments use original unaltered transparent source crops");
+ assert.ok(bankStrokes.every(w=>w<80),
+  "no 85/116-unit continuous parallel bank rails");
+
  assert.ok(art.stats().fallsLowReliefSourceBedrockR39);
  assert.ok(art.stats().fallsRealRiverNativeLedgesR39);
  assert.equal(art.stats().physicsChanged,false);
