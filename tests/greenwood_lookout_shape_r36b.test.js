@@ -37,7 +37,10 @@ assert.ok(r("scripts/visual_capture.mjs").includes(
 // R44: additional lookout talus is source-authored, crop-sized and
 // independently rejected if any visible point overlaps real gameplay.
 assert.ok(a.includes("const talusGardens=["));
-assert.ok(a.includes("const crops=["));
+assert.ok(a.includes("const crops=garden.crops;"));
+assert.ok(a.includes("R45: two independently composed original-painted silhouettes"));
+assert.ok(a.includes("{dx:37,dy:-58,w:132,h:133,cell:3"));
+assert.ok(a.includes("{dx:-59,dy:-29,w:155,h:107,cell:3"));
 assert.ok(a.includes("geometry.nearRoad(sx,sy,()=>true,42)"));
 assert.ok(a.includes("geometry.obstacle(sx,sy,12)"));
 assert.ok(a.includes("footprint.regionAt(sx,sy)?.id!==\"greenwood_falls\""));
