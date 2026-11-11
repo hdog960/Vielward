@@ -872,7 +872,7 @@ try{
   throw Error("R36 true native-pixel Falls overlook failed "+JSON.stringify(r36));
  console.log("R36_ORIGINAL_ROCK_AND_FERN_OVERLOOK "+JSON.stringify(r36));
  await sleep(850);await capture(page,"GREENWOOD_R36_PAINTED_FALLS_OVERLOOK");
- // R36b: use the same REAL play scene to catch wide repetitive banding.
+ // R43: validate the REAL source-composed overlook (two banks with up to\n // four individual native crops each); the old exact-two count was tied\n // to a retired two-stamp renderer, not a visual-quality requirement.
  const r36b=await page.evaluate(()=>{
   const s=window.__veilwardCaptureStream,g=window.VeilwardGreenwoodArt.create({
    model:s.model,geometry:s.geometry,footprint:s.footprint});
@@ -884,7 +884,7 @@ try{
    walkable:!s.blocked(s.player.x,s.player.y),
    routes:s.routeArt.stats().roads,source:g.stats().paintedAssetReady}
  });
- if(!r36b.composed||r36b.drawn!==2||!r36b.walkable||
+ if(!r36b.composed||r36b.drawn<4||r36b.drawn>8||!r36b.walkable||
     !r36b.source||r36b.routes!==65)
   throw Error("R36b overlook artwork still repeated/disconnected "+JSON.stringify(r36b));
  console.log("R36B_NATIVE_SCULPTED_OVERLOOK "+JSON.stringify(r36b));
