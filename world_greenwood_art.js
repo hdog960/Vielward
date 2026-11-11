@@ -1571,82 +1571,57 @@ function create({footprint,geometry,model}={}){
   if(!ctx||hub?.kind!=="lookout"||
      footprint.regionAt(hub.x,hub.y)?.id!=="greenwood_falls")return 0;
   const cx=hub.x,cy=hub.y;
-  // R36b visual QA: the earlier four wide fern cutouts looked like
-  // horizontal stripes. TWO deliberately asymmetric, larger low-relief
-  // bank masses now support a full-height R18 stone painting each. Only
-  // small fern details adorn their grounded feet, never tiled ribbons.
-  // Both masses stay OUTSIDE the real stair's central walking corridor.
+  // R43: the two overlook flanks use ONLY the original R18 transparent
+  // painted geology, in an asymmetrical layered composition. The previous
+  // large filled Bezier shelves looked like primitive vector platforms.
+  // Keep the real stair axis clear and the original source lookout intact.
+  // These are entirely nonphysical images; no terrain, routes or collision.
   const banks=[
-   {dx:-286,dy:-150,rx:232,ry:128,rock:-268,scale:1.13,flip:false},
-   {dx:262,dy:-184,rx:196,ry:116,rock:248,scale:.88,flip:true}
+   {dx:-286,dy:-150,scale:1.13,flip:false,seed:31},
+   {dx:262,dy:-184,scale:.88,flip:true,seed:73}
   ];
   let paintedRock=0;
-  for(const [i,s] of banks.entries()){
-   const x=cx+s.dx,y=cy+s.dy;
-   if(Math.abs(s.dx)<130||geometry.waterAt(x,y,0))continue;
-   ctx.save();ctx.translate(x,y);
-   // First, a site-anchored, three-quarter-view gently eroded shelf.
-   // Soft bank silhouette and moss crest have NONRECTANGULAR edges;
-   // there is no square billboard, new trunk, wall or path collider.
-   ctx.beginPath();
-   ctx.moveTo(-s.rx*.96,s.ry*.12);
-   ctx.quadraticCurveTo(-s.rx*.88,-s.ry*.35,-s.rx*.56,-s.ry*.56);
-   ctx.quadraticCurveTo(-s.rx*.28,-s.ry*.86,s.rx*.05,-s.ry*.62);
-   ctx.quadraticCurveTo(s.rx*.42,-s.ry*.85,s.rx*.70,-s.ry*.39);
-   ctx.quadraticCurveTo(s.rx*1.00,-s.ry*.17,s.rx*.94,s.ry*.18);
-   ctx.quadraticCurveTo(s.rx*.42,s.ry*.42,-s.rx*.96,s.ry*.12);
-   ctx.closePath();
-   if(ctx.createLinearGradient){
-    const rock=ctx.createLinearGradient(-30,-s.ry,45,s.ry*.2);
-    rock.addColorStop(0,"rgba(105,129,103,.38)");
-    rock.addColorStop(.46,"rgba(66,89,79,.36)");
-    rock.addColorStop(.78,"rgba(49,72,67,.31)");
-    rock.addColorStop(1,"rgba(31,59,52,.07)");
-    ctx.fillStyle=rock;
-   }else ctx.fillStyle="rgba(73,95,79,.32)";
-   ctx.fill();
-   // Organic moss on upper shelf merges into original woodland tones,
-   // not an outlined cartoon boulder or an arc of square stones.
-   ctx.beginPath();
-   ctx.moveTo(-s.rx*.82,-s.ry*.29);
-   ctx.quadraticCurveTo(-s.rx*.52,-s.ry*.86,-s.rx*.20,-s.ry*.70);
-   ctx.quadraticCurveTo(s.rx*.17,-s.ry*1.01,s.rx*.53,-s.ry*.52);
-   ctx.quadraticCurveTo(s.rx*.73,-s.ry*.40,s.rx*.84,-s.ry*.19);
-   ctx.quadraticCurveTo(s.rx*.47,-s.ry*.35,s.rx*.12,-s.ry*.36);
-   ctx.quadraticCurveTo(-s.rx*.22,-s.ry*.28,-s.rx*.82,-s.ry*.29);
-   ctx.closePath();ctx.fillStyle="rgba(91,131,84,.26)";ctx.fill();
-   if(ctx.createRadialGradient){
-    const halo=ctx.createRadialGradient(0,s.ry*.13,.02,0,0,s.rx*.88);
-    halo.addColorStop(0,"rgba(37,71,51,.18)");
-    halo.addColorStop(.48,"rgba(75,102,68,.10)");
-    halo.addColorStop(1,"rgba(92,125,74,0)");
-    ctx.beginPath();ctx.ellipse?.(0,s.ry*.17,s.rx*.89,s.ry*.49,
-      0,0,Math.PI*2);
-    ctx.fillStyle=halo;ctx.fill();
-   }
-   ctx.restore();
-   if(painted&&ctx.drawImage){
-    const unit=PAINTED_SIZE,
-     stoneW=194*s.scale,stoneH=171*s.scale,
-     mossW=109*s.scale,mossH=102*s.scale;
-    // One full-height original R18 hand-painted stone mass per side.
-    ctx.save();ctx.globalAlpha=.92;ctx.imageSmoothingEnabled=true;
-    if(s.flip){ctx.translate(cx+s.rock,0);ctx.scale(-1,1);
-     ctx.drawImage(painted,unit*3,0,unit,unit,
-      -Math.round(stoneW*.5),Math.round(y-stoneH*.94),
-      Math.round(stoneW),Math.round(stoneH))
-    }else ctx.drawImage(painted,unit*3,0,unit,unit,
-      Math.round(cx+s.rock-stoneW*.5),Math.round(y-stoneH*.94),
-      Math.round(stoneW),Math.round(stoneH));
-    ctx.restore();
-    // A SMALL original native-pixel fern cluster remains at the foot,
-    // never a clone stretched into a 300px horizontal strip.
-    ctx.save();ctx.globalAlpha=.47;ctx.imageSmoothingEnabled=true;
-    const fernX=cx+s.rock+(s.flip?68:-67);
-    ctx.drawImage(painted,unit*2,0,unit,unit,
-     Math.round(fernX-mossW*.5),Math.round(y-mossH*.35),
-     Math.round(mossW),Math.round(mossH));
-    ctx.restore();paintedRock++
+  if(painted&&ctx.drawImage)for(const bank of banks){
+   const bx=cx+bank.dx,by=cy+bank.dy;
+   if(geometry.waterAt(bx,by,0))continue;
+   // Independent crops form a broken silhouette, not a stretched strip.
+   // Original R18 rock is cell 3, woodland fern/lichen is cell 2.
+   const pieces=[
+    {dx:0,dy:-12,w:194,h:171,cell:3,alpha:.94},
+    {dx:bank.flip?-88:91,dy:8,w:104,h:99,cell:3,alpha:.73},
+    {dx:bank.flip?63:-69,dy:35,w:116,h:73,cell:2,alpha:.54},
+    {dx:bank.flip?-105:107,dy:42,w:84,h:65,cell:2,alpha:.43}
+   ];
+   for(const [j,p] of pieces.entries()){
+    const x=bx+p.dx*bank.scale,y=by+p.dy*bank.scale;
+    const w=p.w*bank.scale,h=p.h*bank.scale;
+    // Preserve the main native rock on the original flank anchor. For
+    // every supporting fragment, validate its painted footprint so no
+    // decoration overpaints a stair, water edge or physical obstacle.
+    if(j>0){
+     let safe=true;
+     for(const fx of [-.42,0,.42]){
+      for(const fy of [-.36,0,.36]){
+       const sx=x+w*fx,sy=y-h*.47+h*fy;
+       if(footprint.regionAt(sx,sy)?.id!=="greenwood_falls"||
+          geometry.waterAt(sx,sy,10)||
+          geometry.nearRoad(sx,sy,()=>true,24)||
+          geometry.obstacle(sx,sy,10)){
+        safe=false;break
+       }
+      }
+      if(!safe)break
+     }
+     if(!safe)continue;
+    }
+    ctx.save();ctx.globalAlpha=p.alpha;
+    ctx.imageSmoothingEnabled=true;
+    ctx.translate(Math.round(x),Math.round(y));
+    if(bank.flip)ctx.scale(-1,1);
+    ctx.drawImage(painted,PAINTED_SIZE*p.cell,0,PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(-w*.5),Math.round(-h*.87),
+     Math.round(w),Math.round(h));
+    ctx.restore();paintedRock++;
    }
   }
   // A single faint open apron is just the ground behind the REAL stairs.
