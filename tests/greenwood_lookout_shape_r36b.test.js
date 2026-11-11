@@ -34,4 +34,12 @@ for(const p of ["index.html","sw.js"]){
 assert.ok(r("sw.js").includes("v1336-greenwood-escarpment-r35-r35b-r35c-r35d-r36-overlook-r36b"));
 assert.ok(r("scripts/visual_capture.mjs").includes(
  'capture(page,"GREENWOOD_R36B_SCULPTED_OVERLOOK")'));
+// R44: additional lookout talus is source-authored, crop-sized and
+// independently rejected if any visible point overlaps real gameplay.
+assert.ok(a.includes("const talusGardens=["));
+assert.ok(a.includes("const crops=["));
+assert.ok(a.includes("geometry.nearRoad(sx,sy,()=>true,42)"));
+assert.ok(a.includes("geometry.obstacle(sx,sy,12)"));
+assert.ok(a.includes("footprint.regionAt(sx,sy)?.id!==\"greenwood_falls\""));
+assert.ok(a.includes("if(!clear)continue;"));
 console.log("R36b PASS: site-composed asymmetric original native-pixel stone and fern banks, not stripe clones; source routes and saves unchanged");
