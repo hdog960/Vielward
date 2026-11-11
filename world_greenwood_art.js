@@ -1498,12 +1498,34 @@ function create({footprint,geometry,model}={}){
     const seed=Math.floor(hash(o.segment,o.step,o.side)*100003);
     const base=inset(o,104);
     if(!inFrame(o))continue;
-    const parts=[
-     {along:-72,out:0,size:145,cell:3,alpha:.49},
-     {along:24,out:38,size:164,cell:2,alpha:.65},
-     {along:112,out:12,size:118,cell:2,alpha:.40},
-     {along:-14,out:83,size:98,cell:3,alpha:.32}
+    // R50: three individually authored bank silhouettes. The same four
+    // identical fern/stone stamps on every reach read as a tiled shoreline.
+    // Alternate a low broken-stone shelf, a fern-rich woodland shoulder,
+    // and a tapered mossy outcrop; mirror by physical bank side below.
+    // Every piece still passes the original nine-point dry-ground test.
+    const profile=(o.segment+Math.floor(o.step/11)+(o.side>0?1:0))%3;
+    const profiles=[
+     [
+      {along:-124,out:14,size:158,cell:3,alpha:.60},
+      {along:-49,out:63,size:102,cell:2,alpha:.47},
+      {along:41,out:17,size:178,cell:3,alpha:.54},
+      {along:127,out:79,size:92,cell:2,alpha:.37}
+     ],
+     [
+      {along:-136,out:52,size:116,cell:2,alpha:.43},
+      {along:-68,out:9,size:164,cell:3,alpha:.50},
+      {along:15,out:93,size:172,cell:2,alpha:.64},
+      {along:106,out:38,size:133,cell:2,alpha:.49},
+      {along:160,out:94,size:82,cell:3,alpha:.31}
+     ],
+     [
+      {along:-112,out:31,size:128,cell:3,alpha:.49},
+      {along:-37,out:88,size:100,cell:2,alpha:.38},
+      {along:54,out:7,size:185,cell:3,alpha:.58},
+      {along:151,out:47,size:113,cell:2,alpha:.43}
+     ]
     ];
+    const parts=profiles[profile];
     let composed=0;
     for(const [j,part] of parts.entries()){
      const jitter=(hash(seed,j,1451)-.5)*18;
