@@ -1632,6 +1632,66 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   return terraces+fernMasses+rocks
  }
  
+
+ // R52: connect real Falls woodland roots to physically sourced riverbanks.
+ // Four asymmetrical native R18 crops per composition, no invented terrain.
+ function paintFallsWoodlandBankTransition(ctx,bounds){
+  if(!painted||!ctx?.drawImage||!fallsAnchor)return 0;
+  const roots=fallsRoots(bounds).filter(r=>r.authoredFallsGrove&&
+   (r.kind==="oak"||r.kind==="pine"));
+  if(!roots.length)return 0;
+  const used=new Set();let count=0;
+  for(const bank of sourceFallsBanks()){
+   if(bank.step%8!==4)continue;
+   const nearest=roots.reduce((best,r)=>{
+    const d=Math.hypot(r.x-bank.x,r.y-bank.y);
+    return d<(best?.d??Infinity)?{r,d}:best
+   },null);
+   if(!nearest||nearest.d<135||nearest.d>550)continue;
+   const key=nearest.r.id+":"+bank.side+":"+bank.segment;
+   if(used.has(key))continue;
+   used.add(key);
+   const dx=nearest.r.x-bank.x,dy=nearest.r.y-bank.y;
+   const tx=-dy/nearest.d,ty=dx/nearest.d;
+   const seed=Math.floor(hash(bank.segment,bank.step,bank.side)*100003);
+   const composition=[
+    {at:.28,side:-52,size:146,cell:3,alpha:.52},
+    {at:.48,side:48,size:126,cell:2,alpha:.47},
+    {at:.69,side:-22,size:112,cell:2,alpha:.40},
+    {at:.84,side:55,size:96,cell:3,alpha:.34}
+   ];
+   for(const [j,p] of composition.entries()){
+    const drift=(hash(seed,j,1521)-.5)*22;
+    const x=bank.x+dx*p.at+tx*(p.side+drift);
+    const y=bank.y+dy*p.at+ty*(p.side+drift);
+    const w=p.size*(.92+hash(seed,j,1523)*.16),h=w;
+    if(x<bounds[0]-w||x>bounds[2]+w||
+       y<bounds[1]-h||y>bounds[3]+h)continue;
+    let clear=true;
+    for(const fx of [-.46,0,.46]){
+     for(const fy of [-.46,0,.46]){
+      const sx=x+w*fx,sy=y-h*.68+h*fy;
+      if(!forest(sx,sy)||geometry.waterAt(sx,sy,16)||
+         geometry.nearRoad(sx,sy,()=>true,75)||
+         geometry.obstacle(sx,sy,16)||footprint.blocked?.(sx,sy,16)){
+       clear=false;break
+      }
+     }
+     if(!clear)break
+    }
+    if(!clear)continue;
+    ctx.save();ctx.globalAlpha=p.alpha;
+    ctx.translate(Math.round(x),Math.round(y));
+    if(bank.side<0)ctx.scale(-1,1);
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,PAINTED_SIZE*p.cell,0,PAINTED_SIZE,PAINTED_SIZE,
+     Math.round(-w*.5),Math.round(-h*.68),Math.round(w),Math.round(h));
+    ctx.restore();count++
+   }
+  }
+  return count
+ }
+
  // R36: the Falls overlook is NOT five grey rectangular pylons. It is
  // a quiet, original-art, low-profile moss/rock terrace with an open
  // central stair approach. All illustrations use the original R18
@@ -1948,6 +2008,7 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   }
   // R34: physically sourced moss/stone riverbanks beneath existing decks.
   paintFallsRiverBanks(ctx,bounds);
+  paintFallsWoodlandBankTransition(ctx,bounds);
   paintFallsRootedGorge(ctx,bounds);
   paintFallsComposedGround(ctx,bounds);
   paintFallsEscarpmentFloor(ctx,bounds);
