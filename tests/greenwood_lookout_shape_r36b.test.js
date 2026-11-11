@@ -6,10 +6,18 @@ const r=p=>fs.readFileSync(p,"utf8");
 const a=r("world_greenwood_art.js"),foot=r("world_footprint.js"),ill=r("world_illustration.js");
 assert.ok(a.includes("fallsLookoutReducedStripesR36b:true"));
 assert.ok(a.includes("const banks=["));
-assert.ok(a.includes("stoneW=194*s.scale,stoneH=171*s.scale"));
-assert.ok(a.includes("mossW=109*s.scale,mossH=102*s.scale"));
+// R43 replaces the old single stretched shelves with independent source
+// stone and fern crops. Verify the real current composition, not deleted
+// R36b scalar variable names or its retired vector shelf silhouette.
+assert.ok(a.includes("{dx:-286,dy:-150,scale:1.13,flip:false"));
+assert.ok(a.includes("{dx:262,dy:-184,scale:.88,flip:true"));
+assert.ok(a.includes("{dx:0,dy:-12,w:194,h:171,cell:3"));
+assert.ok(a.includes("w:109,h:102,cell:2"));
+assert.ok(a.includes("if(j===1||j===3)"));
+assert.ok(a.includes("geometry.nearRoad(sx,sy,()=>true,24)"));
+assert.ok(a.includes("geometry.waterAt(sx,sy,10)"));
+assert.ok(!a.includes("stoneW=194*s.scale,stoneH=171*s.scale"));
 assert.ok(!a.includes("mossW=290*s.scale,mossH=107*s.scale"));
-assert.ok(a.includes("ctx.quadraticCurveTo(-s.rx*.88,-s.ry*.35"));
 assert.ok(a.includes("ctx.drawImage(painted,unit*3,0,unit,unit"));
 assert.ok(a.includes("ctx.drawImage(painted,unit*2,0,unit,unit"));
 assert.ok(!foot.includes('if(h.kind==="watchtower"||h.kind==="lookout")'));
