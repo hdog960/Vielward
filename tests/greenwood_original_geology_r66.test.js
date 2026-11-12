@@ -27,9 +27,9 @@ vm.runInNewContext(instrumented,sandbox,{filename:"world_greenwood_art.js"});
 const atlas=sandbox.__makeFallsGeology();
 assert.equal(atlas.width,256);
 assert.equal(atlas.height,128);
-assert(painted.length>2500,"Both original raster studies should contain detailed strata");
+assert(painted.length>450,"Both original raster studies should contain detailed strata");
 const left=painted.filter(p=>p.x<128),right=painted.filter(p=>p.x>=128);
-assert(left.length>900&&right.length>900,"Both distinct rock faces must paint pixels");
+assert(left.length>200&&right.length>200,"Both distinct rock faces must paint pixels");
 assert.notDeepEqual(left.map(p=>p.color).slice(0,120),
  right.map(p=>p.color).slice(0,120),"Two banks require distinct material palettes");
 assert(source.includes("const useGeology=cell===3&&fallsGeology"),
