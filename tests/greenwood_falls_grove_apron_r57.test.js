@@ -10,4 +10,14 @@ for(const required of ["fallsRoots(bounds)","geometry.waterAt","geometry.nearRoa
 }
 assert.match(body,/for\(const fx of \[\.02,\.26,\.5,\.74,\.98\]\)/);
 assert.match(body,/for\(const fy of \[\.02,\.26,\.5,\.74,\.98\]\)/);
-console.log("R57 native grove apron source guards passed");
+
+// R58: three root-stable native woodland compositions, not a cloned row.
+assert.match(body,/const layouts=\[/);
+assert.match(body,/const profile=Math\.floor\(hash\(seed,dist,1581\)\*3\)/);
+assert.match(body,/const layout=layouts\[profile\]/);
+assert.match(body,/const \[t,offset,scale,source\]=layout\[k\]/);
+assert.match(body,/PAINTED_SIZE\*source/);
+assert.match(body,/source===3/);
+assert.equal((body.match(/\[\.\d+,[.-]?\.\d+,[.\d]+,[23]\]/g)||[]).length,21,
+ "Expected 21 deliberately composed fern/stone entries across three profiles");
+console.log("R57/R58 native grove composition guards passed");
