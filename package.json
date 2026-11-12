@@ -10,7 +10,7 @@
     "audit:greenwood-r50": "node tests/greenwood_riverbank_profiles_r50.test.js",
     "audit:greenwood-r52": "node tests/greenwood_woodland_bank_r52.test.js",
     "audit:greenwood-r55": "node tests/greenwood_bank_stream_r55.test.js",
-    "audit:greenwood-r57": "node tests/greenwood_falls_grove_apron_r57.test.js",
+    "audit:greenwood-r57": "node tests/greenwood_falls_grove_apron_r57.test.js && node tests/greenwood_falls_stair_shoulders_r59.test.js",
     "audit:world": "node tests/overworld_phase1_audit.test.js",
     "audit:topology": "node tests/overworld_phase2_topology.test.js",
     "render:world-map": "node scripts/render_overworld_blueprint.js",
