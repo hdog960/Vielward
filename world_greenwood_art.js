@@ -982,14 +982,29 @@ function create({footprint,geometry,model}={}){
     }
    }
    if(!safe)continue;
+   // R58: three differentiated, connected woodland silhouettes. Native
+   // R18 fern/stone paintings form an irregular foreground/middle/rear
+   // composition between *existing* physical roots, not a repeated row.
+   // World-root hashes keep the same arrangement across streamed chunks.
    const seed=Math.floor(hash(a.x,b.y,1571)*100003);
-   for(let k=0;k<5;k++){
-    const t=.14+k*.18,side=(k%2?1:-1)*(25+hash(seed,k,1573)*18);
-    const x=a.x+(b.x-a.x)*t+nx*side;
-    const y=a.y+(b.y-a.y)*t+ny*side;
-    const w=92+hash(seed,k,1575)*56,h=w;
+   const profile=Math.floor(hash(seed,dist,1581)*3);
+   const layouts=[
+    [[.11,-.72,1.15,2],[.24,.45,.82,2],[.36,-.20,1.02,3],
+     [.49,.77,1.27,2],[.63,-.64,.90,3],[.76,.12,1.12,2],[.88,.58,.73,2]],
+    [[.12,.48,.84,3],[.26,-.66,1.23,2],[.39,.15,.95,2],
+     [.53,-.37,1.30,3],[.66,.72,.86,2],[.79,-.14,1.08,2],[.90,.41,.71,3]],
+    [[.10,-.35,1.00,2],[.22,.71,.76,3],[.34,-.72,1.29,2],
+     [.48,.16,1.06,2],[.61,.61,.88,3],[.74,-.49,1.22,2],[.89,.22,.83,2]]
+   ];
+   const layout=layouts[profile];
+   for(let k=0;k<layout.length;k++){
+    const [t,offset,scale,source]=layout[k];
+    const lateral=offset*(34+hash(seed,k,1573)*22);
+    const x=a.x+(b.x-a.x)*t+nx*lateral;
+    const y=a.y+(b.y-a.y)*t+ny*lateral;
+    const w=(88+hash(seed,k,1575)*44)*scale,h=w;
+    // Protect the actual destination footprint, not just its centre.
     let clear=true;
-    // Validate the actual painted square, including its river-facing foot.
     for(const fx of [.02,.26,.5,.74,.98]){
      for(const fy of [.02,.26,.5,.74,.98]){
       const px=x-w*.5+w*fx,py=y-h*.72+h*fy;
@@ -1003,9 +1018,12 @@ function create({footprint,geometry,model}={}){
     }
     if(!clear||x+w<bounds[0]||x-w>bounds[2]||
        y+h<bounds[1]||y-h>bounds[3])continue;
-    ctx.save();ctx.globalAlpha=k%2?.38:.29;
+    ctx.save();
+    ctx.globalAlpha=source===3?.41:.29+hash(seed,k,1591)*.13;
     ctx.imageSmoothingEnabled=true;
-    ctx.drawImage(painted,PAINTED_SIZE*(k===2?3:2),0,
+    // Stone accents and fern foliage have different natural silhouette
+    // sizes; neither changes terrain or creates any collision.
+    ctx.drawImage(painted,PAINTED_SIZE*source,0,
      PAINTED_SIZE,PAINTED_SIZE,Math.round(x-w*.5),
      Math.round(y-h*.72),Math.round(w),Math.round(h));
     ctx.restore();count++
