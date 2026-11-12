@@ -120,6 +120,72 @@ function shrubs(ctx,variant){
  }
 }
 let atlas=null,painted=null,paintedError=null,paintedPromise=null;
+// R66 original authored pixel geology: two independent 128x128 stone/lichen
+// studies for the genuine Falls overlook. Drawn into a transparent raster
+// canvas with deliberately stepped silhouettes, not generic vector platforms.
+// Only visual; never contributes a collider, path, or physical elevation.
+let fallsGeology=null;
+function makeFallsGeology(){
+ if(typeof document==="undefined")return null;
+ const canvas=document.createElement("canvas");
+ canvas.width=256;canvas.height=128;
+ const c=canvas.getContext("2d");if(!c)return null;
+ c.imageSmoothingEnabled=false;
+ const studies=[
+  {ridge:[77,70,67,61,58,60,53,49,51,57,55,62,65,69,75,82],
+   base:[116,116,117,120,122,120,119,117,120,121,120,118,116,114,112,111],
+   face:["#344642","#4c5950","#657164","#7c8170","#a4a28a"],
+   moss:["#334b37","#4a6747","#739263","#a3ae7b"]},
+  {ridge:[84,81,73,68,63,58,55,59,62,54,49,56,60,66,70,79],
+   base:[112,114,115,118,119,122,123,121,118,120,118,115,114,112,111,108],
+   face:["#3a4145","#50595a","#69716c","#87877a","#aba68d"],
+   moss:["#2b483c","#42664a","#64845b","#9eac7d"]}
+ ];
+ const pixel=(x,y,w,h,color)=>{
+  c.fillStyle=color;c.fillRect(Math.round(x),Math.round(y),Math.max(1,w),Math.max(1,h))
+ };
+ for(let variant=0;variant<2;variant++){
+  const p=studies[variant],ox=variant*128;
+  // A stepped, sloping fractured stone face with irregular bottom contour.
+  for(let col=0;col<16;col++){
+   const top=p.ridge[col],bottom=p.base[col];
+   for(let y=top;y<bottom;y+=4){
+    const strata=Math.floor((y-top)/4),shade=
+     Math.max(0,Math.min(4,Math.floor((bottom-y)/15)+
+      (hash(col,strata,variant*73+19)>.65?1:0)));
+    pixel(ox+col*8,y,8,Math.min(4,bottom-y),p.face[shade]);
+    if(hash(col,strata,variant*97+41)>.77)
+     pixel(ox+col*8+2,y+1,3,1,p.face[Math.max(0,shade-1)])
+   }
+   // Broken upper edge: thin sunlit exposed stone, no straight top rail.
+   pixel(ox+col*8,top,8,2,p.face[4]);
+   if(col%3===1)pixel(ox+col*8+2,top+3,3,2,p.face[2]);
+  }
+  // Two nonmirrored, independently drawn fracture networks.
+  const cracks=variant===0?
+   [[16,76,9],[25,86,12],[56,65,14],[65,78,11],[93,73,18],[106,92,9]]:
+   [[14,91,12],[40,79,17],[49,96,11],[79,71,16],[101,67,14],[117,85,12]];
+  for(const [x,y,h] of cracks){
+   pixel(ox+x,y,2,h,p.face[0]);pixel(ox+x+2,y+Math.floor(h*.5),5,2,p.face[1]);
+   pixel(ox+x-2,y+3,2,5,p.face[2])
+  }
+  // Dense but discontinuous lichen colonies; each is small pixel clusters.
+  const colonies=variant===0?
+   [[13,81],[35,74],[47,91],[77,64],[86,88],[110,76],[118,99]]:
+   [[10,97],[29,83],[53,73],[68,91],[92,70],[105,94],[120,86]];
+  for(let i=0;i<colonies.length;i++){
+   const [x,y]=colonies[i];
+   for(let k=0;k<19;k++){
+    const dx=Math.floor((hash(i,k,variant+18)-.5)*20);
+    const dy=Math.floor((hash(k,i,variant+29)-.5)*13);
+    const col=p.moss[Math.floor(hash(k,i,variant+45)*4)];
+    pixel(ox+x+dx,y+dy,2+(k%3),1+(k%2),col)
+   }
+  }
+ }
+ return canvas
+}
+
 const PAINTED_SIZE=128,PAINTED_FILES=[
  "./assets/greenwood_oak_r18.avif?v=1",
  "./assets/greenwood_pine_r18.avif?v=1",
@@ -160,7 +226,7 @@ function loadPainted(){
      counts[Math.floor((i/4)%canvas.width/PAINTED_SIZE)]++;
     if(counts.some(n=>n<1400))throw Error("Blank source cell: "+counts.join(","));
    }
-   painted=canvas;paintedError=null;return true
+   painted=canvas;fallsGeology=makeFallsGeology();paintedError=null;return true
   }catch(err){
    paintedError="Greenwood painted atlas rejected: "+String(err);
    console.warn(paintedError);return false
@@ -2190,7 +2256,14 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     ctx.globalAlpha=alpha;ctx.imageSmoothingEnabled=true;
     ctx.translate(Math.round(x),Math.round(y));
     if(bank.side>0&&i%3===1)ctx.scale(-1,1);
-    ctx.drawImage(painted,cell*PAINTED_SIZE,0,PAINTED_SIZE,PAINTED_SIZE,
+    // R66: original pixel-authored, asymmetric bedrock silhouettes anchor
+    // the two largest rock shoulders; original R18 art remains elsewhere.
+    const useGeology=cell===3&&fallsGeology&&
+      ((bank.side<0&&(i===0||i===4))||(bank.side>0&&(i===0||i===5)));
+    if(useGeology)ctx.drawImage(fallsGeology,
+     (bank.side<0?0:128),0,128,128,
+     Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
+    else ctx.drawImage(painted,cell*PAINTED_SIZE,0,PAINTED_SIZE,PAINTED_SIZE,
      Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
     ctx.restore();count++
    }
