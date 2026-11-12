@@ -13,7 +13,7 @@ assert.ok(a.includes("{dx:-286,dy:-150,scale:1.13,flip:false"));
 assert.ok(a.includes("{dx:262,dy:-184,scale:.88,flip:true"));
 assert.ok(a.includes("{dx:0,dy:-12,w:194,h:171,cell:3"));
 assert.ok(a.includes("w:109,h:102,cell:2"));
-assert.ok(a.includes("if(j===1||j===3)"));
+// R60 validates every painted bank crop, including the two main rocks.\nassert.ok(a.includes("for(const [j,p] of pieces.entries())"));\nassert.ok(a.includes("for(const fx of [.02,.26,.5,.74,.98])"));\nassert.ok(a.includes("for(const fy of [.02,.26,.5,.74,.98])"));\nassert.ok(a.includes("const sx=x-w*.5+w*fx,sy=y-h*.87+h*fy;"));\nassert.ok(a.includes("if(!safe)continue;"));
 assert.ok(a.includes("geometry.nearRoad(sx,sy,()=>true,24)"));
 assert.ok(a.includes("geometry.waterAt(sx,sy,10)"));
 assert.ok(!a.includes("stoneW=194*s.scale,stoneH=171*s.scale"));
