@@ -2064,6 +2064,42 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   return paintedRock||1
  }
 
+ // R62: one world-anchored source-land stencil for every forest-floor light
+ // layer, including rooted canopy shade and old-growth sunlight. The stencil
+ // is visual-only and cannot alter the source's path/collision geometry.
+ function withDryForestClip(ctx,x,y,r,paint){
+  const step=32;
+  const minX=Math.floor((x-r)/step)*step;
+  const minY=Math.floor((y-r)/step)*step;
+  ctx.save();ctx.beginPath();
+  let accepted=0;
+  for(let yy=minY;yy<y+r;yy+=step)
+   for(let xx=minX;xx<x+r;xx+=step){
+    if(Math.hypot(xx+16-x,yy+16-y)>r+step)continue;
+    let dry=true;
+    for(const dy of [4,16,28]){
+     for(const dx of [4,16,28]){
+      const px=xx+dx,py=yy+dy;
+      if(!forest(px,py)||geometry.waterAt(px,py,4)||
+         geometry.nearRoad(px,py,()=>true,4)||
+         geometry.obstacle(px,py,4)||
+         footprint.blocked?.(px,py,4)){dry=false;break}
+     }
+     if(!dry)break
+    }
+    if(!dry)continue;
+    if(typeof ctx.rect==="function")ctx.rect(xx,yy,step,step);
+    else{
+     ctx.moveTo(xx,yy);ctx.lineTo(xx+step,yy);
+     ctx.lineTo(xx+step,yy+step);ctx.lineTo(xx,yy+step);
+     ctx.closePath()
+    }
+    accepted++
+   }
+  if(accepted){ctx.clip();paint()}
+  ctx.restore();
+  return accepted
+ }
  function paintForestFloor(ctx,bounds){
   let count=0;
   // R17b: continuous forest-floor pools fill the entire SOURCE Greenwood
@@ -2193,20 +2229,22 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
      // world-anchored volume. The old circular gradient was painted inside
      // an ellipse, creating abrupt oval edges rather than a soft fade.
      // Keep the light entirely decorative and within the R40z road guards.
-     ctx.save();
-     ctx.translate(x,y);
-     ctx.rotate(theta*.12);
-     ctx.scale(1,.59);
-     const glow=ctx.createRadialGradient(-spread*.18,-spread*.25,3,
-      0,0,spread);
-     glow.addColorStop(0,k===0?"rgba(195,197,128,.19)":"rgba(154,176,112,.13)");
-     glow.addColorStop(.48,"rgba(130,156,101,.07)");
-     glow.addColorStop(1,"rgba(99,137,93,0)");
-     ctx.fillStyle=glow;
-     ctx.beginPath();
-     ctx.arc(0,0,spread,0,Math.PI*2);
-     ctx.fill();
-     ctx.restore()
+     withDryForestClip(ctx,x,y,spread*1.15,()=>{
+      ctx.save();
+      ctx.translate(x,y);
+      ctx.rotate(theta*.12);
+      ctx.scale(1,.59);
+      const glow=ctx.createRadialGradient(-spread*.18,-spread*.25,3,
+       0,0,spread);
+      glow.addColorStop(0,k===0?"rgba(195,197,128,.19)":"rgba(154,176,112,.13)");
+      glow.addColorStop(.48,"rgba(130,156,101,.07)");
+      glow.addColorStop(1,"rgba(99,137,93,0)");
+      ctx.fillStyle=glow;
+      ctx.beginPath();
+      ctx.arc(0,0,spread,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore()
+     })
     }
    }
   }
@@ -2234,9 +2272,10 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     shade.addColorStop(.42,"rgba(33,69,44,.19)");
     shade.addColorStop(.80,"rgba(67,104,65,.065)");
     shade.addColorStop(1,"rgba(72,107,67,0)");
-    ctx.save();ctx.fillStyle=shade;
-    ctx.fillRect(o.x-reach,o.y-reach,reach*2,reach*2);
-    ctx.restore()
+    withDryForestClip(ctx,o.x,o.y,reach,()=>{
+     ctx.fillStyle=shade;
+     ctx.fillRect(o.x-reach,o.y-reach,reach*2,reach*2)
+    })
    }
    const sun=ctx.createRadialGradient?.(
     o.x-r*1.15,o.y-r*1.38,5,o.x-r*.35,o.y-r*.55,reach*.83);
@@ -2244,9 +2283,10 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     sun.addColorStop(0,"rgba(201,193,123,.105)");
     sun.addColorStop(.60,"rgba(159,176,106,.04)");
     sun.addColorStop(1,"rgba(160,179,111,0)");
-    ctx.save();ctx.fillStyle=sun;
-    ctx.fillRect(o.x-reach,o.y-reach,reach*2,reach*2);
-    ctx.restore()
+    withDryForestClip(ctx,o.x,o.y,reach,()=>{
+     ctx.fillStyle=sun;
+     ctx.fillRect(o.x-reach,o.y-reach,reach*2,reach*2)
+    })
    }
    // Real painted fern mats replace tiny detached pixel flecks.
    count++
