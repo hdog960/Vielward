@@ -1044,8 +1044,15 @@ function create({footprint,geometry,model}={}){
    shade.addColorStop(.48,"rgba(40,75,47,.15)");
    shade.addColorStop(.85,"rgba(74,113,66,.045)");
    shade.addColorStop(1,"rgba(76,113,66,0)");
-   ctx.save();ctx.fillStyle=shade;
-   ctx.fillRect(px-rx,py-rx,rx*2,rx*2);
+   // R63: the complete old-growth gorge shadow is a dry-ground
+   // material, not a translucent bridge across the actual river/road.
+   // The same world-aligned stencil used by the woodland floor keeps
+   // this broad root shadow off crossings and physical obstructions.
+   withDryForestClip(ctx,px,py,rx,()=>{
+    ctx.fillStyle=shade;
+    ctx.fillRect(px-rx,py-rx,rx*2,rx*2);
+   });
+   ctx.save();
    // R40ap: ground the existing Falls root in an irregular, native
    // illustrated fern/lichen skirt. Three individually clear source-art
    // fragments follow the tree's real foot rather than repeating one
@@ -1576,13 +1583,17 @@ function create({footprint,geometry,model}={}){
      if(!inFrame(o)||geometry.waterAt(p.x,p.y,0)||
         geometry.nearRoad(p.x,p.y,()=>true,115))continue;
      const span=220+hash(o.segment,i,o.side)*65;
-     ctx.save();ctx.translate(p.x,p.y);ctx.scale(span,span*.43);
-     const stone=ctx.createRadialGradient(0,0,.05,0,0,1);
-     stone.addColorStop(0,"rgba(53,84,68,.15)");
-     stone.addColorStop(.43,"rgba(80,108,80,.095)");
-     stone.addColorStop(1,"rgba(91,119,84,0)");
-     ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
-     ctx.fillStyle=stone;ctx.fill();ctx.restore()
+     // R63: terrace pigment belongs to the dry native bank only.
+     // Clip the whole elliptical gradient, not just its centre point.
+     withDryForestClip(ctx,p.x,p.y,span,()=>{
+      ctx.save();ctx.translate(p.x,p.y);ctx.scale(span,span*.43);
+      const stone=ctx.createRadialGradient(0,0,.05,0,0,1);
+      stone.addColorStop(0,"rgba(53,84,68,.15)");
+      stone.addColorStop(.43,"rgba(80,108,80,.095)");
+      stone.addColorStop(1,"rgba(91,119,84,0)");
+      ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);
+      ctx.fillStyle=stone;ctx.fill();ctx.restore()
+     })
     }
    }
    terraces++;
