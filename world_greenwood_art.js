@@ -1188,27 +1188,41 @@ function create({footprint,geometry,model}={}){
   if(a&&b){
    const dx=b[0]-a[0],dy=b[1]-a[1],
     len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len;
-   for(let k=0;k<8;k++){
-    const t=.48+k*.064;
-    for(const side of [-1,1]){
-     const off=167+(k%3)*26,
-      px=a[0]+dx*t+nx*off*side,
-      py=a[1]+dy*t+ny*off*side;
-     if(!visible(px,py,190)||!forest(px,py)||
-        geometry.waterAt(px,py,40)||geometry.obstacle(px,py,30)||
-        geometry.nearRoad(px,py,()=>true,45))continue;
-     const range=130+(k%3)*15,
-      moss=ctx.createRadialGradient(px,py-18,5,px,py,range);
-     moss.addColorStop(0,"rgba(42,77,51,.26)");
-     moss.addColorStop(.60,"rgba(68,105,64,.11)");
-     moss.addColorStop(1,"rgba(74,114,72,0)");
-     ctx.save();ctx.fillStyle=moss;
-     ctx.fillRect(px-range,py-range,range*2,range*2);
-     const w=114+(k%3)*9,h=w*.92;
-     ctx.globalAlpha=.54;ctx.imageSmoothingEnabled=true;
-     ctx.drawImage(painted,PAINTED_SIZE*2,0,PAINTED_SIZE,PAINTED_SIZE,
-      Math.round(px-w*.5),Math.round(py-h*.80),
-      Math.round(w),Math.round(h));
+   // R59: compose both shoulders as staggered, unequal groups instead
+   // of sixteen regularly spaced identical fern stamps. Each native
+   // painting is checked across its actual destination footprint.
+   const shoulderProfiles=[
+    [[.49,194,116,2],[.61,246,86,3],[.76,183,134,2],[.88,259,98,3]],
+    [[.54,223,142,3],[.67,180,96,2],[.79,267,125,2],[.93,209,82,3]]
+   ];
+   for(const side of [-1,1]){
+    const profile=shoulderProfiles[side<0?0:1];
+    for(const [t,offset,size,source] of profile){
+     const px=a[0]+dx*t+nx*offset*side,
+      py=a[1]+dy*t+ny*offset*side;
+     if(!visible(px,py,size))continue;
+     const left=px-size*.5,top=py-size*.80;
+     let clear=true;
+     for(const fy of [.02,.26,.5,.74,.98]){
+      for(const fx of [.02,.26,.5,.74,.98]){
+       const sx=left+size*fx,sy=top+size*fy;
+       if(!forest(sx,sy)||geometry.waterAt(sx,sy,24)||
+          geometry.obstacle(sx,sy,24)||
+          geometry.nearRoad(sx,sy,()=>true,50)||
+          footprint.blocked?.(sx,sy,18)){
+        clear=false;break
+       }
+      }
+      if(!clear)break
+     }
+     if(!clear)continue;
+     // The ground tint belongs to the same verified painting footprint,
+     // rather than an unmasked gradient that could bleed into the river.
+     ctx.save();ctx.globalAlpha=source===3?.48:.60;
+     ctx.imageSmoothingEnabled=true;
+     ctx.drawImage(painted,PAINTED_SIZE*source,0,
+      PAINTED_SIZE,PAINTED_SIZE,
+      Math.round(left),Math.round(top),size,size);
      ctx.restore();count++
     }
    }
