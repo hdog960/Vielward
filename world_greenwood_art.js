@@ -2080,21 +2080,51 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     if(!forest(cx,cy)||geometry.waterAt(cx,cy,50))continue;
     const r=240+hash(gx,gy,133)*200;
     if(typeof ctx.createRadialGradient==="function"){
+     // R61: a center-land check is insufficient for a 480–880-unit
+     // watercolor footprint. Clip BOTH light and shadow to source-ground
+     // cells before painting, so no tint crosses the actual river, roads,
+     // bridges or authored solid objects. This mask is purely visual.
+     // A fixed world grid avoids seams when the world streams in chunks.
+     const step=32,firstX=Math.floor((cx-r)/step)*step,
+      firstY=Math.floor((cy-r)/step)*step;
+     ctx.save();ctx.beginPath();
+     let landCells=0;
+     for(let yy=firstY;yy<cy+r;yy+=step)
+      for(let xx=firstX;xx<cx+r;xx+=step){
+       const mx=xx+step*.5,my=yy+step*.5;
+       if(Math.hypot(mx-cx,my-cy)>r+step)continue;
+       let dry=true;
+       for(const dy of [4,step*.5,step-4]){
+        for(const dx of [4,step*.5,step-4]){
+         const px=xx+dx,py=yy+dy;
+         if(!forest(px,py)||geometry.waterAt(px,py,4)||
+            geometry.nearRoad(px,py,()=>true,4)||
+            geometry.obstacle(px,py,4)||
+            footprint.blocked?.(px,py,4)){
+          dry=false;break
+         }
+        }
+        if(!dry)break
+       }
+       if(dry){ctx.rect(xx,yy,step,step);landCells++}
+      }
+     if(landCells)ctx.clip();
      const dark=ctx.createRadialGradient(cx-54,cy-29,16,cx,cy,r);
      dark.addColorStop(0,"rgba(29,65,47,.31)");
      dark.addColorStop(.30,"rgba(41,79,54,.23)");
      dark.addColorStop(.66,"rgba(75,108,68,.12)");
      dark.addColorStop(1,"rgba(77,112,69,0)");
-     ctx.save();ctx.fillStyle=dark;
-     ctx.fillRect(cx-r,cy-r,r*2,r*2);ctx.restore();
+     if(landCells){ctx.fillStyle=dark;
+      ctx.fillRect(cx-r,cy-r,r*2,r*2)}
      const offsetX=r*.32,offsetY=-r*.41;
      const light=ctx.createRadialGradient(cx+offsetX,cy+offsetY,6,
       cx+offsetX,cy+offsetY,r*.75);
      light.addColorStop(0,"rgba(216,198,125,.17)");
      light.addColorStop(.42,"rgba(180,189,112,.075)");
      light.addColorStop(1,"rgba(180,189,112,0)");
-     ctx.save();ctx.fillStyle=light;
-     ctx.fillRect(cx-r,cy-r,r*2,r*2);ctx.restore()
+     if(landCells){ctx.fillStyle=light;
+      ctx.fillRect(cx-r,cy-r,r*2,r*2)}
+     ctx.restore()
     }
     // R20 removes detached repeated ground confetti; grounded vegetation
     // comes from source trees in one cohesive canvas pass below.
