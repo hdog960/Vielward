@@ -6,7 +6,8 @@ const model=JSON.parse(read("docs/overworld/world_blueprint.json"));
 const data=JSON.parse(read("docs/overworld/terrain_geometry.json"));
 const fp=JSON.parse(read("docs/overworld/outdoor_footprint.json"));
 let images=[];
-const ctx=()=>({globalAlpha:1,save(){},restore(){},translate(){},scale(){},
+let dryClipCount=0;
+const ctx=()=>({globalAlpha:1,save(){},restore(){},clip(){dryClipCount++},rect(){},translate(){},scale(){},
  beginPath(){},closePath(){},arc(){},ellipse(){},moveTo(){},lineTo(){},
  quadraticCurveTo(){},fill(){},stroke(){},fillRect(){},clearRect(){},
  drawImage(...a){images.push(a)},
@@ -104,6 +105,7 @@ for(const path of ["world_geometry.js","world_climate.js","world_footprint.js","
  assert.ok(art.stats().fallsRealRiverNativeLedgesR39);
  assert.equal(art.stats().physicsChanged,false);
 
+ assert.ok(dryClipCount>0,"source-ground forest and gorge washes must use real Canvas clipping");
  assert.ok(terrain>=2&&canopy>=1,"native understory and canopy");
  assert.ok(images.some(a=>a[1]===256),"native R18 fern art");
  assert.ok(images.some(a=>a[1]===0||a[1]===128),"native R18 tree crown art");
