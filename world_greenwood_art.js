@@ -1888,22 +1888,25 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     // Preserve the main native rock on the original flank anchor. For
     // every supporting fragment, validate its painted footprint so no
     // decoration overpaints a stair, water edge or physical obstacle.
-    if(j===1||j===3){
-     let safe=true;
-     for(const fx of [-.42,0,.42]){
-      for(const fy of [-.36,0,.36]){
-       const sx=x+w*fx,sy=y-h*.47+h*fy;
-       if(footprint.regionAt(sx,sy)?.id!=="greenwood_falls"||
-          geometry.waterAt(sx,sy,10)||
-          geometry.nearRoad(sx,sy,()=>true,24)||
-          geometry.obstacle(sx,sy,10)){
-        safe=false;break
-       }
+    // Every crop, including the two dominant rock masses, must clear
+    // its ACTUAL painted destination. Previously the large core and
+    // lichen layer skipped checks entirely, allowing visible shoreline
+    // and stair overpaint despite clear supporting fragments.
+    let safe=true;
+    for(const fx of [.02,.26,.5,.74,.98]){
+     for(const fy of [.02,.26,.5,.74,.98]){
+      const sx=x-w*.5+w*fx,sy=y-h*.87+h*fy;
+      if(footprint.regionAt(sx,sy)?.id!=="greenwood_falls"||
+         geometry.waterAt(sx,sy,10)||
+         geometry.nearRoad(sx,sy,()=>true,24)||
+         geometry.obstacle(sx,sy,10)||
+         footprint.blocked?.(sx,sy,10)){
+       safe=false;break
       }
-      if(!safe)break
      }
-     if(!safe)continue;
+     if(!safe)break
     }
+    if(!safe)continue;
     ctx.save();ctx.globalAlpha=p.alpha;
     ctx.imageSmoothingEnabled=true;
     ctx.translate(Math.round(x),Math.round(y));
