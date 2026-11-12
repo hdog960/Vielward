@@ -186,6 +186,69 @@ function makeFallsGeology(){
  return canvas
 }
 
+
+/* R67: four independently composed pixel-canopy paintings for the original
+ * Greenwood Falls overlook. These are transparent material sprites, not
+ * physical trees, and are clipped by the existing authoritative land mask.
+ * Each silhouette is drawn at source resolution with hard pixel edges.
+ */
+let fallsCanopies=null;
+function makeFallsCanopies(){
+ if(typeof document==="undefined")return null;
+ const sheet=document.createElement("canvas");
+ sheet.width=512;sheet.height=128;
+ const c=sheet.getContext("2d");if(!c)return null;
+ c.imageSmoothingEnabled=false;
+ const forms=[
+  {lobes:[[29,67,25,20],[48,48,29,25],[76,38,27,26],[103,57,24,24],[65,73,39,27]],trunk:68,seed:13},
+  {lobes:[[19,66,18,27],[39,49,20,30],[60,31,18,29],[84,51,23,33],[108,74,19,25]],trunk:65,seed:37},
+  {lobes:[[26,51,24,24],[49,31,26,22],[82,43,29,29],[104,66,20,21],[57,77,38,24]],trunk:58,seed:59},
+  {lobes:[[21,77,19,21],[38,53,25,28],[64,40,22,31],[91,31,20,26],[105,65,23,27],[70,79,36,22]],trunk:75,seed:83}
+ ];
+ const palette=["#182c2b","#234138","#305746","#416c50","#5d845b","#7e9d6c","#aabd82"];
+ function pix(x,y,w,h,col){c.fillStyle=col;c.fillRect(x|0,y|0,Math.max(1,w|0),Math.max(1,h|0))}
+ for(let v=0;v<4;v++){
+  const f=forms[v],ox=v*128;
+  // Connected old-growth trunk and angled boughs behind the crown.
+  for(let y=80;y<125;y+=3){
+   const sway=Math.floor(Math.sin((125-y)*.055+v)*3);
+   pix(ox+f.trunk+sway-5,y,12,3,y%9===0?"#856e4f":"#423d34");
+   pix(ox+f.trunk+sway-3,y,2,3,"#a18b65")
+  }
+  for(let j=0;j<4;j++){
+   const l=f.lobes[j],x=f.trunk+(l[0]-f.trunk)*.55;
+   for(let t=0;t<7;t++){
+    const bx=Math.round(x+(l[0]-x)*t/7),by=Math.round(102+(l[1]-102)*t/7);
+    pix(ox+bx-3,by,7,4,"#403b31")
+   }
+  }
+  // Silhouettes are irregular pixel clusters, not circles or vector polygons.
+  for(let j=0;j<f.lobes.length;j++){
+   const [cx,cy,rx,ry]=f.lobes[j];
+   for(let yy=Math.max(3,cy-ry-5);yy<Math.min(115,cy+ry+5);yy+=3)
+    for(let xx=Math.max(2,cx-rx-5);xx<Math.min(126,cx+rx+5);xx+=3){
+     const edge=(Math.pow((xx-cx)/rx,2)+Math.pow((yy-cy)/ry,2));
+     const irregular=(hash(xx+j*17,yy+f.seed,j)*.34-.17);
+     if(edge>1+irregular)continue;
+     const sun=(cy-yy)/ry*.22+hash(xx,yy,f.seed)*.75;
+     const shade=sun>.79?6:sun>.62?5:sun>.45?4:sun>.30?3:2;
+     pix(ox+xx,yy,3+(hash(yy,xx,j)>.85?2:0),3,palette[shade]);
+     if(hash(xx,yy,f.seed+41)>.91)
+      pix(ox+xx+1,yy,2,1,palette[Math.min(6,shade+1)]);
+    }
+  }
+  // Exposed rim twigs and separated mossy root toes.
+  for(let j=0;j<11;j++){
+   const x=9+Math.floor(hash(j,f.seed,2)*107);
+   const y=24+Math.floor(hash(f.seed,j,3)*47);
+   if(hash(j,f.seed,4)>.44)pix(ox+x,y,2,5,palette[5])
+  }
+  pix(ox+f.trunk-12,119,13,4,"#4b4a37");
+  pix(ox+f.trunk+4,121,17,3,"#655c40")
+ }
+ return sheet
+}
+
 const PAINTED_SIZE=128,PAINTED_FILES=[
  "./assets/greenwood_oak_r18.avif?v=1",
  "./assets/greenwood_pine_r18.avif?v=1",
@@ -226,7 +289,7 @@ function loadPainted(){
      counts[Math.floor((i/4)%canvas.width/PAINTED_SIZE)]++;
     if(counts.some(n=>n<1400))throw Error("Blank source cell: "+counts.join(","));
    }
-   painted=canvas;fallsGeology=makeFallsGeology();paintedError=null;return true
+   painted=canvas;fallsGeology=makeFallsGeology();fallsCanopies=makeFallsCanopies();paintedError=null;return true
   }catch(err){
    paintedError="Greenwood painted atlas rejected: "+String(err);
    console.warn(paintedError);return false
@@ -2263,7 +2326,12 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     if(useGeology)ctx.drawImage(fallsGeology,
      (bank.side<0?0:128),0,128,128,
      Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
-    else ctx.drawImage(painted,cell*PAINTED_SIZE,0,PAINTED_SIZE,PAINTED_SIZE,
+    else if(cell<2&&fallsCanopies){
+     // Each bank has its own distinct canopy profile and crown density.
+     const variant=bank.side<0?(i%2===0?0:2):(i%2===0?3:1);
+     ctx.drawImage(fallsCanopies,variant*128,0,128,128,
+      Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
+    }else ctx.drawImage(painted,cell*PAINTED_SIZE,0,PAINTED_SIZE,PAINTED_SIZE,
      Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
     ctx.restore();count++
    }
