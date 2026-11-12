@@ -949,6 +949,70 @@ function create({footprint,geometry,model}={}){
    o.authoredFallsGrove&&["oak","pine"].includes(o.kind)&&
    !geometry.waterAt(o.x,o.y,10)).sort((x,y)=>x.y-y.y)
  }
+ // R57: source-rooted Falls woodland apron. Connect existing authored
+ // grove trunks with native painted undergrowth, not invented tree roots.
+ function paintFallsGroveApron(ctx,bounds){
+  if(!painted||!ctx?.drawImage||!fallsAnchor)return 0;
+  const roots=fallsRoots(bounds),seen=new Set();let count=0;
+  for(let i=0;i<roots.length;i++){
+   const a=roots[i];
+   let nearest=null,dist=Infinity;
+   for(let j=i+1;j<roots.length;j++){
+    const b=roots[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+    if(d>180&&d<460&&d<dist){nearest=b;dist=d}
+   }
+   if(!nearest)continue;
+   const b=nearest,key=[a.id,b.id].sort().join(":");
+   if(seen.has(key))continue;seen.add(key);
+   const nx=-(b.y-a.y)/dist,ny=(b.x-a.x)/dist;
+   const midx=(a.x+b.x)*.5,midy=(a.y+b.y)*.5;
+   if(Math.abs(midx-fallsAnchor.x)<210&&
+      Math.abs(midy-fallsAnchor.y)<450)continue;
+   // Check the complete corridor before allowing a connected bed.
+   let safe=true;
+   for(let k=0;k<=12&&safe;k++){
+    const t=k/12,x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;
+    for(const off of [-32,0,32]){
+     const px=x+nx*off,py=y+ny*off;
+     if(!forest(px,py)||geometry.waterAt(px,py,18)||
+        geometry.nearRoad(px,py,()=>true,55)||
+        geometry.obstacle(px,py,22)||footprint.blocked?.(px,py,22)){
+      safe=false;break
+     }
+    }
+   }
+   if(!safe)continue;
+   const seed=Math.floor(hash(a.x,b.y,1571)*100003);
+   for(let k=0;k<5;k++){
+    const t=.14+k*.18,side=(k%2?1:-1)*(25+hash(seed,k,1573)*18);
+    const x=a.x+(b.x-a.x)*t+nx*side;
+    const y=a.y+(b.y-a.y)*t+ny*side;
+    const w=92+hash(seed,k,1575)*56,h=w;
+    let clear=true;
+    // Validate the actual painted square, including its river-facing foot.
+    for(const fx of [.02,.26,.5,.74,.98]){
+     for(const fy of [.02,.26,.5,.74,.98]){
+      const px=x-w*.5+w*fx,py=y-h*.72+h*fy;
+      if(!forest(px,py)||geometry.waterAt(px,py,16)||
+         geometry.nearRoad(px,py,()=>true,48)||
+         geometry.obstacle(px,py,18)||footprint.blocked?.(px,py,18)){
+       clear=false;break
+      }
+     }
+     if(!clear)break
+    }
+    if(!clear||x+w<bounds[0]||x-w>bounds[2]||
+       y+h<bounds[1]||y-h>bounds[3])continue;
+    ctx.save();ctx.globalAlpha=k%2?.38:.29;
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(painted,PAINTED_SIZE*(k===2?3:2),0,
+     PAINTED_SIZE,PAINTED_SIZE,Math.round(x-w*.5),
+     Math.round(y-h*.72),Math.round(w),Math.round(h));
+    ctx.restore();count++
+   }
+  }
+  return count
+ }
  function paintFallsRootedGorge(ctx,bounds){
   if(!painted||!ctx?.drawImage||!ctx?.createRadialGradient)return 0;
   let count=0;
@@ -2072,6 +2136,7 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   // R34: physically sourced moss/stone riverbanks beneath existing decks.
   paintFallsRiverBanks(ctx,bounds);
   paintFallsWoodlandBankTransition(ctx,bounds);
+  paintFallsGroveApron(ctx,bounds);
   paintFallsRootedGorge(ctx,bounds);
   paintFallsComposedGround(ctx,bounds);
   paintFallsEscarpmentFloor(ctx,bounds);
