@@ -38,6 +38,15 @@ for(const path of ["world_geometry.js","world_climate.js",
  assert.ok(images.some(i=>i[1]===256),"native painted forest moss");
  assert.equal(painter.paintFallsOverlook(ctx(),{...h,kind:"watchtower"}),0);
  assert.equal(painter.paintFallsOverlook(ctx(),{...h,x:0,y:0}),0);
+ // R60: dominant original-painted rock and moss crops must obey the same
+ // full destination clearance as secondary fragments, including blocked
+ // ground. The previously exempt core could overpaint the actual river.
+ const renderer=read("world_greenwood_art.js");
+ assert.ok(renderer.includes("for(const fx of [.02,.26,.5,.74,.98])"));
+ assert.ok(renderer.includes("for(const fy of [.02,.26,.5,.74,.98])"));
+ assert.ok(renderer.includes("footprint.blocked?.(sx,sy,10)"));
+ assert.ok(!renderer.includes("if(j===1||j===3)"),
+  "no unguarded dominant overlook crop");
  assert.ok(painter.stats().fallsOriginalLookoutR36);
  assert.ok(footprint.stats().fallsPlaceholderPylonsRemovedR36);
  assert.equal(painter.stats().creatorApproved,false);
