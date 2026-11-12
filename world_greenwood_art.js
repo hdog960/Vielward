@@ -249,6 +249,80 @@ function makeFallsCanopies(){
  return sheet
 }
 
+/* R68: three independent, transparent, 128px bank-material paintings.
+ * Pebble talus, fractured shale and fern-root shelves are authored in pixel
+ * clusters, rather than repeatedly stretching the same R18 boulder.
+ * They are scenic, never collision or replacement river geometry.
+ */
+let fallsBankStudies=null;
+function makeFallsBankStudies(){
+ if(typeof document==="undefined")return null;
+ const sheet=document.createElement("canvas");
+ sheet.width=384;sheet.height=128;
+ const c=sheet.getContext("2d");if(!c)return null;
+ c.imageSmoothingEnabled=false;
+ const profiles=[
+  {top:[78,73,69,72,63,59,64,56,61,67,63,70,74,72,79,83],
+   bottom:[105,108,111,115,117,119,116,121,122,119,117,115,112,110,108,105],
+   rock:["#283f3d","#415650","#65746a","#879187","#b5b49b"],
+   green:["#294e3b","#44734d","#73945b","#b2b784"],seed:17},
+  {top:[88,83,76,69,66,72,61,57,53,60,68,64,72,79,82,87],
+   bottom:[107,111,114,117,121,119,122,124,123,120,119,117,115,113,109,106],
+   rock:["#2c3d45","#4b5c61","#6c7775","#92958a","#c0bba4"],
+   green:["#304d40","#526e4b","#799366","#adb57b"],seed:43},
+  {top:[83,77,73,69,74,68,63,70,66,61,64,70,73,78,80,85],
+   bottom:[109,113,115,118,120,122,119,117,122,121,118,117,113,112,108,106],
+   rock:["#35423c","#4d6050","#6b7965","#969984","#b8b79a"],
+   green:["#274b37","#416b44","#6b8c54","#a4b87a"],seed:71}
+ ];
+ function pixel(x,y,w,h,color){c.fillStyle=color;
+  c.fillRect(x|0,y|0,Math.max(1,w|0),Math.max(1,h|0))}
+ for(let v=0;v<3;v++){
+  const p=profiles[v],ox=v*128;
+  for(let col=0;col<16;col++){
+   const top=p.top[col],bottom=p.bottom[col];
+   for(let y=top;y<bottom;y+=3){
+    const band=Math.min(4,Math.max(0,Math.floor((bottom-y)/13)+
+     (hash(col,y,p.seed)>.66?1:0)));
+    pixel(ox+col*8,y,8,Math.min(3,bottom-y),p.rock[band]);
+    if(hash(col,y,p.seed+5)>.72)
+     pixel(ox+col*8+2,y+1,3,1,p.rock[Math.max(0,band-1)]);
+   }
+   pixel(ox+col*8,top,8,2,p.rock[4]);
+   if(col%3===v)pixel(ox+col*8+3,top+4,2,7,p.rock[0]);
+  }
+  // Nonrepeating fractures, moss and layered rootlets.
+  for(let i=0;i<12;i++){
+   const x=7+Math.floor(hash(i,p.seed,3)*113);
+   const col=Math.min(15,Math.floor(x/8));
+   const y=p.top[col]+8+Math.floor(hash(i,p.seed,7)*19);
+   pixel(ox+x,y,2,5+Math.floor(hash(i,p.seed,9)*11),p.rock[0]);
+   pixel(ox+x+2,y+5,5,2,p.rock[1]);
+  }
+  for(let i=0;i<58;i++){
+   const x=3+Math.floor(hash(i,p.seed,17)*121),col=Math.min(15,Math.floor(x/8));
+   const y=p.top[col]+2+Math.floor(hash(p.seed,i,19)*20);
+   if(y>=p.bottom[col]-2)continue;
+   const green=p.green[Math.floor(hash(i,p.seed,23)*4)];
+   pixel(ox+x,y,2+i%3,1+i%2,green);
+  }
+  // Three differently rooted fern crowns, staggered along the upper ledge.
+  const crowns=v===0?[[21,78],[66,62],[107,76]]:
+   v===1?[[13,84],[53,67],[95,67]]:[[32,75],[78,66],[113,78]];
+  for(let i=0;i<3;i++){
+   const [x,y]=crowns[i];
+   pixel(ox+x,y,2,17,p.green[0]);
+   for(let k=0;k<8;k++){
+    const yy=y+2+k*2;
+    const reach=3+Math.floor((8-k)*.83);
+    pixel(ox+x-reach,yy,reach,2,p.green[k%3+1]);
+    pixel(ox+x+2,yy-1,reach-1,2,p.green[(k+1)%3+1]);
+   }
+  }
+ }
+ return sheet
+}
+
 const PAINTED_SIZE=128,PAINTED_FILES=[
  "./assets/greenwood_oak_r18.avif?v=1",
  "./assets/greenwood_pine_r18.avif?v=1",
@@ -289,7 +363,7 @@ function loadPainted(){
      counts[Math.floor((i/4)%canvas.width/PAINTED_SIZE)]++;
     if(counts.some(n=>n<1400))throw Error("Blank source cell: "+counts.join(","));
    }
-   painted=canvas;fallsGeology=makeFallsGeology();fallsCanopies=makeFallsCanopies();paintedError=null;return true
+   painted=canvas;fallsGeology=makeFallsGeology();fallsCanopies=makeFallsCanopies();fallsBankStudies=makeFallsBankStudies();paintedError=null;return true
   }catch(err){
    paintedError="Greenwood painted atlas rejected: "+String(err);
    console.warn(paintedError);return false
@@ -1500,14 +1574,17 @@ function create({footprint,geometry,model}={}){
    ctx.save();ctx.fillStyle=bank;
    ctx.fillRect(o.x-w,o.y-w,w*2,w*2);
    ctx.globalAlpha=.53;ctx.imageSmoothingEnabled=true;
+   // R68: different painted bank strata for each real geological reach.
+   // Source-ground selection and crossing clearance remain unchanged.
+   const source=fallsBankStudies||painted;
+   const sourceCell=fallsBankStudies?
+    ((o.segment*7+o.step+Math.max(0,o.side))%3)*128:PAINTED_SIZE*3;
    if(o.side<0){
     ctx.translate(Math.round(o.x),0);ctx.scale(-1,1);
-    ctx.drawImage(painted,PAINTED_SIZE*3,0,
-     PAINTED_SIZE,PAINTED_SIZE,
+    ctx.drawImage(source,sourceCell,0,128,128,
      -Math.round(w*.5),Math.round(o.y-h*.78),
      Math.round(w),Math.round(h));
-   }else ctx.drawImage(painted,PAINTED_SIZE*3,0,
-     PAINTED_SIZE,PAINTED_SIZE,
+   }else ctx.drawImage(source,sourceCell,0,128,128,
      Math.round(o.x-w*.5),Math.round(o.y-h*.78),
      Math.round(w),Math.round(h));
    ctx.restore();
@@ -2330,6 +2407,11 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
      // Each bank has its own distinct canopy profile and crown density.
      const variant=bank.side<0?(i%2===0?0:2):(i%2===0?3:1);
      ctx.drawImage(fallsCanopies,variant*128,0,128,128,
+      Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
+    }else if(cell===2&&fallsBankStudies){
+     // Distinct shale/fern materials bind the gallery to the real riverbank.
+     const variant=(i+(bank.side>0?2:0))%3;
+     ctx.drawImage(fallsBankStudies,variant*128,0,128,128,
       Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
     }else ctx.drawImage(painted,cell*PAINTED_SIZE,0,PAINTED_SIZE,PAINTED_SIZE,
      Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
