@@ -2146,31 +2146,51 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     const left=x-w*.5,top=y-h*.82;
     if(left>bounds[2]+120||left+w<bounds[0]-120||
        top>bounds[3]+120||top+h<bounds[1]-120)continue;
-    // The center and a 5x5 crop footprint must all be genuine dry
-    // Greenwood forest, outside rivers, roads, crossings and colliders.
-    let safe=true;
-    for(const fy of [.04,.26,.5,.74,.96]){
-     for(const fx of [.04,.26,.5,.74,.96]){
-      const px=left+w*fx,py=top+h*fy;
-      if(footprint.regionAt(px,py)?.id!=="greenwood_falls"||
-         !footprint.onLand(px,py)||
-         geometry.waterAt(px,py,12)||
-         geometry.nearRoad(px,py,()=>true,42)||
-         geometry.obstacle(px,py,12)||
-         footprint.blocked?.(px,py,12)){
-       safe=false;break
+    // R65: the old 25-point all-or-nothing veto silently discarded whole
+    // large painted compositions when even one fringe touched a road.
+    // Keep the source land/route protection, but clip each painting to
+    // accepted 24px dry-ground cells. A crop can now grow naturally up to
+    // the real bank without erasing paths or inventing physical geometry.
+    // The mask is world-aligned, so streamed camera chunks never shift it.
+    const step=24;
+    const x0=Math.floor(left/step)*step,y0=Math.floor(top/step)*step;
+    let accepted=0;
+    ctx.save();ctx.beginPath();
+    for(let yy=y0;yy<top+h;yy+=step){
+     for(let xx=x0;xx<left+w;xx+=step){
+      const cellLeft=Math.max(xx,left),cellTop=Math.max(yy,top);
+      const cellRight=Math.min(xx+step,left+w),cellBottom=Math.min(yy+step,top+h);
+      if(cellRight<=cellLeft||cellBottom<=cellTop)continue;
+      let dry=true;
+      for(const fy of [.15,.5,.85]){
+       for(const fx of [.15,.5,.85]){
+        const px=cellLeft+(cellRight-cellLeft)*fx;
+        const py=cellTop+(cellBottom-cellTop)*fy;
+        if(footprint.regionAt(px,py)?.id!=="greenwood_falls"||
+           !footprint.onLand(px,py)||
+           geometry.waterAt(px,py,9)||
+           geometry.nearRoad(px,py,()=>true,24)||
+           geometry.obstacle(px,py,9)||
+           footprint.blocked?.(px,py,9)){dry=false;break}
+       }
+       if(!dry)break
       }
+      if(!dry)continue;
+      if(typeof ctx.rect==="function")ctx.rect(cellLeft,cellTop,cellRight-cellLeft,cellBottom-cellTop);
+      else{
+       ctx.moveTo(cellLeft,cellTop);ctx.lineTo(cellRight,cellTop);
+       ctx.lineTo(cellRight,cellBottom);ctx.lineTo(cellLeft,cellBottom);ctx.closePath()
+      }
+      accepted++
      }
-     if(!safe)break
     }
-    if(!safe)continue;
-    // Rock is the visual foundation; independent foliage/crown crops
-    // make the two sides read as asymmetrical connected forest masses.
-    ctx.save();ctx.globalAlpha=alpha;ctx.imageSmoothingEnabled=true;
+    if(!accepted){ctx.restore();continue}
+    ctx.clip();
+    // Crop artwork remains native original R18 pixels, not generated shapes.
+    ctx.globalAlpha=alpha;ctx.imageSmoothingEnabled=true;
     ctx.translate(Math.round(x),Math.round(y));
     if(bank.side>0&&i%3===1)ctx.scale(-1,1);
-    const srcH=cell<2?PAINTED_SIZE:PAINTED_SIZE;
-    ctx.drawImage(painted,cell*PAINTED_SIZE,0,PAINTED_SIZE,srcH,
+    ctx.drawImage(painted,cell*PAINTED_SIZE,0,PAINTED_SIZE,PAINTED_SIZE,
      Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
     ctx.restore();count++
    }
