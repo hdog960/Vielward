@@ -2331,6 +2331,7 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   ctx.restore();
   return accepted
  }
+ // R70: extended with two six-crown, staggered native-pixel woodland skyline groups.
  // R64: a single hand-composed native-art landscape around the REAL Falls
  // overlook. Two distinct banks carry large painted rock shelves, staggered
  // fern gardens and old-growth boughs. Every crop is source-cleared, including
@@ -2348,14 +2349,24 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     [-242,-40,218,142,2,.75],[-73,-51,268,167,2,.82],
     [-329,92,181,118,3,.65],[-131,126,219,142,2,.70],
     [-279,-292,275,156,0,.82],[-66,-341,233,133,1,.79],
-    [-401,-110,183,127,2,.60],[-8,47,157,110,3,.68]
+    [-401,-110,183,127,2,.60],[-8,47,157,110,3,.68],
+    // R70: connected upper woodland skyline; six independent crown
+    // silhouettes layer behind the west shale shoulder and never add solids.
+    [-440,-410,328,278,0,.93],[-170,-474,288,249,1,.88],
+    [96,-434,305,262,0,.86],[-352,-562,253,224,1,.83],
+    [-38,-590,272,237,0,.81],[-514,-258,224,195,1,.76]
    ]},
    {side:1,baseX:478,baseY:-242,items:[
     [94,-224,313,228,3,.90],[-75,-187,228,158,3,.82],
     [212,-60,242,165,2,.74],[-32,-17,272,177,2,.84],
     [303,76,189,135,3,.68],[69,134,227,151,2,.74],
     [202,-345,248,144,1,.83],[-44,-306,283,163,0,.82],
-    [342,-133,172,119,2,.63],[-141,78,167,116,3,.68]
+    [342,-133,172,119,2,.63],[-141,78,167,116,3,.68],
+    // R70: independently staggered eastern woodland wall, with gaps
+    // between crown heights and the original stairs left source-clear.
+    [440,-424,319,281,1,.92],[142,-484,296,254,0,.87],
+    [-137,-438,318,265,1,.85],[339,-578,258,222,0,.82],
+    [22,-607,278,236,1,.79],[518,-276,228,191,0,.75]
    ]}
   ];
   let count=0;
