@@ -2106,7 +2106,19 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
         }
         if(!dry)break
        }
-       if(dry){ctx.rect(xx,yy,step,step);landCells++}
+       if(dry){
+        // Canvas path rectangles are optional in the lightweight Node
+        // regression context. Draw the identical closed square using the
+        // universal path primitives when rect() is absent; the browser
+        // continues to use its native rect() implementation.
+        if(typeof ctx.rect==="function")ctx.rect(xx,yy,step,step);
+        else{
+         ctx.moveTo(xx,yy);ctx.lineTo(xx+step,yy);
+         ctx.lineTo(xx+step,yy+step);ctx.lineTo(xx,yy+step);
+         ctx.closePath()
+        }
+        landCells++
+       }
       }
      if(landCells)ctx.clip();
      const dark=ctx.createRadialGradient(cx-54,cy-29,16,cx,cy,r);
