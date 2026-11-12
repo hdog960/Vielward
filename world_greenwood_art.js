@@ -1551,65 +1551,79 @@ function create({footprint,geometry,model}={}){
   if(!painted||!ctx?.drawImage||!ctx?.createRadialGradient)return 0;
   const sources=sourceFallsBanks(),seen=new Set();
   let count=0;
-  // R39b: choose the FIRST *valid* dry source within each ten-step
-  // geological reach. The initial R39 seventh-index shortcut skipped
-  // many physically verified anchors and contributed no visible ledge.
-  // Group only AFTER clearance: no invalid river location can consume
-  // a group's original painted rock source slot.
+  // R69: each river reach is one source-grounded material composition,
+  // not a procession of identical centered boulder stamps. The three
+  // independently authored R68 shale studies overlap in staggered tiers
+  // around the original dry-bank anchor. No new world objects are added.
   for(const o of sources){
    const key=o.segment+":"+o.side+":"+Math.floor(o.step/10);
    if(seen.has(key))continue;
-   if(o.x<bounds[0]-210||o.x>bounds[2]+210||
-      o.y<bounds[1]-210||o.y>bounds[3]+210||
+   if(o.x<bounds[0]-320||o.x>bounds[2]+320||
+      o.y<bounds[1]-300||o.y>bounds[3]+300||
       geometry.waterAt(o.x,o.y,0)||
       geometry.nearRoad(o.x,o.y,()=>true,115))continue;
    seen.add(key);
-   const w=158+hash(o.segment,o.step,o.side)*47,
-    h=w*.57;
-   const bank=ctx.createRadialGradient(o.x,o.y-h*.22,5,
-    o.x,o.y,w*.72);
-   bank.addColorStop(0,"rgba(39,72,62,.23)");
-   bank.addColorStop(.72,"rgba(73,109,85,.08)");
+   const vx=o.x-o.wx,vy=o.y-o.wy;
+   const len=Math.hypot(vx,vy)||1,nx=vx/len,ny=vy/len;
+   const tx=-ny,ty=nx,seed=o.segment*131+o.step*17+o.side*7;
+   const w=180+hash(seed,4,1601)*62;
+   const bank=ctx.createRadialGradient(o.x,o.y-35,6,o.x,o.y,w*.90);
+   bank.addColorStop(0,"rgba(32,63,52,.26)");
+   bank.addColorStop(.65,"rgba(63,100,77,.10)");
    bank.addColorStop(1,"rgba(77,112,87,0)");
-   ctx.save();ctx.fillStyle=bank;
-   ctx.fillRect(o.x-w,o.y-w,w*2,w*2);
-   ctx.globalAlpha=.53;ctx.imageSmoothingEnabled=true;
-   // R68: different painted bank strata for each real geological reach.
-   // Source-ground selection and crossing clearance remain unchanged.
-   const source=fallsBankStudies||painted;
-   const sourceCell=fallsBankStudies?
-    ((o.segment*7+o.step+Math.max(0,o.side))%3)*128:PAINTED_SIZE*3;
-   if(o.side<0){
-    ctx.translate(Math.round(o.x),0);ctx.scale(-1,1);
-    ctx.drawImage(source,sourceCell,0,128,128,
-     -Math.round(w*.5),Math.round(o.y-h*.78),
-     Math.round(w),Math.round(h));
-   }else ctx.drawImage(source,sourceCell,0,128,128,
-     Math.round(o.x-w*.5),Math.round(o.y-h*.78),
-     Math.round(w),Math.round(h));
-   ctx.restore();
-   // R40: native R18 fern+root material grows on the REAL dry-bank
-   // side of the original rock ledge, not in water or as false stones.
-   // One reserved source cluster per three geological shelves avoids
-   // striped or clone-stamped landscaping.
-   if(count%3===0){
-    const vx=o.x-o.wx,vy=o.y-o.wy,
-     length=Math.hypot(vx,vy)||1,
-     fx=o.x+vx/length*54,fy=o.y+vy/length*54;
-    if(footprint.onLand(fx,fy)&&
-       !geometry.waterAt(fx,fy,18)&&
-       !geometry.nearRoad(fx,fy,()=>true,58)&&
-       !geometry.obstacle(fx,fy,18)){
-     const fsize=78+hash(o.segment,o.step,o.side)*20;
-     ctx.save();ctx.globalAlpha=.46;ctx.imageSmoothingEnabled=true;
-     ctx.drawImage(painted,PAINTED_SIZE*2,0,
-      PAINTED_SIZE,PAINTED_SIZE,
-      Math.round(fx-fsize*.5),Math.round(fy-fsize*.84),
-      Math.round(fsize),Math.round(fsize));
-     ctx.restore()
+   // A broad shaded ground plane connects the three native paintings.
+   // The entire plane is clipped against actual roads, water and solids.
+   withDryForestClip(ctx,o.x,o.y,w*.92,()=>{
+    ctx.save();ctx.fillStyle=bank;
+    ctx.fillRect(o.x-w,o.y-w,w*2,w*2);ctx.restore()
+   });
+   const tiers=[
+    {along:-.25,out:.12,scale:.92,alpha:.77},
+    {along:.20,out:.29,scale:.78,alpha:.66},
+    {along:-.04,out:.50,scale:.58,alpha:.57}
+   ];
+   for(let k=0;k<tiers.length;k++){
+    const t=tiers[k],cx=o.x+tx*w*t.along+nx*w*t.out,
+     cy=o.y+ty*w*t.along+ny*w*t.out;
+    const size=w*t.scale,h=size*.61;
+    if(cx+size<bounds[0]||cx-size>bounds[2]||
+       cy+size<bounds[1]||cy-size>bounds[3])continue;
+    // World-aligned source mask prevents a tall art crop from covering
+    // the river, original paths, crossings, or any physical obstruction.
+    let accepted=0;const step=24,left=cx-size*.5,top=cy-h*.78;
+    ctx.save();ctx.beginPath();
+    for(let yy=Math.floor(top/step)*step;yy<top+h;yy+=step)
+     for(let xx=Math.floor(left/step)*step;xx<left+size;xx+=step){
+      const x0=Math.max(left,xx),y0=Math.max(top,yy);
+      const x1=Math.min(left+size,xx+step),y1=Math.min(top+h,yy+step);
+      if(x1<=x0||y1<=y0)continue;
+      let clear=true;
+      for(const fy of [.2,.5,.8])for(const fx of [.2,.5,.8]){
+       const px=x0+(x1-x0)*fx,py=y0+(y1-y0)*fy;
+       if(!forest(px,py)||!footprint.onLand(px,py)||
+          geometry.waterAt(px,py,9)||
+          geometry.nearRoad(px,py,()=>true,30)||
+          geometry.obstacle(px,py,12)||
+          footprint.blocked?.(px,py,12))clear=false
+      }
+      if(!clear)continue;
+      if(typeof ctx.rect==="function")ctx.rect(x0,y0,x1-x0,y1-y0);
+      else{ctx.moveTo(x0,y0);ctx.lineTo(x1,y0);
+       ctx.lineTo(x1,y1);ctx.lineTo(x0,y1);ctx.closePath()}
+      accepted++
+     }
+    if(!accepted){ctx.restore();continue}
+    ctx.clip();ctx.globalAlpha=t.alpha;ctx.imageSmoothingEnabled=true;
+    const variant=(Math.abs(seed)+k+(o.side>0?1:0))%3;
+    if(fallsBankStudies){
+     ctx.drawImage(fallsBankStudies,variant*128,0,128,128,
+      Math.round(left),Math.round(top),Math.round(size),Math.round(h))
+    }else{
+     ctx.drawImage(painted,PAINTED_SIZE*3,0,PAINTED_SIZE,PAINTED_SIZE,
+      Math.round(left),Math.round(top),Math.round(size),Math.round(h))
     }
+    ctx.restore();count++
    }
-   count++
   }
   return count
  }
