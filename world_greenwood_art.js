@@ -2111,6 +2111,72 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   ctx.restore();
   return accepted
  }
+ // R64: a single hand-composed native-art landscape around the REAL Falls
+ // overlook. Two distinct banks carry large painted rock shelves, staggered
+ // fern gardens and old-growth boughs. Every crop is source-cleared, including
+ // its corners; these are nonphysical paintings below paths and actors.
+ // This intentionally replaces the tiny-tweak approach with a complete
+ // landscape-scale composition in the normal player camera.
+ function paintFallsNativeGallery(ctx,bounds){
+  if(!painted||!ctx?.drawImage||!fallsAnchor)return 0;
+  const ax=fallsAnchor.x,ay=fallsAnchor.y;
+  if(bounds[0]>ax+1050||bounds[2]<ax-1050||
+     bounds[1]>ay+900||bounds[3]<ay-1050)return 0;
+  const banks=[
+   {side:-1,baseX:-490,baseY:-215,items:[
+    [-180,-174,292,208,3,.88],[-39,-205,224,164,3,.79],
+    [-242,-40,218,142,2,.75],[-73,-51,268,167,2,.82],
+    [-329,92,181,118,3,.65],[-131,126,219,142,2,.70],
+    [-279,-292,275,156,0,.82],[-66,-341,233,133,1,.79],
+    [-401,-110,183,127,2,.60],[-8,47,157,110,3,.68]
+   ]},
+   {side:1,baseX:478,baseY:-242,items:[
+    [94,-224,313,228,3,.90],[-75,-187,228,158,3,.82],
+    [212,-60,242,165,2,.74],[-32,-17,272,177,2,.84],
+    [303,76,189,135,3,.68],[69,134,227,151,2,.74],
+    [202,-345,248,144,1,.83],[-44,-306,283,163,0,.82],
+    [342,-133,172,119,2,.63],[-141,78,167,116,3,.68]
+   ]}
+  ];
+  let count=0;
+  for(const bank of banks){
+   for(let i=0;i<bank.items.length;i++){
+    const [dx,dy,w,h,cell,alpha]=bank.items[i];
+    const x=ax+bank.baseX+dx,y=ay+bank.baseY+dy;
+    const left=x-w*.5,top=y-h*.82;
+    if(left>bounds[2]+120||left+w<bounds[0]-120||
+       top>bounds[3]+120||top+h<bounds[1]-120)continue;
+    // The center and a 5x5 crop footprint must all be genuine dry
+    // Greenwood forest, outside rivers, roads, crossings and colliders.
+    let safe=true;
+    for(const fy of [.04,.26,.5,.74,.96]){
+     for(const fx of [.04,.26,.5,.74,.96]){
+      const px=left+w*fx,py=top+h*fy;
+      if(footprint.regionAt(px,py)?.id!=="greenwood_falls"||
+         !footprint.onLand(px,py)||
+         geometry.waterAt(px,py,12)||
+         geometry.nearRoad(px,py,()=>true,42)||
+         geometry.obstacle(px,py,12)||
+         footprint.blocked?.(px,py,12)){
+       safe=false;break
+      }
+     }
+     if(!safe)break
+    }
+    if(!safe)continue;
+    // Rock is the visual foundation; independent foliage/crown crops
+    // make the two sides read as asymmetrical connected forest masses.
+    ctx.save();ctx.globalAlpha=alpha;ctx.imageSmoothingEnabled=true;
+    ctx.translate(Math.round(x),Math.round(y));
+    if(bank.side>0&&i%3===1)ctx.scale(-1,1);
+    const srcH=cell<2?PAINTED_SIZE:PAINTED_SIZE;
+    ctx.drawImage(painted,cell*PAINTED_SIZE,0,PAINTED_SIZE,srcH,
+     Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
+    ctx.restore();count++
+   }
+  }
+  return count
+ }
  function paintForestFloor(ctx,bounds){
   let count=0;
   // R17b: continuous forest-floor pools fill the entire SOURCE Greenwood
@@ -2267,6 +2333,7 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   paintFallsComposedGround(ctx,bounds);
   paintFallsEscarpmentFloor(ctx,bounds);
   paintFallsRiverNativeLedges(ctx,bounds);
+  paintFallsNativeGallery(ctx,bounds);
   for(const o of anchored){
    if(!["oak","pine","scrub"].includes(o.kind)||!forest(o.x,o.y)||
        geometry.waterAt(o.x,o.y,2))continue;
@@ -2318,7 +2385,7 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   fallsOriginalLookoutR36:true,fallsLookoutReducedStripesR36b:true,
   fallsCollisionRootedGorgeR37:true,fallsNativeCanopyFrameR37:true,
   fallsLandscapeCompositionR38:true,fallsStairShoulderNativeR38:true,
-  fallsLowReliefSourceBedrockR39:true,fallsRealRiverNativeLedgesR39:true,
+  fallsLowReliefSourceBedrockR39:true,fallsRealRiverNativeLedgesR39:true,fallsNativeGalleryR64:true,
   fallsRootLinkedBankFernR40:true,
   riverSourcedEscarpmentR35:true,sculptedBankContrastR35b:true,nonGeometricBankBlendR35c:true,
   nonBlockingCanopyProjection:true,
