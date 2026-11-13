@@ -23,7 +23,8 @@ class ImageStub{
   const d=p.includes("pilot_sprites")?[288,96]:
    p.includes("bridge_stairs_lamp")?[216,72]:
    p.includes("ground_painted")?[128,128]:
-   p.includes("neighborhood_r6")?[288,144]:null;
+   p.includes("neighborhood_r6")?[288,144]:
+   p.includes("environment_r15")?[576,144]:null;
   assert.ok(d,"R12 must reuse the original independent painted atlases");
   [this.naturalWidth,this.naturalHeight]=d;this.onload?.()
  }
@@ -67,7 +68,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.ok(read("world_raster_pilot.js").includes("drawVillageTerrainSpine(ctx,bounds);"));
  assert.ok(read("world_raster_pilot.js").includes("ctx.drawImage(ground,(Math.abs(key)%4)*32,64"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'));
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
+ assert.match(read("sw.js"),/const CACHE="veilward-[^"]*hollowreach-v1336-greenwood-escarpment-r35/);
  assert.ok(read("index.html").includes("world_raster_pilot.js?v=28"));
  console.log("R12 PASS: continuous cliff-to-grove snow terrain, painted stone, sharp raster, 39 solids, 48 nodes, 65 routes, 7 crossings, save protected");
 })().catch(e=>{console.error(e);process.exitCode=1});
