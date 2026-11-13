@@ -2343,6 +2343,48 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     ctx.restore();paintedRock++;
    }
   }
+  // R75: a connected original-material escarpment gallery on the real
+  // overlook flanks. Three DIFFERENT pixel-raster cliff studies, alternating
+  // shale, broken stone and moss ledges, are assembled into a broad visual
+  // formation rather than a row of identical isolated boulders. The source
+  // footprint is authoritative: a rejected crop is never force-painted.
+  // No physical wall, road, bridge, collision or traversable ground is made.
+  const gallery=fallsGorgeWalls||fallsEscarpments;
+  if(gallery&&ctx.drawImage){
+   const gorge=gallery===fallsGorgeWalls;
+   const cellW=gorge?384:256,cellH=gorge?224:160;
+   const formations=[
+    {x:-485,y:-215,w:244,h:146,cell:0,alpha:.92},
+    {x:-367,y:-229,w:231,h:143,cell:1,alpha:.94},
+    {x:-249,y:-190,w:199,h:120,cell:0,alpha:.83},
+    {x:236,y:-200,w:199,h:128,cell:1,alpha:.85},
+    {x:356,y:-236,w:239,h:154,cell:0,alpha:.94},
+    {x:483,y:-206,w:237,h:140,cell:1,alpha:.90}
+   ];
+   for(const f of formations){
+    const x=cx+f.x,y=cy+f.y,w=f.w,h=f.h;
+    let clear=true;
+    for(const fx of [-.46,-.23,0,.23,.46]){
+     for(const fy of [-.42,-.21,0,.21,.42]){
+      const sx=x+w*fx,sy=y-h*.50+h*fy;
+      if(footprint.regionAt(sx,sy)?.id!=="greenwood_falls"||
+         geometry.waterAt(sx,sy,10)||
+         geometry.nearRoad(sx,sy,()=>true,24)||
+         geometry.obstacle(sx,sy,10)||
+         footprint.blocked?.(sx,sy,10)){
+        clear=false;break
+      }
+     }
+     if(!clear)break
+    }
+    if(!clear)continue;
+    ctx.save();ctx.globalAlpha=f.alpha;ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(gallery,f.cell*cellW,0,cellW,cellH,
+     Math.round(x-w*.5),Math.round(y-h*.95),
+     Math.round(w),Math.round(h));
+    ctx.restore();paintedRock++
+   }
+  }
   // R44: join the two isolated lookout flanks into grounded, irregular
   // native-pixel talus gardens. The pieces are authored around the original
   // lookout, never along the stair axis; every visible crop is validated
