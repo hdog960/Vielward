@@ -97,7 +97,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.equal(world.raster.stats().geometryChanged,false);
  const html=read("index.html"),worker=read("sw.js"),game=read("game.js");
  assert.ok(html.includes("world_raster_pilot.js?v=28"));
- assert.ok(worker.includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
+ assert.ok(/const CACHE="veilward-r\d+-[^"]*hollowreach-v1336-greenwood-escarpment-r35/.test(worker));
  assert.ok(game.includes('terrain_geometry.json?v=4'));
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'));
  console.log("R9 PASS: four real grove colliders; one connected painterly belt; 65 roads, 48 anchors, seven crossings, saves intact");
