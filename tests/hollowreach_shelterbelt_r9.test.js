@@ -25,7 +25,8 @@ class ImageStub{
  constructor(){this.onload=null;this.naturalWidth=0;this.naturalHeight=0}
  set src(p){const d=p.includes("pilot_sprites")?[288,96]:
   p.includes("bridge_stairs_lamp")?[216,72]:p.includes("ground_painted")?
-  [128,128]:p.includes("neighborhood_r6")?[288,144]:null;
+  [128,128]:p.includes("neighborhood_r6")?[288,144]:
+   p.includes("hollowreach_environment_r15.webp")?[576,144]:null;
   assert.ok(d,"only dedicated painter-owned atlases may enter the game");
   [this.naturalWidth,this.naturalHeight]=d;this.onload?.()
  }
