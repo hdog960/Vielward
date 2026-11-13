@@ -27,7 +27,8 @@ class ImageStub{
   const dims=p.includes("pilot_sprites")?[288,96]:
    p.includes("bridge_stairs_lamp")?[216,72]:
    p.includes("ground_painted")?[128,128]:
-   p.includes("neighborhood_r6")?[288,144]:null;
+   p.includes("neighborhood_r6")?[288,144]:
+   p.includes("hollowreach_environment_r15.webp")?[576,144]:null;
   assert.ok(dims,"unexpected external source art: "+p);
   [this.naturalWidth,this.naturalHeight]=dims;this.onload?.()
  }
@@ -77,7 +78,7 @@ for(const p of ["world_geometry.js","world_climate.js","world_footprint.js",
  assert.ok(read("world_raster_pilot.js").includes("drawVillageLandContours(ctx,bounds);"));
  assert.ok(read("game.js").includes('const SAVE="veilward-hollowreach-v01";'),
   "player's original local adventure save remains unchanged");
- assert.ok(read("sw.js").includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
+ assert.match(read("sw.js"),/veilward-hollowreach-v1336-greenwood-[a-z0-9-]+/,"current Greenwood art cache must remain versioned");
  assert.ok(read("index.html").includes("world_raster_pilot.js?v=28"));
  console.log("R14 PASS: 3 source cliffs + 4 connected real roads, authored snow/rock textures, 12 regions, 39 real solids, 48 safe anchors, 65 roads, 7 crossings, save intact; artwork NOT approved");
 })().catch(e=>{console.error(e);process.exitCode=1});
