@@ -85,7 +85,7 @@ for(const asset of ["world_review.js?v=4","world_routes.js?v=27","world_climate.
 }
 ok(html.indexOf("world_stream.js?v=32")<html.indexOf("game.js?v=57"),"world module before game.js");
 ok(html.includes('id="worldPreviewBtn"')&&html.includes('id="streamStatus"'),"preview menu and status exist");
-ok(sw.includes("veilward-r72-pixel-escarpment-")&&sw.includes("hollowreach-v1336-greenwood-escarpment-r35"),"PWA cache rotated with current artwork revision and preserved build identity");
+ok(sw.includes("veilward-r75-connected-gorge-gallery-")&&sw.includes("hollowreach-v1336-greenwood-escarpment-r35"),"PWA cache rotated with current artwork revision and preserved build identity");
 ok(game.includes('const APP_VERSION="1.3.36";'),"runtime app version bumped");
 ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original save key retained");
 ok(game.includes("if(worldPreview.enabled){renderWorldPreview();return}"),"preview renderer is isolated");
