@@ -95,7 +95,7 @@ for(const path of paths)vm.runInNewContext(S[path],sandbox,{filename:path});
   assert.ok(sw.includes(asset),"all iPhone offline assets precached "+asset);
   if(!asset.startsWith("assets/"))assert.ok(html.includes(asset),"game references same updated code "+asset)
  }
- assert.ok(sw.includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
+ assert.ok(/const CACHE="veilward-r\d+-[^"]*hollowreach-v1336-greenwood-escarpment-r35/.test(sw));
  const game=fs.readFileSync("game.js","utf8");
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"original adventure saved unchanged");
  assert.ok(game.includes('const APP_VERSION="1.3.36";'));
