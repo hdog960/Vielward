@@ -129,6 +129,67 @@ let fallsGeology=null;
 // Greenwood Falls overlook shoulders. Pixel-raster material only: no new
 // heightfield, collider, path, bridge or world feature.
 let fallsEscarpments=null;
+// R73: paired broad, authored gorge-wall studies, with broken shelves,
+// separate rock faces and rooted vegetation. Transparent decorative raster.
+let fallsGorgeWalls=null;
+function makeFallsGorgeWalls(){
+ if(typeof document==="undefined")return null;
+ const canvas=document.createElement("canvas");canvas.width=768;canvas.height=224;
+ const c=canvas.getContext("2d");if(!c)return null;
+ c.imageSmoothingEnabled=false;
+ const palettes=[
+  ["#263a39","#3b504b","#566b60","#788779","#aeb49b","#315440","#749367"],
+  ["#293b43","#40555a","#63736f","#8d9889","#b9b9a4","#345346","#89a077"]
+ ];
+ const px=(x,y,w,h,color)=>{c.fillStyle=color;c.fillRect(x|0,y|0,w|0,h|0)};
+ for(let side=0;side<2;side++){
+  const ox=side*384,p=palettes[side];
+  const ridge=Array.from({length:48},(_,i)=>{
+   const sweep=side===0?Math.sin(i*.17)*17:Math.cos(i*.14+.6)*21;
+   return Math.floor(55+sweep+hash(i,side,873)*17+Math.abs(i-24)*.48)
+  });
+  for(let col=0;col<48;col++){
+   const x=ox+col*8,top=ridge[col];
+   const bottom=Math.floor(194-Math.abs(col-24)*.35+hash(col,side,877)*8);
+   for(let y=top;y<bottom;y+=4){
+    const layer=Math.floor((y-top)/4);
+    const shade=Math.max(0,Math.min(4,4-Math.floor(layer/6)+(hash(col,layer,side+901)>.7?1:0)));
+    px(x,y,8,Math.min(4,bottom-y),p[shade]);
+    if(hash(col,layer,side+902)>.76)px(x+2,y+2,4,1,p[Math.max(0,shade-2)]);
+   }
+   px(x,top,8,2,p[4]);
+   if(col%7===side+2)px(x+3,top+9,2,21,p[0]);
+  }
+  const ledges=side===0?
+   [[12,114,84],[112,94,102],[230,131,98],[290,81,64]]:
+   [[21,102,96],[138,122,91],[242,85,110],[304,143,62]];
+  for(const [x,y,w] of ledges){
+   px(ox+x,y,w,5,p[1]);px(ox+x+5,y-3,w-12,3,p[4]);
+   px(ox+x+13,y+5,3,23,p[0]);
+   for(let j=0;j<12;j++){
+    const xx=ox+x+8+Math.floor(hash(j,x,side+922)*(w-17));
+    px(xx,y-4-Math.floor(hash(x,j,923)*5),3,4,p[5]);
+   }
+  }
+  for(let i=0;i<76;i++){
+   const x=Math.floor(hash(i,side,941)*380),col=Math.floor(x/8);
+   const y=ridge[col]+7+Math.floor(hash(side,i,942)*84);
+   if(y>185)continue;
+   const w=2+Math.floor(hash(i,side,943)*7);
+   px(ox+x,y,w,2,p[i%5===0?6:5]);
+   if(i%8===0){
+    px(ox+x,y-13,2,15,p[5]);
+    for(let j=0;j<5;j++){
+     const reach=7-j;
+     px(ox+x-reach,y-12+j*3,reach,2,p[6]);
+     px(ox+x+2,y-13+j*3,reach+3,2,p[5]);
+    }
+   }
+  }
+ }
+ return canvas
+}
+
 function makeFallsEscarpments(){
  if(typeof document==="undefined")return null;
  const sheet=document.createElement("canvas");sheet.width=512;sheet.height=160;
@@ -428,7 +489,7 @@ function loadPainted(){
      counts[Math.floor((i/4)%canvas.width/PAINTED_SIZE)]++;
     if(counts.some(n=>n<1400))throw Error("Blank source cell: "+counts.join(","));
    }
-   painted=canvas;fallsGeology=makeFallsGeology();fallsEscarpments=makeFallsEscarpments();fallsCanopies=makeFallsCanopies();fallsBankStudies=makeFallsBankStudies();paintedError=null;return true
+   painted=canvas;fallsGeology=makeFallsGeology();fallsEscarpments=makeFallsEscarpments();fallsGorgeWalls=makeFallsGorgeWalls();fallsCanopies=makeFallsCanopies();fallsBankStudies=makeFallsBankStudies();paintedError=null;return true
   }catch(err){
    paintedError="Greenwood painted atlas rejected: "+String(err);
    console.warn(paintedError);return false
@@ -2494,7 +2555,10 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     // the two largest rock shoulders; original R18 art remains elsewhere.
     const useGeology=cell===3&&fallsGeology&&
       ((bank.side<0&&(i===0||i===4))||(bank.side>0&&(i===0||i===5)));
-    if(useGeology&&fallsEscarpments)ctx.drawImage(fallsEscarpments,
+    if(useGeology&&fallsGorgeWalls)ctx.drawImage(fallsGorgeWalls,
+     (bank.side<0?0:384),0,384,224,
+     Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
+    else if(useGeology&&fallsEscarpments)ctx.drawImage(fallsEscarpments,
      (bank.side<0?0:256),0,256,160,
      Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
     else if(useGeology)ctx.drawImage(fallsGeology,
