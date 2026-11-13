@@ -110,5 +110,10 @@ ok(contents.html.indexOf("combat.js?v=2")<contents.html.indexOf("game.js?v=57"),
 for(const asset of ["world_review.js?v=4","world_routes.js?v=27","world_climate.js?v=4","combat.js?v=2","quest.js?v=1","world_geometry.js?v=1","world_footprint.js?v=5","terrain_art.js?v=32","world_stream.js?v=32","game.js?v=57","navigation.js?v=11","visual.js?v=33","visual.css?v=15","manifest.webmanifest?v=1336"]){
  ok(contents.html.includes(asset)&&contents.worker.includes(asset),"PWA/HTML version aligned: "+asset);
 }
-ok(contents.worker.includes('veilward-hollowreach-v1336-greenwood-escarpment-r35'),"new mobile cache version");
+// Cache revision labels may prepend a new art pass before the stable build marker.
+// Validate the real build identity and current forest-seam revision without
+// requiring the legacy escarpment substring to be adjacent to the prefix.
+ok(contents.worker.includes('veilward-r71-forestseam-')&&
+   contents.worker.includes('hollowreach-v1336-greenwood-escarpment-r35'),
+   "current R71 mobile cache version preserves build identity");
 console.log("Veilward Phase 4 PASS:",assertions,"combat assertions, enemy spawn checks and PWA/asset integrity");
