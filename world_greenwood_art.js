@@ -2363,26 +2363,35 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
    ];
    for(const f of formations){
     const x=cx+f.x,y=cy+f.y,w=f.w,h=f.h;
-    let clear=true;
-    for(const fx of [-.46,-.23,0,.23,.46]){
-     for(const fy of [-.42,-.21,0,.21,.42]){
-      const sx=x+w*fx,sy=y-h*.50+h*fy;
-      if(footprint.regionAt(sx,sy)?.id!=="greenwood_falls"||
-         geometry.waterAt(sx,sy,10)||
-         geometry.nearRoad(sx,sy,()=>true,24)||
-         geometry.obstacle(sx,sy,10)||
-         footprint.blocked?.(sx,sy,10)){
-        clear=false;break
-      }
-     }
-     if(!clear)break
-    }
-    if(!clear)continue;
+    // R76: The old 25-point all-or-nothing gate discarded an entire
+    // 240-unit painted wall if even one corner touched a stair or river.
+    // Reveal only safe, contiguous 20x16-world-unit portions of the SAME
+    // authored wall, with conservative five-point source checks per patch.
+    // No new wall collision or terrain is introduced.
+    const left=x-w*.5,top=y-h*.95,cols=Math.ceil(w/20),
+     rows=Math.ceil(h/16),dw=w/cols,dh=h/rows;
+    let shown=0;
     ctx.save();ctx.globalAlpha=f.alpha;ctx.imageSmoothingEnabled=false;
-    ctx.drawImage(gallery,f.cell*cellW,0,cellW,cellH,
-     Math.round(x-w*.5),Math.round(y-h*.95),
-     Math.round(w),Math.round(h));
-    ctx.restore();paintedRock++
+    for(let iy=0;iy<rows;iy++)for(let ix=0;ix<cols;ix++){
+     const px=left+ix*dw,py=top+iy*dh;
+     const points=[[.5,.5],[.14,.14],[.86,.14],[.14,.86],[.86,.86]];
+     if(!points.every(([u,v])=>{
+      const sx=px+u*dw,sy=py+v*dh;
+      return footprint.regionAt(sx,sy)?.id==="greenwood_falls"&&
+       !geometry.waterAt(sx,sy,10)&&
+       !geometry.nearRoad(sx,sy,()=>true,24)&&
+       !geometry.obstacle(sx,sy,10)&&
+       !footprint.blocked?.(sx,sy,10);
+     }))continue;
+     // Source rect follows the full painting, not a repeated miniature.
+     ctx.drawImage(gallery,
+      f.cell*cellW+ix*cellW/cols,iy*cellH/rows,
+      cellW/cols,cellH/rows,
+      Math.round(px),Math.round(py),
+      Math.ceil(dw)+.15,Math.ceil(dh)+.15);
+     shown++;
+    }
+    ctx.restore();if(shown)paintedRock++
    }
   }
   // R44: join the two isolated lookout flanks into grounded, irregular
