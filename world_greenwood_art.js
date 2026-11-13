@@ -2584,6 +2584,108 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
  // its corners; these are nonphysical paintings below paths and actors.
  // This intentionally replaces the tiny-tweak approach with a complete
  // landscape-scale composition in the normal player camera.
+ // R79: a pair of independently authored 32-bit pixel-raster forest escarpment
+ // panels. These are not screen backgrounds or physical objects. Their artwork
+ // is painted once into a transparent atlas, then revealed only over genuine
+ // dry source land, leaving real paths, river, crossings and stairs intact.
+ let fallsR79Atlas=null;
+ function makeFallsR79Atlas(){
+  if(fallsR79Atlas||typeof document==="undefined")return fallsR79Atlas;
+  const sheet=document.createElement("canvas");sheet.width=1024;sheet.height=320;
+  const p=sheet.getContext("2d");if(!p)return null;
+  p.imageSmoothingEnabled=false;
+  const rock=["#233a3b","#344b4a","#52635c","#788174","#a3a58c","#c5bea0"];
+  const leaf=["#1b3730","#294b38","#3b6347","#59805a","#7f9b69","#b1b787"];
+  const paint=(x,y,w,h,color)=>{p.fillStyle=color;p.fillRect(x|0,y|0,w|0,h|0)};
+  // Authored jagged silhouettes and strata differ on each side of the gorge.
+  const panels=[
+   {ox:0,cliff:[244,235,231,217,204,212,188,176,184,168,151,160,177,189,203,218,228,239,245,251,257,266,272,281,289,297],
+    roots:[[38,206,12],[106,169,18],[176,153,11],[278,211,16],[390,241,13]],
+    boughs:[[18,130,82,46],[109,102,111,52],[211,90,87,39],[321,148,103,51]]},
+   {ox:512,cliff:[280,272,261,253,239,232,217,206,195,181,169,177,184,192,203,214,226,237,249,256,264,268,277,286,293,300],
+    roots:[[66,249,15],[152,198,12],[243,184,17],[339,224,13],[435,268,11]],
+    boughs:[[42,153,107,51],[143,109,86,43],[234,123,112,56],[350,170,101,49]]}
+  ];
+  for(let v=0;v<2;v++){
+   const a=panels[v],ox=a.ox;
+   // Hand-plotted rock column profile, stepped in 20-pixel authored segments.
+   for(let i=0;i<a.cliff.length;i++){
+    const top=a.cliff[i],next=a.cliff[Math.min(i+1,25)];
+    for(let y=top;y<320;y+=5){
+     const band=Math.min(4,Math.max(0,Math.floor((y-top)/34)));
+     const shade=rock[Math.min(5,band+(i%5===0?1:0))];
+     paint(ox+i*20,y,20,Math.min(5,320-y),shade);
+     if((i*7+y*3+v*11)%17<6)paint(ox+i*20+3,y+2,9,2,rock[Math.max(0,band-1)]);
+    }
+    paint(ox+i*20,top,20,4,rock[4]);
+    if(i%4===1){paint(ox+i*20+12,top+11,3,31,rock[0]);paint(ox+i*20+15,top+39,6,3,rock[2])}
+   }
+   // Independently authored broken ledges, overhangs and moss shelf patches.
+   const shelves=v===0?[[24,247,104,12],[145,215,86,10],[265,255,117,14],[389,284,93,10]]:
+    [[39,288,87,11],[158,244,108,13],[287,232,91,11],[385,291,96,10]];
+   for(const [x,y,w,h] of shelves){
+    paint(ox+x,y,w,h,rock[1]);paint(ox+x+6,y,w-12,3,rock[4]);
+    for(let k=0;k<Math.floor(w/9);k++){
+     const xx=x+5+k*9;
+     paint(ox+xx,y-3-(k%3)*2,6,3+(k%3)*2,leaf[(k+v)%3+1]);
+     if(k%4===0)paint(ox+xx+2,y+h,3,9,rock[0]);
+    }
+   }
+   // Tree roots and trunks are placed in the composition, not randomly stamped.
+   for(const [x,y,w] of a.roots){
+    paint(ox+x,y-53,w,68,"#28382f");
+    paint(ox+x+3,y-50,3,57,"#6a6b4c");
+    paint(ox+x-12,y+8,17,5,"#344b3d");
+    paint(ox+x+w-3,y+5,18,5,"#344b3d");
+   }
+   // Individual asymmetric canopy masses with clipped, pixel-sized leaves.
+   for(let j=0;j<a.boughs.length;j++){
+    const [cx,cy,rx,ry]=a.boughs[j];
+    for(let yy=-ry;yy<=ry;yy+=5)for(let xx=-rx;xx<=rx;xx+=5){
+     const d=(xx*xx)/(rx*rx)+(yy*yy)/(ry*ry);
+     const rag=((xx*13+yy*7+j*19+v*23)%29)/140;
+     if(d>1-rag)continue;
+     const light=Math.max(0,Math.min(5,Math.floor(2.4-yy/ry*1.3-xx/rx*.5+(j%3)*.45)));
+     paint(ox+cx+xx,cy+yy,5,5,leaf[light]);
+     if((xx*3+yy*5+j*11)%37===0)paint(ox+cx+xx+1,cy+yy,3,2,leaf[Math.min(5,light+1)]);
+    }
+   }
+  }
+  fallsR79Atlas=sheet;return sheet
+ }
+ function paintFallsR79Escarpment(ctx,bounds){
+  if(!fallsAnchor||!ctx?.drawImage)return 0;
+  const art=makeFallsR79Atlas();if(!art)return 0;
+  const ax=fallsAnchor.x,ay=fallsAnchor.y;
+  const scenes=[
+   {x:ax-610,y:ay-340,w:520,h:325,cell:0},
+   {x:ax+355,y:ay-370,w:520,h:325,cell:1}
+  ];
+  let count=0;
+  for(const s of scenes){
+   const left=s.x,top=s.y;
+   if(left>bounds[2]||left+s.w<bounds[0]||top>bounds[3]||top+s.h<bounds[1])continue;
+   const cols=26,rows=20,dw=s.w/cols,dh=s.h/rows;
+   ctx.save();ctx.imageSmoothingEnabled=false;ctx.globalAlpha=.96;
+   for(let iy=0;iy<rows;iy++)for(let ix=0;ix<cols;ix++){
+    const x=left+ix*dw,y=top+iy*dh;
+    const clear=[[.15,.15],[.85,.15],[.5,.5],[.15,.85],[.85,.85]].every(([u,v])=>{
+     const px=x+u*dw,py=y+v*dh;
+     return ["greenwood","greenwood_falls"].includes(footprint.regionAt(px,py)?.id)&&
+      footprint.onLand(px,py)&&!geometry.waterAt(px,py,9)&&
+      !geometry.nearRoad(px,py,()=>true,24)&&
+      !geometry.obstacle(px,py,9)&&!footprint.blocked?.(px,py,9)
+    });
+    if(!clear)continue;
+    ctx.drawImage(art,s.cell*512+ix*512/cols,iy*320/rows,
+     512/cols,320/rows,Math.round(x),Math.round(y),
+     Math.ceil(dw)+.15,Math.ceil(dh)+.15);
+    count++
+   }
+   ctx.restore()
+  }
+  return count
+ }
  function paintFallsNativeGallery(ctx,bounds){
   if(!painted||!ctx?.drawImage||!fallsAnchor)return 0;
   const ax=fallsAnchor.x,ay=fallsAnchor.y;
@@ -2699,6 +2801,7 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     ctx.restore();count++
    }
   }
+  count+=paintFallsR79Escarpment(ctx,bounds);
   return count
  }
  function paintForestFloor(ctx,bounds){
