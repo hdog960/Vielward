@@ -2858,6 +2858,34 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   paintFallsEscarpmentFloor(ctx,bounds);
   paintFallsRiverNativeLedges(ctx,bounds);
   paintFallsNativeGallery(ctx,bounds);
+  // R77: two continuous original-pixel gorge murals at the actual Falls banks.
+  // Source-aligned fragments preserve artwork continuity and leave real routes,
+  // water and collision completely untouched.
+  if(fallsGorgeWalls&&fallsAnchor&&ctx.drawImage){
+   for(const m of [
+    {x:fallsAnchor.x-342,y:fallsAnchor.y-61,w:456,h:224,side:0},
+    {x:fallsAnchor.x+351,y:fallsAnchor.y-73,w:472,h:229,side:1}
+   ]){
+    const left=m.x-m.w/2,top=m.y-m.h*.9,cols=24,rows=14;
+    if(left>bounds[2]||left+m.w<bounds[0]||top>bounds[3]||top+m.h<bounds[1])continue;
+    const dw=m.w/cols,dh=m.h/rows;
+    ctx.save();ctx.globalAlpha=.9;ctx.imageSmoothingEnabled=false;
+    for(let iy=0;iy<rows;iy++)for(let ix=0;ix<cols;ix++){
+     const x=left+ix*dw,y=top+iy*dh;
+     if(![[.1,.1],[.9,.1],[.5,.5],[.1,.9],[.9,.9]].every(([u,v])=>{
+      const px=x+u*dw,py=y+v*dh;
+      return ["greenwood_falls","greenwood"].includes(footprint.regionAt(px,py)?.id)&&
+       footprint.onLand(px,py)&&!geometry.waterAt(px,py,10)&&
+       !geometry.nearRoad(px,py,()=>true,24)&&!geometry.obstacle(px,py,10)&&
+       !footprint.blocked?.(px,py,10);
+     }))continue;
+     ctx.drawImage(fallsGorgeWalls,m.side*384+ix*384/cols,iy*224/rows,
+      384/cols,224/rows,Math.round(x),Math.round(y),Math.ceil(dw)+.1,Math.ceil(dh)+.1);
+    }
+    ctx.restore();
+   }
+  }
+
   for(const o of anchored){
    if(!["oak","pine","scrub"].includes(o.kind)||!forest(o.x,o.y)||
        geometry.waterAt(o.x,o.y,2))continue;
