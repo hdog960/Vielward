@@ -26,7 +26,8 @@ class ImageStub{
   const d=p.includes("pilot_sprites")?[288,96]:
    p.includes("bridge_stairs_lamp")?[216,72]:
    p.includes("ground_painted")?[128,128]:
-   p.includes("neighborhood_r6")?[288,144]:null;
+   p.includes("neighborhood_r6")?[288,144]:
+   p.includes("hollowreach_environment_r15.webp")?[576,144]:null;
   assert.ok(d,"Only source-authored winter illustration atlas permitted: "+p);
   [this.naturalWidth,this.naturalHeight]=d;this.onload?.()
  }
