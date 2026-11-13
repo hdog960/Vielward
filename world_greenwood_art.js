@@ -2858,29 +2858,43 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
   paintFallsEscarpmentFloor(ctx,bounds);
   paintFallsRiverNativeLedges(ctx,bounds);
   paintFallsNativeGallery(ctx,bounds);
-  // R77: two continuous original-pixel gorge murals at the actual Falls banks.
-  // Source-aligned fragments preserve artwork continuity and leave real routes,
-  // water and collision completely untouched.
+  // R78: distinct, connected overlook rock-and-forest mural, composed at
+  // native pixel resolution. Each face has a separate silhouette; the narrow
+  // stream-side transition is omitted where the real water or road begins.
+  // The world geometry and all traversable source corridors remain authoritative.
   if(fallsGorgeWalls&&fallsAnchor&&ctx.drawImage){
-   for(const m of [
-    {x:fallsAnchor.x-342,y:fallsAnchor.y-61,w:456,h:224,side:0},
-    {x:fallsAnchor.x+351,y:fallsAnchor.y-73,w:472,h:229,side:1}
-   ]){
-    const left=m.x-m.w/2,top=m.y-m.h*.9,cols=24,rows=14;
-    if(left>bounds[2]||left+m.w<bounds[0]||top>bounds[3]||top+m.h<bounds[1])continue;
+   const sections=[
+    {x:fallsAnchor.x-414,y:fallsAnchor.y-52,w:296,h:236,side:0},
+    {x:fallsAnchor.x-218,y:fallsAnchor.y-91,w:244,h:210,side:0},
+    {x:fallsAnchor.x+221,y:fallsAnchor.y-95,w:250,h:216,side:1},
+    {x:fallsAnchor.x+421,y:fallsAnchor.y-54,w:304,h:238,side:1}
+   ];
+   for(const m of sections){
+    const left=m.x-m.w/2,top=m.y-m.h*.9,cols=32,rows=20;
+    if(left>bounds[2]||left+m.w<bounds[0]||
+       top>bounds[3]||top+m.h<bounds[1])continue;
     const dw=m.w/cols,dh=m.h/rows;
-    ctx.save();ctx.globalAlpha=.9;ctx.imageSmoothingEnabled=false;
+    ctx.save();ctx.globalAlpha=.96;ctx.imageSmoothingEnabled=false;
     for(let iy=0;iy<rows;iy++)for(let ix=0;ix<cols;ix++){
      const x=left+ix*dw,y=top+iy*dh;
-     if(![[.1,.1],[.9,.1],[.5,.5],[.1,.9],[.9,.9]].every(([u,v])=>{
-      const px=x+u*dw,py=y+v*dh;
-      return ["greenwood_falls","greenwood"].includes(footprint.regionAt(px,py)?.id)&&
-       footprint.onLand(px,py)&&!geometry.waterAt(px,py,10)&&
-       !geometry.nearRoad(px,py,()=>true,24)&&!geometry.obstacle(px,py,10)&&
-       !footprint.blocked?.(px,py,10);
-     }))continue;
-     ctx.drawImage(fallsGorgeWalls,m.side*384+ix*384/cols,iy*224/rows,
-      384/cols,224/rows,Math.round(x),Math.round(y),Math.ceil(dw)+.1,Math.ceil(dh)+.1);
+     // All four corners and the center must be clear. This is a decorative
+     // raster crop, not a terrain edit or an invisible collision obstacle.
+     const clear=[[.05,.05],[.95,.05],[.5,.5],[.05,.95],[.95,.95]]
+      .every(([u,v])=>{
+       const px=x+u*dw,py=y+v*dh;
+       return ["greenwood_falls","greenwood"].includes(footprint.regionAt(px,py)?.id)&&
+        footprint.onLand(px,py)&&!geometry.waterAt(px,py,10)&&
+        !geometry.nearRoad(px,py,()=>true,24)&&
+        !geometry.obstacle(px,py,10)&&!footprint.blocked?.(px,py,10);
+      });
+     if(!clear)continue;
+     // Different native crops avoid cloning the entire mural across a bank.
+     const crop=m.x<fallsAnchor.x?
+       (m.x<fallsAnchor.x-300?0:1):(m.x>fallsAnchor.x+300?1:0);
+     const sx=m.side*384+(crop?112:0)+ix*272/cols;
+     ctx.drawImage(fallsGorgeWalls,sx,iy*224/rows,
+      272/cols,224/rows,Math.round(x),Math.round(y),
+      Math.ceil(dw)+.1,Math.ceil(dh)+.1);
     }
     ctx.restore();
    }
