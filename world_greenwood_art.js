@@ -132,6 +132,82 @@ let fallsEscarpments=null;
 // R73: paired broad, authored gorge-wall studies, with broken shelves,
 // separate rock faces and rooted vegetation. Transparent decorative raster.
 let fallsGorgeWalls=null;
+/* R80: two complete original forest-and-stone escarpment panels. The dark
+ * forest crowns are rooted directly into each illustrated rock shelf, rather
+ * than a repeated independent crown stamp. Transparent pixels preserve land.
+ * All destination pixels remain subject to the existing source-cell mask. */
+function makeFallsForestWalls(){
+ if(typeof document==="undefined")return null;
+ const sheet=document.createElement("canvas");sheet.width=768;sheet.height=224;
+ const c=sheet.getContext("2d");if(!c)return null;
+ c.imageSmoothingEnabled=false;
+ const palettes=[
+  {rock:["#253c3a","#3c5550","#586d62","#7c8b79","#b2b59b"],leaf:["#182e2b","#284b3d","#416a4b","#63865a","#91a777"]},
+  {rock:["#293e46","#43595b","#677973","#929b89","#c0bba2"],leaf:["#1b3233","#315349","#49715b","#73916d","#a9b58b"]}
+ ];
+ const profiles=[
+  [137,130,125,116,110,103,97,91,84,79,87,93,99,104,109,115,121,129,134,127,118,111,102,96,91,98,106,115,121,128,134,141],
+  [146,139,132,126,118,112,104,96,88,83,78,84,93,101,109,117,125,132,127,119,109,101,94,89,95,103,112,119,127,136,143,148]
+ ];
+ const pix=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))};
+ for(let v=0;v<2;v++){
+  const ox=v*384,p=palettes[v],ridge=profiles[v];
+  // A single fractured rock body with staggered layers and root-bearing shelves.
+  for(let col=0;col<32;col++){
+   const top=ridge[col],bottom=198+Math.round(9*Math.sin(col*.37+v));
+   for(let y=top;y<bottom;y+=4){
+    const shade=Math.max(0,Math.min(4,Math.floor((bottom-y)/24)+(hash(col,y,v+880)>.6?1:0)));
+    pix(ox+col*12,y,12,Math.min(4,bottom-y),p.rock[shade]);
+    if(hash(col,y,v+881)>.7)pix(ox+col*12+3,y+2,5,1,p.rock[Math.max(0,shade-1)]);
+   }
+   pix(ox+col*12,top,12,3,p.rock[4]);
+   if(col%5===v+1)pix(ox+col*12+6,top+12,2,23,p.rock[0]);
+  }
+  const shelves=v===0?[[39,136,72],[146,106,81],[264,120,91]]:[[24,145,94],[133,105,74],[256,117,89]];
+  for(const [x,y,w] of shelves){
+   pix(ox+x,y,w,5,p.rock[1]);pix(ox+x+5,y-3,w-13,3,p.rock[4]);
+   for(let k=0;k<14;k++){
+    const px=x+Math.floor(hash(k,x,v+889)*w);
+    pix(ox+px,y-3-Math.floor(hash(k,y,890)*9),3,4,p.leaf[k%5]);
+   }
+  }
+  // Three individual old-growth silhouettes with deliberately unequal
+  // height, crown spread and offset. Trunks visibly meet the rock shelves.
+  const trees=v===0?[[81,137,70,64],[198,110,100,82],[317,127,57,60]]:
+   [[61,144,58,62],[185,107,89,91],[300,124,78,73]];
+  for(let t=0;t<trees.length;t++){
+   const [x,foot,wide,tall]=trees[t],tip=foot-tall;
+   pix(ox+x-5,tip+24,12,foot-tip-20,"#342f2d");
+   pix(ox+x-1,tip+30,3,foot-tip-27,"#79654b");
+   const lobes=t===1?[[-.38,.46,.52,.35],[.3,.35,.56,.4],[0,.08,.47,.36]]:
+    [[-.33,.48,.47,.34],[.29,.45,.48,.33],[0,.18,.55,.43]];
+   for(let j=0;j<lobes.length;j++){
+    const [dx,dy,rx,ry]=lobes[j],cx=x+dx*wide,cy=tip+dy*tall;
+    for(let yy=Math.max(2,Math.floor(cy-ry*tall));yy<Math.min(foot-7,cy+ry*tall);yy+=4)
+     for(let xx=Math.max(1,Math.floor(cx-rx*wide));xx<Math.min(383,cx+rx*wide);xx+=4){
+      const d=((xx-cx)/(rx*wide))**2+((yy-cy)/(ry*tall))**2;
+      if(d>1+(hash(xx,yy,t+v*13)-.5)*.30)continue;
+      const shade=Math.min(4,Math.max(0,Math.floor((.58-(yy-cy)/(ry*tall)*.20+hash(xx,yy,915+t)*.30)*5)));
+      pix(ox+xx,yy,4,4,p.leaf[shade]);
+      if(hash(xx,yy,918+t)>.94)pix(ox+xx+1,yy,2,1,p.leaf[4]);
+     }
+   }
+   pix(ox+x-18,foot-2,19,4,p.rock[1]);
+   pix(ox+x+2,foot-1,23,3,p.rock[2]);
+  }
+  // Moss colonies and fractures tie the forest canopy to stone, not a
+  // uniform stripe of repeating shrubs.
+  for(let k=0;k<135;k++){
+   const x=Math.floor(hash(k,v,931)*378),col=Math.min(31,Math.floor(x/12));
+   const y=ridge[col]+8+Math.floor(hash(v,k,932)*62);
+   if(y>195)continue;
+   if(k%7===0)pix(ox+x,y,2,12,p.rock[0]);
+   else pix(ox+x,y,2+k%3,2,p.leaf[k%5]);
+  }
+ }
+ return sheet
+}
+
 function makeFallsGorgeWalls(){
  if(typeof document==="undefined")return null;
  const canvas=document.createElement("canvas");canvas.width=768;canvas.height=224;
@@ -489,7 +565,7 @@ function loadPainted(){
      counts[Math.floor((i/4)%canvas.width/PAINTED_SIZE)]++;
     if(counts.some(n=>n<1400))throw Error("Blank source cell: "+counts.join(","));
    }
-   painted=canvas;fallsGeology=makeFallsGeology();fallsEscarpments=makeFallsEscarpments();fallsGorgeWalls=makeFallsGorgeWalls();fallsCanopies=makeFallsCanopies();fallsBankStudies=makeFallsBankStudies();paintedError=null;return true
+   painted=canvas;fallsGeology=makeFallsGeology();fallsEscarpments=makeFallsEscarpments();fallsGorgeWalls=makeFallsForestWalls()||makeFallsGorgeWalls();fallsCanopies=makeFallsCanopies();fallsBankStudies=makeFallsBankStudies();paintedError=null;return true
   }catch(err){
    paintedError="Greenwood painted atlas rejected: "+String(err);
    console.warn(paintedError);return false
