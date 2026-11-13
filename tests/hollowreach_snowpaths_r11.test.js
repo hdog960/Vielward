@@ -26,7 +26,8 @@ class ImageStub{
   const d=p.includes("pilot_sprites")?[288,96]:
    p.includes("bridge_stairs_lamp")?[216,72]:
    p.includes("ground_painted")?[128,128]:
-   p.includes("neighborhood_r6")?[288,144]:null;
+   p.includes("neighborhood_r6")?[288,144]:
+   p.includes("environment_r15")?[576,144]:null;
   assert.ok(d,"only source-authored illustrated atlases may load");
   [this.naturalWidth,this.naturalHeight]=d;this.onload?.()
  }
