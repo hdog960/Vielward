@@ -100,7 +100,7 @@ for(const path of paths)vm.runInNewContext(sources[path],host,{filename:path});
  assert.ok(html.indexOf("world_raster_pilot.js?v=28")<html.indexOf("world_stream.js?v=32"));
  assert.ok(game.includes("await window.VeilwardRasterPilot.load()"),"Real art load precedes streaming");
  assert.ok(game.includes('const SAVE="veilward-hollowreach-v01";'),"Original game save key untouched");
- assert.ok(sw.includes("veilward-hollowreach-v1336-greenwood-escarpment-r35"));
+ assert.ok(/const CACHE="veilward-r\d+-[^"]*hollowreach-v1336-greenwood-escarpment-r35/.test(sw));
  console.log("RASTER PILOT SOURCE PASS:",calls.draws,"real PNG draws; ",steps,
   "original roads sampled; 48 node anchors safe; 0% creator approval until review.");
 })().catch(err=>{console.error(err);process.exit(1)});
