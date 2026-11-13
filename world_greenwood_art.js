@@ -125,6 +125,71 @@ let atlas=null,painted=null,paintedError=null,paintedPromise=null;
 // canvas with deliberately stepped silhouettes, not generic vector platforms.
 // Only visual; never contributes a collider, path, or physical elevation.
 let fallsGeology=null;
+// R72: two original, broad stepped escarpment paintings for the connected
+// Greenwood Falls overlook shoulders. Pixel-raster material only: no new
+// heightfield, collider, path, bridge or world feature.
+let fallsEscarpments=null;
+function makeFallsEscarpments(){
+ if(typeof document==="undefined")return null;
+ const sheet=document.createElement("canvas");sheet.width=512;sheet.height=160;
+ const c=sheet.getContext("2d");if(!c)return null;
+ c.imageSmoothingEnabled=false;
+ const palettes=[
+  ["#293c3c","#3d5350","#586b61","#7e8979","#aeb29b","#314f3d","#668458"],
+  ["#2c3c43","#46575c","#64736f","#8c9589","#b6b6a1","#2f5145","#799466"]
+ ];
+ const ridges=[
+  [88,84,79,74,70,68,61,57,62,56,52,55,60,58,64,69,72,68,74,79,76,83,86,89,94,91,97,102,104,108,112,115],
+  [108,105,99,94,91,84,78,82,75,68,63,59,65,61,55,51,54,59,62,68,65,71,77,73,81,84,90,93,97,103,107,111]
+ ];
+ function px(x,y,w,h,color){c.fillStyle=color;c.fillRect(x|0,y|0,w|0,h|0)}
+ for(let v=0;v<2;v++){
+  const ox=v*256,p=palettes[v],ridge=ridges[v];
+  for(let col=0;col<32;col++){
+   const top=ridge[col],base=147-Math.floor(Math.abs(col-15)*.28);
+   for(let y=top;y<base;y+=4){
+    const layer=Math.floor((y-top)/4);
+    const light=Math.max(0,Math.min(4,4-Math.floor((y-top)/18)+
+     (hash(col,layer,v+720)>.7?1:0)));
+    px(ox+col*8,y,8,Math.min(4,base-y),p[light]);
+    if(hash(col,layer,v+728)>.71)px(ox+col*8+2,y+2,4,1,p[Math.max(0,light-2)]);
+   }
+   px(ox+col*8,top,8,2,p[4]);
+   if(col%5===v+1)px(ox+col*8+3,top+5,2,12,p[0]);
+  }
+  // Independently fractured horizontal ledges and vertical joints.
+  const ledges=v===0?[[16,103,46],[73,92,61],[148,111,53],[208,120,31]]:
+   [[9,123,57],[80,100,48],[140,88,63],[213,114,29]];
+  for(const [x,y,w] of ledges){
+   px(ox+x,y,w,3,p[1]);px(ox+x+4,y-2,w-9,2,p[4]);
+   px(ox+x+8,y+4,2,9,p[0]);
+  }
+  for(let k=0;k<29;k++){
+   const x=8+Math.floor(hash(k,v,730)*238),col=Math.floor(x/8);
+   const y=ridge[col]+9+Math.floor(hash(v,k,731)*30);
+   px(ox+x,y,2,8+Math.floor(hash(k,v,732)*17),p[0]);
+   if(k%3===0)px(ox+x+2,y+9,7,2,p[1]);
+  }
+  // Moss ledges and rooted fern clusters remain visibly part of stone.
+  for(let k=0;k<120;k++){
+   const x=3+Math.floor(hash(k,v,740)*249),col=Math.floor(x/8);
+   const y=ridge[col]+Math.floor(hash(v,k,741)*19);
+   px(ox+x,y,2+k%3,1+k%2,k%4===0?p[6]:p[5]);
+  }
+  const roots=v===0?[[27,87],[112,60],[188,80],[234,103]]:
+   [[22,104],[98,76],[169,58],[224,98]];
+  for(const [x,y] of roots){
+   px(ox+x,y,3,20,p[5]);
+   for(let n=0;n<7;n++){
+    const yy=y+3+n*3,reach=12-Math.abs(n-3)*2;
+    px(ox+x-reach,yy,reach,2,n%2?p[6]:p[5]);
+    px(ox+x+3,yy-2,reach+2,2,n%3?p[5]:p[6]);
+   }
+  }
+ }
+ return sheet
+}
+
 function makeFallsGeology(){
  if(typeof document==="undefined")return null;
  const canvas=document.createElement("canvas");
@@ -363,7 +428,7 @@ function loadPainted(){
      counts[Math.floor((i/4)%canvas.width/PAINTED_SIZE)]++;
     if(counts.some(n=>n<1400))throw Error("Blank source cell: "+counts.join(","));
    }
-   painted=canvas;fallsGeology=makeFallsGeology();fallsCanopies=makeFallsCanopies();fallsBankStudies=makeFallsBankStudies();paintedError=null;return true
+   painted=canvas;fallsGeology=makeFallsGeology();fallsEscarpments=makeFallsEscarpments();fallsCanopies=makeFallsCanopies();fallsBankStudies=makeFallsBankStudies();paintedError=null;return true
   }catch(err){
    paintedError="Greenwood painted atlas rejected: "+String(err);
    console.warn(paintedError);return false
@@ -2429,7 +2494,10 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     // the two largest rock shoulders; original R18 art remains elsewhere.
     const useGeology=cell===3&&fallsGeology&&
       ((bank.side<0&&(i===0||i===4))||(bank.side>0&&(i===0||i===5)));
-    if(useGeology)ctx.drawImage(fallsGeology,
+    if(useGeology&&fallsEscarpments)ctx.drawImage(fallsEscarpments,
+     (bank.side<0?0:256),0,256,160,
+     Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
+    else if(useGeology)ctx.drawImage(fallsGeology,
      (bank.side<0?0:128),0,128,128,
      Math.round(-w*.5),Math.round(-h*.82),Math.round(w),Math.round(h));
     else if(cell<2&&fallsCanopies){
