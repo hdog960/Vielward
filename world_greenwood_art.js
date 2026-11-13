@@ -2383,6 +2383,10 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
     // accepted 24px dry-ground cells. A crop can now grow naturally up to
     // the real bank without erasing paths or inventing physical geometry.
     // The mask is world-aligned, so streamed camera chunks never shift it.
+    // R71: allow source-approved adjoining Greenwood forest as well as Falls
+    // for the upper woodland crowns. The previous Falls-only region test
+    // silently clipped most of the broad R70 skyline at the biome seam;
+    // water, road, obstacle and blocked-footprint checks still apply.
     const step=24;
     const x0=Math.floor(left/step)*step,y0=Math.floor(top/step)*step;
     let accepted=0;
@@ -2397,7 +2401,7 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
        for(const fx of [.15,.5,.85]){
         const px=cellLeft+(cellRight-cellLeft)*fx;
         const py=cellTop+(cellBottom-cellTop)*fy;
-        if(footprint.regionAt(px,py)?.id!=="greenwood_falls"||
+        if(!["greenwood_falls","greenwood"].includes(footprint.regionAt(px,py)?.id)||
            !footprint.onLand(px,py)||
            geometry.waterAt(px,py,9)||
            geometry.nearRoad(px,py,()=>true,24)||
