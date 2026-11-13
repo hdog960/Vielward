@@ -208,6 +208,68 @@ function makeFallsForestWalls(){
  return sheet
 }
 
+/* R82: a continuous, independently authored lower-bank companion to the
+ * rooted forest escarpments. The transparent 2-panel pixel atlas is decorative
+ * only; every destination cell must pass the native world clearance gate. */
+let fallsLowerBanks=null;
+function makeFallsLowerBanks(){
+ if(typeof document==="undefined")return null;
+ const canvas=document.createElement("canvas");canvas.width=768;canvas.height=160;
+ const c=canvas.getContext("2d");if(!c)return null;
+ c.imageSmoothingEnabled=false;
+ const palettes=[
+  {stone:["#243c3c","#39544e","#587167","#839080","#b4b7a0"],moss:["#294a3c","#426c4d","#6f9163","#a5b382"]},
+  {stone:["#2b4045","#445b5b","#687d76","#94a08e","#c2bea5"],moss:["#315044","#52755a","#839b70","#b3bf91"]}
+ ];
+ function px(x,y,w,h,color){c.fillStyle=color;c.fillRect(x|0,y|0,w|0,h|0)}
+ for(let side=0;side<2;side++){
+  const ox=side*384,p=palettes[side];
+  // The shore slopes in opposite directions, with deliberately different
+  // shelves, erosion gullies and stone sizes rather than a mirrored stamp.
+  const heights=side===0?
+   [47,43,40,38,45,53,61,66,70,73,78,82,88,95,101,105,109,112,116,118,122,126,130,132]:
+   [134,131,128,125,121,116,112,106,100,96,91,87,81,75,69,65,62,59,54,48,43,39,42,46];
+  for(let i=0;i<24;i++){
+   const x=ox+i*16,top=heights[i],base=151-(i%5===0?5:0);
+   for(let y=top;y<base;y+=4){
+    const seam=Math.floor((y-top)/13);
+    const shade=Math.min(4,Math.max(0,3-Math.floor(seam/2)+(hash(i,y,1401+side)>.7?1:0)));
+    px(x,y,16,Math.min(4,base-y),p.stone[shade]);
+    if(hash(i,y,1402+side)>.56)px(x+2+(i%3)*3,y+2,5,1,p.stone[Math.max(0,shade-1)]);
+   }
+   px(x,top,16,3,p.stone[4]);
+   if(i%4===side)px(x+11,top+9,2,17+(i%3)*7,p.stone[0]);
+  }
+  const ledges=side===0?[[17,62,78],[113,93,86],[236,119,119]]:
+   [[19,120,104],[143,86,92],[271,54,87]];
+  for(const [x,y,w] of ledges){
+   px(ox+x,y,w,5,p.stone[1]);px(ox+x+4,y-3,w-12,3,p.stone[4]);
+   for(let k=0;k<19;k++){
+    const sx=x+Math.floor(hash(k,x,1410+side)*w);
+    const sy=y-4-Math.floor(hash(k,y,1411+side)*10);
+    px(ox+sx,sy,2+(k%3),3,p.moss[k%4]);
+   }
+  }
+  // Exposed roots, lichen streaks and isolated angular boulders form a
+  // readable transition between canopy rock and the native shoreline.
+  const roots=side===0?[[62,48,83],[171,88,52],[291,119,36]]:
+   [[68,124,44],[201,78,76],[320,43,89]];
+  for(const [x,y,len] of roots){
+   for(let j=0;j<len;j+=4){
+    px(ox+x+Math.round(j*.28)*(side? -1:1),y+j,3,4,j%12===0?"#967b5c":"#594a3d");
+    if(j%16===0)px(ox+x+Math.round(j*.28)*(side?-1:1)+4,y+j+2,6,2,p.moss[1]);
+   }
+  }
+  for(let k=0;k<48;k++){
+   const x=Math.floor(hash(k,side,1421)*378),col=Math.floor(x/16);
+   const y=heights[col]+8+Math.floor(hash(side,k,1422)*30);
+   if(y>145)continue;
+   px(ox+x,y,2+(k%4),2,p.moss[k%4]);
+  }
+ }
+ return canvas;
+}
+
 function makeFallsGorgeWalls(){
  if(typeof document==="undefined")return null;
  const canvas=document.createElement("canvas");canvas.width=768;canvas.height=224;
@@ -565,7 +627,7 @@ function loadPainted(){
      counts[Math.floor((i/4)%canvas.width/PAINTED_SIZE)]++;
     if(counts.some(n=>n<1400))throw Error("Blank source cell: "+counts.join(","));
    }
-   painted=canvas;fallsGeology=makeFallsGeology();fallsEscarpments=makeFallsEscarpments();fallsGorgeWalls=makeFallsForestWalls()||makeFallsGorgeWalls();fallsCanopies=makeFallsCanopies();fallsBankStudies=makeFallsBankStudies();paintedError=null;return true
+   painted=canvas;fallsGeology=makeFallsGeology();fallsEscarpments=makeFallsEscarpments();fallsGorgeWalls=makeFallsForestWalls()||makeFallsGorgeWalls();fallsLowerBanks=makeFallsLowerBanks();fallsCanopies=makeFallsCanopies();fallsBankStudies=makeFallsBankStudies();paintedError=null;return true
   }catch(err){
    paintedError="Greenwood painted atlas rejected: "+String(err);
    console.warn(paintedError);return false
@@ -2468,6 +2530,34 @@ const profile=(Math.floor(o.segment*1.618)+Math.floor(o.step/11)*2+(o.side>0?3:0
      shown++;
     }
     ctx.restore();if(shown)paintedRock++
+   }
+  }
+  // R82: connected lower talus/lichen banks extend the existing forest
+  // walls down toward the real river. Source cells remain unique to their
+  // panel; no tile repeats, physical land changes or invented crossings.
+  if(fallsLowerBanks&&ctx.drawImage){
+   const banks=[
+    {x:-417,y:-94,w:348,h:116,cell:0},
+    {x:409,y:-105,w:348,h:116,cell:1}
+   ];
+   for(const b of banks){
+    const left=cx+b.x-b.w/2,top=cy+b.y-b.h*.92;
+    const cols=24,rows=10,dw=b.w/cols,dh=b.h/rows;
+    ctx.save();ctx.globalAlpha=.94;ctx.imageSmoothingEnabled=false;
+    for(let iy=0;iy<rows;iy++)for(let ix=0;ix<cols;ix++){
+     const x=left+ix*dw,y=top+iy*dh;
+     if(![[.1,.1],[.9,.1],[.5,.5],[.1,.9],[.9,.9]].every(([u,v])=>{
+      const sx=x+u*dw,sy=y+v*dh;
+      return footprint.regionAt(sx,sy)?.id==="greenwood_falls"&&
+       !geometry.waterAt(sx,sy,10)&&
+       !geometry.nearRoad(sx,sy,()=>true,24)&&
+       !geometry.obstacle(sx,sy,10)&&
+       !footprint.blocked?.(sx,sy,10);
+     }))continue;
+     ctx.drawImage(fallsLowerBanks,b.cell*384+ix*16,iy*16,16,16,
+      Math.round(x),Math.round(y),Math.ceil(dw)+.15,Math.ceil(dh)+.15);
+    }
+    ctx.restore();
    }
   }
   // R44: join the two isolated lookout flanks into grounded, irregular
