@@ -113,7 +113,7 @@ for(const asset of ["world_review.js?v=4","world_routes.js?v=27","world_climate.
 // Cache revision labels may prepend a new art pass before the stable build marker.
 // Validate the real build identity and current forest-seam revision without
 // requiring the legacy escarpment substring to be adjacent to the prefix.
-ok(contents.worker.includes('veilward-r72-pixel-escarpment-')&&
+ok(contents.worker.includes('veilward-r75-connected-gorge-gallery-')&&
    contents.worker.includes('hollowreach-v1336-greenwood-escarpment-r35'),
    "current R71 mobile cache version preserves build identity");
 console.log("Veilward Phase 4 PASS:",assertions,"combat assertions, enemy spawn checks and PWA/asset integrity");
