@@ -515,6 +515,64 @@ function load(){
  }
  atlas=canvas;return atlas
 }
+// R74: three independent, original old-growth crown paintings, composed
+// as transparent pixel clusters rather than repeated stretched R18 stamps.
+// Each sprite has a different irregular silhouette, branch structure and
+// light-facing crown masses. Existing physical grove roots remain authoritative.
+let fallsCrownAtlas=null;
+function loadFallsCrowns(){
+ if(fallsCrownAtlas)return fallsCrownAtlas;
+ if(typeof document==="undefined"||!document.createElement)return null;
+ const canvas=document.createElement("canvas");
+ canvas.width=384*3;canvas.height=320;
+ const c=canvas.getContext("2d");if(!c)return null;
+ c.imageSmoothingEnabled=false;
+ const palettes=[
+  ["#182e2a","#25483b","#37624a","#547c52","#78965c","#a3ad74"],
+  ["#162d2c","#25453d","#386353","#537a62","#83a07c","#b4bf8e"],
+  ["#1d3029","#334b38","#536b44","#778854","#9da66b","#c3b781"]
+ ];
+ for(let v=0;v<3;v++){
+  const p=palettes[v],ox=v*384,seed=31+v*67;
+  const rand=(i,j,k=0)=>hash(seed+i*37,j*71,k+v*17);
+  // Differing canopy outlines: leaning oak, tiered evergreen, split oak.
+  const lobes=v===0?
+   [[125,172,88,59],[214,125,102,73],[286,181,72,54],[175,211,126,65]]:
+   v===1?[[179,64,49,43],[161,118,77,54],[216,161,90,58],
+    [145,202,109,62],[218,233,102,48]]:
+   [[113,139,83,64],[255,135,88,67],[187,196,123,68],[169,92,67,52]];
+  // Roots and branch arms remain visible between clusters.
+  c.fillStyle="#27372f";c.fillRect(ox+174,183,22,126);
+  c.fillStyle="#4d5945";c.fillRect(ox+181,194,6,112);
+  for(const [lx,ly,rx,ry] of lobes){
+   for(let y=Math.floor(ly-ry);y<=ly+ry;y+=5){
+    for(let x=Math.floor(lx-rx);x<=lx+rx;x+=5){
+     const nx=(x-lx)/rx,ny=(y-ly)/ry;
+     const rough=(rand(x,y,1)-.5)*.20+
+      Math.sin(x*.075+seed)*.055;
+     if(nx*nx+ny*ny>1+rough)continue;
+     const light=(1-ny)*.32+(1-nx)*.14+rand(x,y,3)*.34;
+     const idx=Math.min(5,Math.max(0,Math.floor(light*6)));
+     c.fillStyle=p[idx];
+     c.fillRect(ox+x, y, 5+(rand(x,y,5)>.7?3:0),5);
+     if(rand(x,y,7)>.91){
+      c.fillStyle=p[Math.min(5,idx+1)];
+      c.fillRect(ox+x+1,y+1,3,2);
+     }
+    }
+   }
+  }
+  // Individual hanging foliage edges interrupt the rounded crown masses.
+  for(let i=0;i<110;i++){
+   const l=lobes[Math.floor(rand(i,1)*lobes.length)];
+   const x=l[0]+(rand(i,2)-.5)*l[2]*1.75;
+   const y=l[1]+l[3]*(.36+rand(i,3)*.68);
+   c.fillStyle=p[Math.floor(rand(i,4)*3)];
+   c.fillRect(ox+Math.round(x/4)*4,Math.round(y/4)*4,4,7+Math.floor(rand(i,5)*3)*4);
+  }
+ }
+ fallsCrownAtlas=canvas;return canvas
+}
 function create({footprint,geometry,model}={}){
  if(!footprint||!geometry)throw Error("Greenwood art requires physical source geometry");
  loadPainted();
@@ -567,6 +625,17 @@ function create({footprint,geometry,model}={}){
    const elder=o.authoredGrove?(o.kind==="oak"?1.20:1.08):1;
    const w=r*(o.kind==="oak"?5.4:4.6)*elder,
     h=r*(o.kind==="oak"?7.0:7.6)*elder;
+   if(o.authoredFallsGrove&&footprint.regionAt(o.x,o.y)?.id==="greenwood_falls"){
+    const crowns=loadFallsCrowns();
+    if(crowns){
+     const variant=((Math.floor((o.variant||0)*997)+
+      (o.kind==="pine"?1:0))%3+3)%3;
+     ctx.save();ctx.imageSmoothingEnabled=false;
+     ctx.drawImage(crowns,variant*384,0,384,320,
+      Math.round(o.x-w*.5),Math.round(o.y-h),Math.round(w),Math.round(h));
+     ctx.restore();return true
+    }
+   }
    return stamp(ctx,o.kind,o.x,o.y,w,h,n)
   }
   if(o.kind==="boulder"){
